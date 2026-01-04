@@ -11,7 +11,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -42,18 +41,15 @@ public abstract class ServerPlayerMixin extends Player {
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$attack(Entity target, CallbackInfo ci) {
         if (RuleManager.isAttackBlocked(this.getMainHandItem())) {
-            if (ModConfig.get().showRemovalMessage) {
-                this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
-            }
+            this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
             ci.cancel();
         }
     }
 
-    @Override
-    public void swing(@NotNull InteractionHand hand) {
-        if (RuleManager.isAttackBlocked(this.getItemInHand(hand))) {
-            return;
+    @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$cancelSwing(InteractionHand hand, CallbackInfo ci) {
+        if (RuleManager.isAttackBlocked(this.getMainHandItem())) {
+            ci.cancel();
         }
-        super.swing(hand);
     }
 }
