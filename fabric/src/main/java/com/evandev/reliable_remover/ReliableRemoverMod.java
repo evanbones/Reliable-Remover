@@ -9,10 +9,11 @@ public class ReliableRemoverMod implements ModInitializer {
     @Override
     public void onInitialize() {
         CommonClass.init();
-    }
 
-    ServerLifecycleEvents.SERVER_STARTING.register(server -> RuleManager.load());
-    ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-        if (success) RuleManager.load();
-    });
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> RuleManager.load());
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
+            if (success) RuleManager.load();
+        });
+    }
 }

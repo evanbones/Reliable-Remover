@@ -1,6 +1,9 @@
 package com.evandev.reliable_remover.data;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -12,8 +15,7 @@ public class RemovalRule {
     public enum Action {
         REMOVE,
         REMOVE_ATTACKS,
-        REMOVE_INTERACTIONS,
-        REMOVE_NBT
+        REMOVE_INTERACTIONS
     }
 
     public static class Filter {
@@ -27,31 +29,37 @@ public class RemovalRule {
         private transient Pattern compiledNbtPattern;
 
         public boolean matches(String itemId) {
-            if (not != null && not.matches(itemId)) return false;
             if (nbt != null) return false;
-            return matchesIdLogic(itemId);
+            return matchesLogic(itemId);
         }
 
         public boolean matches(ItemStack stack, String itemId) {
-            if (not != null && not.matches(stack, itemId)) return false;
-
-            if (!matchesIdLogic(itemId)) return false;
+            if (!matchesLogic(itemId)) return false;
 
             if (nbt != null) {
-                if (!stack.hasTag()) return false;
+                if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
+
+                CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+                if (data == null) return false;
+
                 if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);
-                return compiledNbtPattern.matcher(stack.getTag().toString()).matches();
+
+                return compiledNbtPattern.matcher(data.toString()).matches();
             }
 
             return true;
         }
 
-        private boolean matchesIdLogic(String itemId) {
+        private boolean matchesLogic(String itemId) {
+            if (not != null && not.matchesLogic(itemId)) return false;
+
             if (mod != null) {
                 String itemMod = itemId.split(":")[0];
                 if (!itemMod.equals(mod)) return false;
             }
+
             if (items != null && items.contains(itemId)) return true;
+
             if (pattern != null) {
                 if (compiledPattern == null) {
                     String p = pattern.startsWith("/") && pattern.endsWith("/")
@@ -61,7 +69,8 @@ public class RemovalRule {
                 }
                 return compiledPattern.matcher(itemId).matches();
             }
-            return false;
+
+            return mod != null && items.isEmpty() && pattern == null;
         }
     }
 }

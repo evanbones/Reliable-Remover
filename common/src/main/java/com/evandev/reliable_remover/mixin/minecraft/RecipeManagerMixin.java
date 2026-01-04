@@ -33,8 +33,14 @@ public class RecipeManagerMixin {
                         resultItem = result.getAsString();
                     }
                 }
+
                 else if (json.has("output")) {
-                    resultItem = json.get("output").getAsString();
+                    JsonElement output = json.get("output");
+                    if (output.isJsonObject() && output.getAsJsonObject().has("item")) {
+                        resultItem = output.getAsJsonObject().get("item").getAsString();
+                    } else if (output.isJsonPrimitive()) {
+                        resultItem = output.getAsString();
+                    }
                 }
 
                 if (resultItem != null && RuleManager.isHidden(resultItem)) {

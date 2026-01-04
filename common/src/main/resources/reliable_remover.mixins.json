@@ -5,9 +5,12 @@
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "minecraft.CreativeModeTabMixin",
+    "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.RecipeManagerMixin",
+    "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],
   "client": [],
