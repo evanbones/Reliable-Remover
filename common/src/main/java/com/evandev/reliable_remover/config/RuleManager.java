@@ -96,11 +96,13 @@ public class RuleManager {
     }
 
     public static boolean isAttackBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS) || isHidden(stack);
     }
 
     public static boolean isInteractionBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS) || isHidden(stack);
     }
