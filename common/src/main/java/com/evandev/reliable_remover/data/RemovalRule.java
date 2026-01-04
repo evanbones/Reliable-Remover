@@ -1,9 +1,8 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -43,9 +42,9 @@ public class RemovalRule {
             if (!matchesLogic(itemId)) return false;
 
             if (nbt != null) {
-                if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
+                if (!stack.hasTag()) return false;
 
-                CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+                CompoundTag data = stack.getTag();
                 if (data == null) return false;
 
                 if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);

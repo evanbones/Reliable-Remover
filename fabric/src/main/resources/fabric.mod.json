@@ -8,8 +8,8 @@
         "${mod_author}"
     ],
     "contact": {
-        "homepage": "https://github.com/evanbones/Reliable-Remover",
-        "sources": "https://github.com/evanbones/Reliable-Remover"
+        "homepage": "https://github.com/evanbones/Reliable-Recipes",
+        "sources": "https://github.com/evanbones/Reliable-Recipes"
     },
     "license": "${license}",
     "icon": "${mod_id}.png",
@@ -34,11 +34,12 @@
     ],
     "depends": {
         "fabricloader": ">=0.14",
-        "fabric-api": "*",
+        "fabric": "*",
         "minecraft": "${minecraft_version}",
-        "java": ">=21"
+        "java": ">=17"
     },
     "suggests": {
         "emi": "*"
     }
 }
+  
