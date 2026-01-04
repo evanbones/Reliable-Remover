@@ -9,7 +9,6 @@
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.MerchantMenuMixin",
-    "minecraft.RecipeManagerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],

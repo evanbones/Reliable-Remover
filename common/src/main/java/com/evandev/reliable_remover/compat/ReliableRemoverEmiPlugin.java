@@ -14,6 +14,5 @@ public class ReliableRemoverEmiPlugin implements EmiPlugin {
                 registry.removeEmiStacks(EmiStack.of(item));
             }
         });
-
     }
 }

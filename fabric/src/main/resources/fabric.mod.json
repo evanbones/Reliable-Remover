@@ -23,6 +23,9 @@
         ],
         "modmenu": [
             "com.evandev.reliable_remover.compat.ModMenuIntegration"
+        ],
+        "emi": [
+            "com.evandev.reliable_remover.compat.ReliableRemoverEmiPlugin"
         ]
     },
     "mixins": [
@@ -39,4 +42,3 @@
         "emi": "*"
     }
 }
-  

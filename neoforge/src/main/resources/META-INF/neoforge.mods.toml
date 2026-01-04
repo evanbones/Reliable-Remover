@@ -1,7 +1,7 @@
 modLoader = "javafml"
 loaderVersion = "${neoforge_loader_version_range}"
 license = "${license}"
-issueTrackerURL="https://github.com/evanbones/Reliable-Recipes/issues"
+issueTrackerURL="https://github.com/evanbones/Reliable-Remover/issues"
 
 [[mods]]
 modId = "${mod_id}"

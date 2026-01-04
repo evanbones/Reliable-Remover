@@ -1,19 +1,26 @@
 package com.evandev.reliable_remover;
 
+import com.evandev.reliable_remover.config.ReloadListener;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 
 public class ReliableRemoverMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        CommonClass.init();
+        RuleManager.load();
 
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> RuleManager.load());
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricReloadListener());
+    }
 
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> {
-            if (success) RuleManager.load();
-        });
+    private static class FabricReloadListener extends ReloadListener implements IdentifiableResourceReloadListener {
+        @Override
+        public ResourceLocation getFabricId() {
+            return ResourceLocation.fromNamespaceAndPath("reliable_remover", "reload_listener");
+        }
     }
 }

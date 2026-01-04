@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.data;
 
+import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -13,8 +14,13 @@ public class RemovalRule {
     public Filter filter;
 
     public enum Action {
+        @SerializedName(value = "REMOVE", alternate = {"remove", "Remove"})
         REMOVE,
+
+        @SerializedName(value = "REMOVE_ATTACKS", alternate = {"remove_attacks", "Remove_Attacks"})
         REMOVE_ATTACKS,
+
+        @SerializedName(value = "REMOVE_INTERACTIONS", alternate = {"remove_interactions", "Remove_Interactions"})
         REMOVE_INTERACTIONS
     }
 
@@ -54,8 +60,8 @@ public class RemovalRule {
             if (not != null && not.matchesLogic(itemId)) return false;
 
             if (mod != null) {
-                String itemMod = itemId.split(":")[0];
-                if (!itemMod.equals(mod)) return false;
+                String[] split = itemId.split(":");
+                if (split.length < 2 || !split[0].equals(mod)) return false;
             }
 
             if (items != null && items.contains(itemId)) return true;
@@ -70,7 +76,7 @@ public class RemovalRule {
                 return compiledPattern.matcher(itemId).matches();
             }
 
-            return mod != null && items.isEmpty() && pattern == null;
+            return mod != null && (items == null || items.isEmpty());
         }
     }
 }

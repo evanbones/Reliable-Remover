@@ -18,5 +18,4 @@ public class ItemStackMixin {
             cir.setReturnValue(InteractionResult.FAIL);
         }
     }
-
 }

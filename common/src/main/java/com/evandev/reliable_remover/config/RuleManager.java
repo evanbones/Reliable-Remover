@@ -4,6 +4,7 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,16 +18,18 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class RuleManager {
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = new GsonBuilder().setLenient().create();
     private static final List<RemovalRule> RULES = new ArrayList<>();
 
     public static void load() {
         RULES.clear();
         Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
+
         if (!Files.exists(configDir)) {
             try { Files.createDirectories(configDir); } catch (Exception ignored) {}
             return;
         }
+
         try (Stream<Path> paths = Files.walk(configDir)) {
             paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".json"))
@@ -46,12 +49,12 @@ public class RuleManager {
                 RULES.add(GSON.fromJson(json, RemovalRule.class));
             }
         } catch (Exception e) {
-            Constants.LOG.error("Error parsing file: " + path, e);
+            Constants.LOG.error("Error parsing file: {}", path, e);
         }
     }
 
     public static boolean isHidden(ItemStack stack) {
-        if (stack.isEmpty()) return false;
+        if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         return checkRules(stack, id, RemovalRule.Action.REMOVE);
     }
@@ -73,10 +76,12 @@ public class RuleManager {
     private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action) {
         for (RemovalRule rule : RULES) {
             if (rule.action == action) {
-                if (stack != null) {
-                    if (rule.filter.matches(stack, itemId)) return true;
-                } else {
-                    if (rule.filter.matches(itemId)) return true;
+                if (rule.filter != null) {
+                    if (stack != null) {
+                        if (rule.filter.matches(stack, itemId)) return true;
+                    } else {
+                        if (rule.filter.matches(itemId)) return true;
+                    }
                 }
             }
         }
