@@ -1,8 +1,5 @@
 package com.evandev.reliable_remover.platform.services;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import java.nio.file.Path;
 
 public interface IPlatformHelper {
@@ -45,4 +42,9 @@ public interface IPlatformHelper {
      */
     Path getConfigDirectory();
 
+    /**
+     * Checks if the code is running on the physical client.
+     * @return True if on the client, false if on a dedicated server.
+     */
+    boolean isPhysicalClient();
 }

@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import java.io.FileReader;
@@ -15,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RuleManager {
@@ -26,7 +28,10 @@ public class RuleManager {
         Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
 
         if (!Files.exists(configDir)) {
-            try { Files.createDirectories(configDir); } catch (Exception ignored) {}
+            try {
+                Files.createDirectories(configDir);
+            } catch (Exception ignored) {
+            }
             return;
         }
 
@@ -38,6 +43,33 @@ public class RuleManager {
             Constants.LOG.error("Failed to load removal rules", e);
         }
         Constants.LOG.info("Loaded {} reliable remover rules.", RULES.size());
+        validateRules();
+        logRemovedItems();
+    }
+
+    private static void validateRules() {
+        for (RemovalRule rule : RULES) {
+            if (rule.filter != null && rule.filter.items != null) {
+                for (String itemId : rule.filter.items) {
+                    ResourceLocation id = ResourceLocation.tryParse(itemId);
+                    if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+                        Constants.LOG.warn("Reliable Remover: Rule contains invalid item ID '{}'. This item does not exist.", itemId);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void logRemovedItems() {
+        List<String> removedItems = BuiltInRegistries.ITEM.entrySet().stream()
+                .filter(entry -> isHidden(entry.getValue().getDefaultInstance()))
+                .map(entry -> entry.getKey().location().toString())
+                .collect(Collectors.toList());
+
+        if (!removedItems.isEmpty()) {
+            Constants.LOG.info("Reliable Remover: Removed {} items from the game.", removedItems.size());
+            Constants.LOG.debug("Removed items: {}", String.join(", ", removedItems));
+        }
     }
 
     private static void parseFile(Path path) {

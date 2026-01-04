@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.platform;
 
 import com.evandev.reliable_remover.platform.services.IPlatformHelper;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
@@ -29,4 +30,8 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
         return FMLPaths.CONFIGDIR.get();
     }
 
+    @Override
+    public boolean isPhysicalClient() {
+        return FMLLoader.getDist() == Dist.CLIENT;
+    }
 }
