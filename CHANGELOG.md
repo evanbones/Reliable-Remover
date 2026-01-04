@@ -1,3 +1,3 @@
-## Changelog - 1.0.1
+## Changelog - 1.0.3
 
-* Update mod icon.
+* Fixed EMI compat on Forge/NeoForge and added JEI compat.

@@ -21,6 +21,9 @@ dependencies {
     // EMI
     compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}"
 
+    // JEI
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+
     // Cloth Config
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
 
