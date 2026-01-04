@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -20,6 +21,8 @@ public abstract class CreativeModeTabMixin {
 
     @Inject(method = "buildContents", at = @At("RETURN"))
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
+        if (!ModConfig.get().removeItemsFromCreativeTabs) return;
+
         if (this.displayItems != null) {
             this.displayItems.removeIf(RuleManager::isHidden);
         }

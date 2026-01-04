@@ -16,6 +16,12 @@ public class ModConfig {
 
     private static ModConfig INSTANCE;
 
+    public boolean showRemovalMessage = true;
+    public boolean removeItemsFromCreativeTabs = true;
+    public boolean removeItemsFromEmi = true;
+    public boolean removeItemsFromInventories = true;
+    public boolean removeDroppedItems = true;
+
     public static ModConfig get() {
         if (INSTANCE == null) {
             load();

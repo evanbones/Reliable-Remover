@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -23,6 +24,8 @@ public abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void reliable_remover$tick(CallbackInfo ci) {
+        if (!ModConfig.get().removeDroppedItems) return;
+
         if (!this.level().isClientSide && this.tickCount % 20 == 0) {
             ItemStack stack = this.getItem();
             if (!stack.isEmpty() && RuleManager.isHidden(stack)) {
@@ -33,7 +36,7 @@ public abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void reliable_remover$checkLoad(net.minecraft.nbt.CompoundTag compound, CallbackInfo ci) {
-        if (RuleManager.isHidden(this.getItem())) {
+        if (ModConfig.get().removeDroppedItems && RuleManager.isHidden(this.getItem())) {
             this.discard();
         }
     }

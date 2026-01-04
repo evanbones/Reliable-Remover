@@ -13,12 +13,42 @@ public class ClothConfigIntegration {
 
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
-                .setTitle(Component.literal("Reliable Remover Config"));
+                .setTitle(Component.translatable("config.reliable_remover.title"));
 
         builder.setSavingRunnable(ModConfig::save);
 
-        ConfigCategory general = builder.getOrCreateCategory(Component.literal("General"));
+        ConfigCategory general = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.general"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.show_removal_message"), config.showRemovalMessage)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.show_removal_message.tooltip"))
+                .setSaveConsumer(newValue -> config.showRemovalMessage = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_creative_tab_items"), config.removeItemsFromCreativeTabs)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_creative_tab_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromCreativeTabs = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_emi_items"), config.removeItemsFromEmi)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_emi_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromEmi = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_inventory_items"), config.removeItemsFromInventories)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_inventory_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromInventories = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_dropped_items"), config.removeDroppedItems)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_dropped_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeDroppedItems = newValue)
+                .build());
 
         return builder.build();
     }

@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
@@ -25,12 +26,14 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void reliable_remover$tick(CallbackInfo ci) {
-        if (this.tickCount % 20 == 0) {
+        if (ModConfig.get().removeItemsFromInventories && this.tickCount % 20 == 0) {
             for (int i = 0; i < this.getInventory().getContainerSize(); i++) {
                 ItemStack stack = this.getInventory().getItem(i);
                 if (!stack.isEmpty() && RuleManager.isHidden(stack)) {
                     stack.setCount(0);
-                    this.displayClientMessage(Component.literal("Unobtainable item removed from inventory."), true);
+                    if (ModConfig.get().showRemovalMessage) {
+                        this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
+                    }
                 }
             }
         }
@@ -39,7 +42,9 @@ public abstract class ServerPlayerMixin extends Player {
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$attack(Entity target, CallbackInfo ci) {
         if (RuleManager.isAttackBlocked(this.getMainHandItem())) {
-            this.displayClientMessage(Component.literal("Attacking with this item is disabled."), true);
+            if (ModConfig.get().showRemovalMessage) {
+                this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
+            }
             ci.cancel();
         }
     }
