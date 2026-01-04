@@ -1,6 +1,7 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev.legacyforge'
+    id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
 mixin {
@@ -60,4 +61,28 @@ jar {
     manifest.attributes([
             "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.forge.mixins.json"
     ])
+}
+
+curseforge {
+    apiKey = System.getenv("CURSEFORGE_TOKEN") ?: "0"
+    project {
+        id = "1420447"
+        releaseType = "release"
+        changelog = file('../CHANGELOG.md')
+        changelogType = 'markdown'
+
+        addGameVersion "1.20.1"
+        addGameVersion "Java 17"
+        addGameVersion "Forge"
+
+        mainArtifact(jar) {
+            displayName = "Reliable Remover Forge ${project.minecraft_version} - ${project.version}"
+        }
+
+        relations {
+            optionalDependency "reliable-recipes"
+            optionalDependency "emi"
+            optionalDependency "cloth-config"
+        }
+    }
 }
