@@ -53,7 +53,7 @@ dependencies {
     modImplementation "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 
     compileOnly project(":common")
-    annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
+    annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 }
 
 jar {

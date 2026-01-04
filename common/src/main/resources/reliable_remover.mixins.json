@@ -2,6 +2,7 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.evandev.reliable_remover.mixin",
+  "refmap": "${mod_id}.refmap.json",
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [

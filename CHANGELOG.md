@@ -1,3 +1,3 @@
-## Changelog - 1.0.1
+## Changelog - 1.0.2
 
-* Updated mod icon.
+* Fixed missing refmap crash.
