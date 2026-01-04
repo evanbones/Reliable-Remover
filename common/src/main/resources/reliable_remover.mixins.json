@@ -4,7 +4,10 @@
   "package": "com.evandev.reliable_remover.mixin",
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "minecraft.RecipeManagerMixin",
+    "minecraft.ServerPlayerMixin"
+  ],
   "client": [],
   "server": [],
   "injectors": {
