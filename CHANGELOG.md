@@ -1,3 +1,3 @@
-## Changelog - 1.0.2
+## Changelog - 1.0.3
 
-* Fixed missing refmap crash.
+* Fixed EMI compat on Forge/NeoForge and added JEI compat.

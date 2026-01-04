@@ -26,6 +26,9 @@
         ],
         "emi": [
             "com.evandev.reliable_remover.compat.ReliableRemoverEmiPlugin"
+        ],
+        "jei_mod_plugin": [
+            "com.evandev.reliable_remover.compat.ReliableRemoverJeiPlugin"
         ]
     },
     "mixins": [

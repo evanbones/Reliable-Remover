@@ -49,6 +49,10 @@ dependencies {
     // EMI
     modImplementation "dev.emi:emi-forge:${emi_version}"
 
+    // JEI
+    compileOnly "mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
+
     // Cloth Config
     modImplementation "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 
@@ -82,6 +86,7 @@ curseforge {
         relations {
             optionalDependency "reliable-recipes"
             optionalDependency "emi"
+            optionalDependency "jei"
             optionalDependency "cloth-config"
         }
     }
