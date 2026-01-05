@@ -2,23 +2,24 @@ package com.evandev.reliable_remover.compat;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import dev.emi.emi.api.EmiEntrypoint;
+import dev.emi.emi.api.EmiInitRegistry;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
-import dev.emi.emi.api.stack.EmiStack;
-import net.minecraft.core.registries.BuiltInRegistries;
 
+@EmiEntrypoint
 public class ReliableRemoverEmiPlugin implements EmiPlugin {
     @Override
-    public void register(EmiRegistry registry) {
+    public void initialize(EmiInitRegistry registry) {
         ModConfig.get();
         RuleManager.load();
 
         if (!ModConfig.get().removeItemsFromEmi) return;
 
-        BuiltInRegistries.ITEM.forEach(item -> {
-            if (RuleManager.isHidden(BuiltInRegistries.ITEM.getKey(item).toString())) {
-                registry.removeEmiStacks(EmiStack.of(item));
-            }
-        });
+        registry.disableStacks(emiStack -> RuleManager.isHidden(emiStack.getItemStack()));
+    }
+
+    @Override
+    public void register(EmiRegistry registry) {
     }
 }

@@ -13,13 +13,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Collection;
 import java.util.Set;
 
-@Mixin(CreativeModeTab.class)
+@Mixin(value = CreativeModeTab.class, priority = 10000)
 public abstract class CreativeModeTabMixin {
 
     @Shadow private Collection<ItemStack> displayItems;
     @Shadow private Set<ItemStack> displayItemsSearchTab;
 
-    @Inject(method = "buildContents", at = @At("RETURN"))
+    @Inject(method = "buildContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/CreativeModeTab;rebuildSearchTree()V"))
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 

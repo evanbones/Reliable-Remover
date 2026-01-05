@@ -1,3 +1,3 @@
-## Changelog - 1.0.3
+## Changelog - 1.0.5
 
-* Fixed EMI compat on Forge/NeoForge and added JEI compat.
+* Less brittle/mod compatible item removal.
