@@ -1,3 +1,3 @@
-## Changelog - 1.0.4
+## Changelog - 1.0.5
 
-* Fixed startup crash on Forge.
+* Less brittle/mod compatible item removal.
