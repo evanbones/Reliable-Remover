@@ -90,3 +90,7 @@ curseforge {
         }
     }
 }
+
+tasks.named('curseforge') {
+    dependsOn tasks.named('reobfJar')
+}

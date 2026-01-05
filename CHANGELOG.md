@@ -1,3 +1,3 @@
-## Changelog - 1.0.3
+## Changelog - 1.0.4
 
-* Fixed EMI compat on Forge/NeoForge and added JEI compat.
+* Fixed startup crash on Forge.
