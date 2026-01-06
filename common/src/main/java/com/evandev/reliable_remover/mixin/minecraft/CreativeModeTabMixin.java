@@ -4,6 +4,7 @@ import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackLinkedSet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,11 +17,11 @@ import java.util.Set;
 @Mixin(value = CreativeModeTab.class, priority = 10000)
 public abstract class CreativeModeTabMixin {
 
-    @Shadow private Collection<ItemStack> displayItems;
-    @Shadow private Set<ItemStack> displayItemsSearchTab;
+    @Shadow private Collection<ItemStack> displayItems = ItemStackLinkedSet.createTypeAndComponentsSet();
+    @Shadow private Set<ItemStack> displayItemsSearchTab = ItemStackLinkedSet.createTypeAndComponentsSet();
 
-    @Inject(method = "buildContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/CreativeModeTab;rebuildSearchTree()V"))
-    private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
+    @Inject(method = "buildContents", at = @At(value = "RETURN"))
+    private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters displayContext, CallbackInfo ci) {
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
         if (this.displayItems != null) {
