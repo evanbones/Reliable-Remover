@@ -56,7 +56,6 @@ publishMods {
     type = STABLE
     displayName = "${mod_name} Fabric ${minecraft_version} - ${version}"
     modLoaders.add("fabric")
-    dryRun = true
 
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")

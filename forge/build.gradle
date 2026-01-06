@@ -71,7 +71,6 @@ publishMods {
     type = STABLE
     displayName = "${mod_name} Forge ${minecraft_version} - ${version}"
     modLoaders.add("forge")
-    dryRun = true
 
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
