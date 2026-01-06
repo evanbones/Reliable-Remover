@@ -54,7 +54,6 @@ publishMods {
     type = STABLE
     displayName = "${mod_name} NeoForge ${minecraft_version} - ${project.version}"
     modLoaders.add("neoforge")
-    dryRun = true
 
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
