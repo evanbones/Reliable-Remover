@@ -1,7 +1,7 @@
 plugins {
     id 'multiloader-loader'
     id 'net.neoforged.moddev.legacyforge'
-    id "com.matthewprenger.cursegradle" version "1.4.0"
+    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 mixin {
@@ -44,8 +44,6 @@ legacyForge {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    compileOnly 'org.jetbrains:annotations:26.0.2-1'
-
     // EMI
     modImplementation "dev.emi:emi-forge:${emi_version}"
 
@@ -56,6 +54,7 @@ dependencies {
     modImplementation "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 
     compileOnly project(":common")
+    compileOnly 'org.jetbrains:annotations:26.0.2-1'
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
 }
 
@@ -66,31 +65,33 @@ jar {
     ])
 }
 
-curseforge {
-    apiKey = System.getenv("CURSEFORGE_TOKEN") ?: "0"
-    project {
-        id = "1420447"
-        releaseType = "release"
-        changelog = file('../CHANGELOG.md')
-        changelogType = 'markdown'
+publishMods {
+    file = tasks.named("reobfJar").flatMap { it.archiveFile }
+    changelog = rootProject.file("CHANGELOG.md").text
+    type = STABLE
+    displayName = "${mod_name} Forge ${minecraft_version} - ${version}"
+    modLoaders.add("forge")
+    dryRun = true
 
-        addGameVersion "1.20.1"
-        addGameVersion "Java 17"
-        addGameVersion "Forge"
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = "1420447"
+        minecraftVersions.add("1.20.1")
 
-        mainArtifact(file("build/libs/${project.archivesBaseName}-${project.version}.jar")) {
-            displayName = "Reliable Remover Forge ${project.minecraft_version} - ${project.version}"
-        }
-
-        relations {
-            optionalDependency "reliable-recipes"
-            optionalDependency "emi"
-            optionalDependency "jei"
-            optionalDependency "cloth-config"
-        }
+        optional { slug = "reliable-recipes" }
+        optional { slug = "emi" }
+        optional { slug = "jei" }
+        optional { slug = "cloth-config" }
     }
-}
 
-tasks.named('curseforge') {
-    dependsOn tasks.named('reobfJar')
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = "pLxsKvNt"
+        minecraftVersions.add("1.20.1")
+
+        optional { slug = "reliable-recipes" }
+        optional { slug = "emi" }
+        optional { slug = "jei" }
+        optional { slug = "cloth-config" }
+    }
 }

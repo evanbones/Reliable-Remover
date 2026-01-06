@@ -1,3 +1,5 @@
 ## Changelog - 1.0.5
 
-* Less brittle/mod compatible item removal.
+* Improved compatibility with EMI when used standalone.
+* Added support for using EMI with TooManyRecipeViewers. 
+* Backend cleanups.

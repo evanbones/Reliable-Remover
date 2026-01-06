@@ -6,6 +6,7 @@
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "emi.EmiStackListMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
