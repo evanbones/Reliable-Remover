@@ -10,6 +10,7 @@
     "minecraft.CreativeModeTabMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
+    "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"

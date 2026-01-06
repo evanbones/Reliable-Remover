@@ -1,3 +1,2 @@
-* Improved compatibility with EMI when used standalone.
-* Added support for using EMI with TooManyRecipeViewers. 
-* Backend cleanups.
+* Removes disabled items from loot tables.
+* Fixed crash when editing config without Cloth Config.

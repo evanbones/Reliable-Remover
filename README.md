@@ -4,11 +4,17 @@ A lightweight, developer-friendly utility designed for completely removing items
 
 ## Features
 
-* **Multi-loader Support:** Built for Fabric (1.20.1+), Forge (1.20.1), and NeoForge (1.21.1+) using a unified codebase.
-* **Complete Item Removal:** Automatically hides items from Creative Tabs and EMI, removes them from player inventories, and deletes them when dropped.
-* **Targeted Restrictions:** Disable only specific actions, such as attacking or interacting (right-clicking) with an item.
-* **Powerful Filtering:** Select items by ID, Mod ID, Regex patterns, or even NBT data.
-* **Configurable:** Global settings via Cloth Config to toggle messages, removal behavior, and more.
+* Built for Fabric (1.20.1+), Forge (1.20.1), and NeoForge (1.21.1+)
+
+* Disable only specific actions, such as attacking or interacting (right-clicking) with an item.
+* Remove items by ID, mod ID, regex patterns, or even NBT data.
+* Configure global settings via Cloth Config to toggle messages, removal behavior, and more.
+* Automatically hides items from:
+    * Creative mode tabs
+    * EMI/JEI
+    * Player inventories
+    * Villager trades
+    * Loot tables
 
 ## Usage
 

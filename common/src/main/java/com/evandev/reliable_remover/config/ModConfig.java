@@ -21,6 +21,7 @@ public class ModConfig {
     public boolean removeItemsFromEmi = true;
     public boolean removeItemsFromInventories = true;
     public boolean removeDroppedItems = true;
+    public boolean removeItemsFromLootChests = true;
 
     public static ModConfig get() {
         if (INSTANCE == null) {
