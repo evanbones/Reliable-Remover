@@ -28,7 +28,7 @@ public abstract class ServerPlayerMixin extends Player {
         if (ModConfig.get().removeItemsFromInventories && this.tickCount % 20 == 0) {
             for (int i = 0; i < this.getInventory().getContainerSize(); i++) {
                 ItemStack stack = this.getInventory().getItem(i);
-                if (!stack.isEmpty() && RuleManager.isHidden(stack)) {
+                if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
                     stack.setCount(0);
                     if (ModConfig.get().showRemovalMessage) {
                         this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
@@ -40,7 +40,7 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$attack(Entity target, CallbackInfo ci) {
-        if (RuleManager.isAttackBlocked(this.getMainHandItem())) {
+        if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level())) {
             this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
             ci.cancel();
         }
@@ -48,7 +48,7 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$cancelSwing(InteractionHand hand, CallbackInfo ci) {
-        if (RuleManager.isAttackBlocked(this.getMainHandItem())) {
+        if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level())) {
             ci.cancel();
         }
     }

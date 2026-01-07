@@ -5,10 +5,10 @@ A lightweight, developer-friendly utility designed for completely removing items
 ## Features
 
 * Built for Fabric (1.20.1+), Forge (1.20.1), and NeoForge (1.21.1+)
-
 * Disable only specific actions, such as attacking or interacting (right-clicking) with an item.
 * Remove items by ID, mod ID, regex patterns, or even NBT data.
 * Configure global settings via Cloth Config to toggle messages, removal behavior, and more.
+* Restrict items or interactions only in specific dimensions (e.g., make an item usable only in the Nether).
 * Automatically hides items from:
     * Creative mode tabs
     * EMI/JEI
@@ -20,6 +20,8 @@ A lightweight, developer-friendly utility designed for completely removing items
 
 The mod watches a specific folder in your instance for JSON files: `./config/reliable_remover/`.
 You can place as many JSON files as you like in this folder or in subfolders.
+
+If the folder is empty when the game starts, a `removal_example.json` file will be generated automatically to help you get started.
 
 ### Global Configuration
 
@@ -51,12 +53,13 @@ The `filter` object determines which items are affected by the rule.
 
 ### Basic Filters
 
-You can filter by simple strings or use sets of IDs.
+You can filter by simple strings, regex patterns, or context like dimensions.
 
 | Field | Description | Example |
 | --- | --- | --- |
 | `items` | A list of specific item IDs to match. | `["minecraft:tnt", "minecraft:lava_bucket"]` |
 | `mod` | The mod ID to target. Matches all items from that mod. | `"farmersdelight"` |
+| `dimensions` | A list of dimensions where this rule applies. | `["minecraft:the_nether", "minecraft:overworld"]` |
 | `pattern` | A Regex pattern to match item IDs. | `"/.*_sword/"` |
 | `nbt` | A Regex pattern to match NBT data strings. | `"{.*Enchantments.*}"` |
 
@@ -64,7 +67,9 @@ You can filter by simple strings or use sets of IDs.
 
 * **Logic:** Use `not` to invert conditions.
 
-**Example:** Remove all items from a specific mod, *except* for one item.
+**Example: Exception to a Rule**
+
+Remove all items from a specific mod, *except* for one safe item.
 
 ```json
 {
@@ -75,6 +80,24 @@ You can filter by simple strings or use sets of IDs.
       "items": [
         "examplemod:safe_item"
       ]
+    }
+  }
+}
+
+```
+
+**Example: Dimension Restriction (Whitelist)**
+
+Prevent an item from being used unless the player is in a specific dimension.
+This example disables Flint and Steel usage everywhere EXCEPT the Nether.
+
+```json
+{
+  "action": "remove_interactions",
+  "filter": {
+    "items": ["minecraft:flint_and_steel"],
+    "not": {
+      "dimensions": ["minecraft:the_nether"]
     }
   }
 }
@@ -94,6 +117,7 @@ By default, this will:
 2. Remove the item from EMI/Recipe Viewers.
 3. Delete the item if found in a player's inventory.
 4. Delete the item if it is dropped in the world.
+5. Remove the item from loot tables.
 
 **Example:** Remove TNT and Bedrock.
 
@@ -114,7 +138,7 @@ By default, this will:
 
 Prevents the player from "using" the item (Right-Click). This is useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand or tool).
 
-* **Effect**: Cancels `useItem` and `useOn` events.
+* **Effect**: Cancels `useItem` and `useOn` events (right-clicking air or blocks).
 * **Message**: Displays "Item interactions are disabled" to the player (configurable).
 
 **Example:** Prevent players from using Lava Buckets.
