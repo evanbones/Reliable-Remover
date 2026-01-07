@@ -50,6 +50,12 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeDroppedItems = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_loot_items"), config.removeItemsFromLootChests)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_loot_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromLootChests = newValue)
+                .build());
+
         return builder.build();
     }
 }

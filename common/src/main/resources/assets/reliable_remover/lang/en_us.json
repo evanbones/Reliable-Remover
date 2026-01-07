@@ -11,6 +11,8 @@
   "config.reliable_remover.option.remove_inventory_items.tooltip": "Removes restricted items from player inventories.",
   "config.reliable_remover.option.remove_dropped_items": "Remove Dropped Items",
   "config.reliable_remover.option.remove_dropped_items.tooltip": "Instantly removes restricted items when they are dropped in the world.",
+  "config.reliable_remover.option.remove_loot_items": "Remove from Loot Chests",
+  "config.reliable_remover.option.remove_loot_items.tooltip": "Prevents restricted items from generating in loot chests.",
 
   "message.reliable_remover.item_removed": "Unobtainable item removed from inventory.",
   "message.reliable_remover.interaction_disabled": "Item interactions are disabled.",
