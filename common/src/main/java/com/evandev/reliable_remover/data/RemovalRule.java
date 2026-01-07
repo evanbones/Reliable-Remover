@@ -25,6 +25,7 @@ public class RemovalRule {
 
     public static class Filter {
         public Set<String> items = new HashSet<>();
+        public Set<String> dimensions = new HashSet<>();
         public String pattern;
         public String mod;
         public String nbt;
@@ -34,12 +35,16 @@ public class RemovalRule {
         private transient Pattern compiledNbtPattern;
 
         public boolean matches(String itemId) {
-            if (nbt != null) return false;
-            return matchesLogic(itemId);
+            return matches(itemId, null);
         }
 
-        public boolean matches(ItemStack stack, String itemId) {
-            if (!matchesLogic(itemId)) return false;
+        public boolean matches(String itemId, String dimension) {
+            if (nbt != null) return false;
+            return matchesLogic(itemId, dimension);
+        }
+
+        public boolean matches(ItemStack stack, String itemId, String dimension) {
+            if (!matchesLogic(itemId, dimension)) return false;
 
             if (nbt != null) {
                 if (!stack.hasTag()) return false;
@@ -55,12 +60,21 @@ public class RemovalRule {
             return true;
         }
 
-        private boolean matchesLogic(String itemId) {
-            if (not != null && not.matchesLogic(itemId)) return false;
+        private boolean matchesLogic(String itemId, String dimension) {
+            if (not != null && not.matchesLogic(itemId, dimension)) return false;
+
+            if (dimensions != null && !dimensions.isEmpty()) {
+                if (dimension == null) return false;
+                if (!dimensions.contains(dimension)) return false;
+            }
+
+            boolean hasItemFilter = (items != null && !items.isEmpty()) || pattern != null;
 
             if (mod != null) {
                 String[] split = itemId.split(":");
                 if (split.length < 2 || !split[0].equals(mod)) return false;
+
+                if (!hasItemFilter) return true;
             }
 
             if (items != null && items.contains(itemId)) return true;
@@ -72,10 +86,12 @@ public class RemovalRule {
                             : pattern;
                     compiledPattern = Pattern.compile(p);
                 }
-                return compiledPattern.matcher(itemId).matches();
+                if (compiledPattern.matcher(itemId).matches()) return true;
             }
 
-            return mod != null && (items == null || items.isEmpty());
+            if (hasItemFilter) return false;
+
+            return true;
         }
     }
 }
