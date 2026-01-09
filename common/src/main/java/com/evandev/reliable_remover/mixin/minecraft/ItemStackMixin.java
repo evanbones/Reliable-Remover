@@ -3,7 +3,9 @@ package com.evandev.reliable_remover.mixin.minecraft;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,9 +23,19 @@ public class ItemStackMixin {
 
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$blockUseOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel())) {
+        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel(), null)) {
             Player player = context.getPlayer();
             if (player != null && ModConfig.get().showRemovalMessage) {
+                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
+            }
+            cir.setReturnValue(InteractionResult.FAIL);
+        }
+    }
+
+    @Inject(method = "interactLivingEntity", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$entityInteraction(Player player, LivingEntity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, player.level(), entity)) {
+            if (ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
             cir.setReturnValue(InteractionResult.FAIL);
@@ -33,7 +45,7 @@ public class ItemStackMixin {
     @Inject(method = "getTooltipLines", at = @At("RETURN"))
     private void reliable_remover$addTooltip(Item.TooltipContext tooltipContext, Player player, TooltipFlag tooltipFlag, CallbackInfoReturnable<List<Component>> cir) {
         if (RuleManager.isHidden((ItemStack) (Object) this, player != null ? player.level() : null)) {
-            cir.getReturnValue().add(Component.literal("§4Unobtainable"));
+            cir.getReturnValue().add(Component.translatable("tooltip.reliable_remover.item_disabled"));
         }
     }
 }

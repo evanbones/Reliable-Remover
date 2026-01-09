@@ -27,6 +27,7 @@ public class RemovalRule {
     public static class Filter {
         public Set<String> items = new HashSet<>();
         public Set<String> dimensions = new HashSet<>();
+        public Set<String> entities = new HashSet<>();
         public String pattern;
         public String mod;
         public String nbt;
@@ -40,12 +41,16 @@ public class RemovalRule {
         }
 
         public boolean matches(String itemId, String dimension) {
-            if (nbt != null) return false;
-            return matchesLogic(itemId, dimension);
+            return matches(itemId, dimension, null);
         }
 
-        public boolean matches(ItemStack stack, String itemId, String dimension) {
-            if (!matchesLogic(itemId, dimension)) return false;
+        public boolean matches(String itemId, String dimension, String entityId) {
+            if (nbt != null) return false;
+            return matchesLogic(itemId, dimension, entityId);
+        }
+
+        public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
+            if (!matchesLogic(itemId, dimension, entityId)) return false;
 
             if (nbt != null) {
                 if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
@@ -61,12 +66,17 @@ public class RemovalRule {
             return true;
         }
 
-        private boolean matchesLogic(String itemId, String dimension) {
-            if (not != null && not.matchesLogic(itemId, dimension)) return false;
+        private boolean matchesLogic(String itemId, String dimension, String entityId) {
+            if (not != null && not.matchesLogic(itemId, dimension, entityId)) return false;
 
             if (dimensions != null && !dimensions.isEmpty()) {
                 if (dimension == null) return false;
                 if (!dimensions.contains(dimension)) return false;
+            }
+
+            if (entities != null && !entities.isEmpty()) {
+                if (entityId == null) return false;
+                if (!entities.contains(entityId)) return false;
             }
 
             boolean hasItemFilter = (items != null && !items.isEmpty()) || pattern != null;
@@ -90,9 +100,7 @@ public class RemovalRule {
                 if (compiledPattern.matcher(itemId).matches()) return true;
             }
 
-            if (hasItemFilter) return false;
-
-            return true;
+            return !hasItemFilter;
         }
     }
 }

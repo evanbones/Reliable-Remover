@@ -1,2 +1,1 @@
-* Add default config rule.
-* Per-dimension interaction blacklist.
+* Add ability to filter by entity for attacks and interactions.

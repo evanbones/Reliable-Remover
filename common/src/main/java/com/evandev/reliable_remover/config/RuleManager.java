@@ -9,6 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -60,17 +61,18 @@ public class RuleManager {
     }
 
     private static void generateDefaultConfig(Path configDir) {
-        String defaultJson = "[\n" +
-                "    {\n" +
-                "        \"action\": \"remove\",\n" +
-                "        \"filter\": {\n" +
-                "            \"items\": [\n" +
-                "                \"examplemod:item1\",\n" +
-                "                \"examplemod:item2\"\n" +
-                "            ]\n" +
-                "        }\n" +
-                "    }\n" +
-                "]";
+        String defaultJson = """
+                [
+                    {
+                        "action": "remove",
+                        "filter": {
+                            "items": [
+                                "examplemod:item1",
+                                "examplemod:item2"
+                            ]
+                        }
+                    }
+                ]""";
         try {
             Files.writeString(configDir.resolve("removal_example.json"), defaultJson);
         } catch (Exception e) {
@@ -124,43 +126,37 @@ public class RuleManager {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE, dim);
+        return checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null);
     }
 
     public static boolean isHidden(String itemId) {
-        return checkRules(null, itemId, RemovalRule.Action.REMOVE, null);
+        return checkRules(null, itemId, RemovalRule.Action.REMOVE, null, null);
     }
 
-    public static boolean isAttackBlocked(ItemStack stack) {
-        return isAttackBlocked(stack, null);
-    }
-
-    public static boolean isAttackBlocked(ItemStack stack, Level level) {
+    public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim) || isHidden(stack, level);
+        return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target) || isHidden(stack, level);
     }
 
-    public static boolean isInteractionBlocked(ItemStack stack) {
-        return isInteractionBlocked(stack, null);
-    }
-
-    public static boolean isInteractionBlocked(ItemStack stack, Level level) {
+    public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim) || isHidden(stack, level);
+        return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target) || isHidden(stack, level);
     }
 
-    private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action, String dimension) {
+    private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action, String dimension, Entity target) {
+        String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
+
         for (RemovalRule rule : RULES) {
             if (rule.action == action) {
                 if (rule.filter != null) {
                     if (stack != null) {
-                        if (rule.filter.matches(stack, itemId, dimension)) return true;
+                        if (rule.filter.matches(stack, itemId, dimension, entityId)) return true;
                     } else {
-                        if (rule.filter.matches(itemId, dimension)) return true;
+                        if (rule.filter.matches(itemId, dimension, entityId)) return true;
                     }
                 }
             }
