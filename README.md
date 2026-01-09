@@ -29,7 +29,7 @@ Global settings can be configured via the **Cloth Config** screen in-game or by 
 
 ### JSON Structure
 
-Each file can contain a single rule object or an array of rule objects.
+You can define a single rule or **multiple rules** in a single JSON file. To define multiple rules, simply wrap them in a JSON Array `[...]`.
 
 ```json
 [
@@ -53,13 +53,14 @@ The `filter` object determines which items are affected by the rule.
 
 ### Basic Filters
 
-You can filter by simple strings, regex patterns, or context like dimensions.
+You can filter by simple strings, regex patterns, or context like dimensions and entities.
 
 | Field | Description | Example |
 | --- | --- | --- |
 | `items` | A list of specific item IDs to match. | `["minecraft:tnt", "minecraft:lava_bucket"]` |
 | `mod` | The mod ID to target. Matches all items from that mod. | `"farmersdelight"` |
 | `dimensions` | A list of dimensions where this rule applies. | `["minecraft:the_nether", "minecraft:overworld"]` |
+| `entities` | A list of entity IDs to match. Works with `remove_attacks` and `remove_interactions`. | `["minecraft:villager", "minecraft:pig"]` |
 | `pattern` | A Regex pattern to match item IDs. | `"/.*_sword/"` |
 | `nbt` | A Regex pattern to match NBT data strings. | `"{.*Enchantments.*}"` |
 
@@ -104,6 +105,20 @@ This example disables Flint and Steel usage everywhere EXCEPT the Nether.
 
 ```
 
+**Example: Entity Protection**
+
+Prevent players from attacking Villagers with any item (requires `remove_attacks`).
+
+```json
+{
+  "action": "remove_attacks",
+  "filter": {
+    "entities": ["minecraft:villager"]
+  }
+}
+
+```
+
 ---
 
 ## 2. Removal Actions
@@ -138,7 +153,7 @@ By default, this will:
 
 Prevents the player from "using" the item (Right-Click). This is useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand or tool).
 
-* **Effect**: Cancels `useItem` and `useOn` events (right-clicking air or blocks).
+* **Effect**: Cancels `useItem`, `useOn`, and `interactLivingEntity` events.
 * **Message**: Displays "Item interactions are disabled" to the player (configurable).
 
 **Example:** Prevent players from using Lava Buckets.
@@ -148,6 +163,21 @@ Prevents the player from "using" the item (Right-Click). This is useful if you w
   "action": "remove_interactions",
   "filter": {
     "items": ["minecraft:lava_bucket"]
+  }
+}
+
+```
+
+**Example: Entity Interaction**
+
+Prevent players from using a Saddle on a Pig.
+
+```json
+{
+  "action": "remove_interactions",
+  "filter": {
+    "items": ["minecraft:saddle"],
+    "entities": ["minecraft:pig"]
   }
 }
 

@@ -19,7 +19,7 @@ public class ServerPlayerGameModeMixin {
 
     @Inject(method = "useItem", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$cancelUseItem(ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
-        if (RuleManager.isInteractionBlocked(stack, level)) {
+        if (RuleManager.isInteractionBlocked(stack, level, null)) {
             if (ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
