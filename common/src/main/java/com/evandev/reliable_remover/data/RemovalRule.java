@@ -28,7 +28,10 @@ public class RemovalRule {
         public Set<String> dimensions = new HashSet<>();
         public Set<String> entities = new HashSet<>();
         public String pattern;
-        public String mod;
+
+        @SerializedName(value = "mod", alternate = {"mods"})
+        public Set<String> mod = new HashSet<>();
+
         public String nbt;
         public Filter not;
 
@@ -79,10 +82,13 @@ public class RemovalRule {
             }
 
             boolean hasItemFilter = (items != null && !items.isEmpty()) || pattern != null;
+            boolean hasModFilter = (mod != null && !mod.isEmpty());
 
-            if (mod != null) {
+            if (!hasItemFilter && !hasModFilter) return false;
+
+            if (hasModFilter) {
                 String[] split = itemId.split(":");
-                if (split.length < 2 || !split[0].equals(mod)) return false;
+                if (split.length < 2 || !mod.contains(split[0])) return false;
 
                 if (!hasItemFilter) return true;
             }
@@ -96,10 +102,10 @@ public class RemovalRule {
                             : pattern;
                     compiledPattern = Pattern.compile(p);
                 }
-                if (compiledPattern.matcher(itemId).matches()) return true;
+                return compiledPattern.matcher(itemId).matches();
             }
 
-            return !hasItemFilter;
+            return false;
         }
     }
 }

@@ -1,1 +1,2 @@
-* Add ability to filter by entity for attacks and interactions.
+* Fix handling arrays of mod IDs.
+* Safer empty item filter handling.
