@@ -26,6 +26,9 @@
         ],
         "jei_mod_plugin": [
             "com.evandev.reliable_remover.compat.ReliableRemoverJeiPlugin"
+        ],
+        "rrv": [
+            "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
         ]
     },
     "mixins": [
@@ -35,10 +38,10 @@
     "depends": {
         "fabricloader": ">=0.14",
         "fabric-api": "*",
-        "minecraft": "${minecraft_version}",
-        "java": ">=21"
+        "minecraft": ">26 <27",
+        "java": ">=25"
     },
     "suggests": {
-        "emi": "*"
+        "rrv": "*"
     }
 }
