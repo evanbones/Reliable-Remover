@@ -57,7 +57,7 @@ publishMods {
         minecraftVersions.add("26.1-snapshot")
 
         optional { slug = "reliable-recipes" }
-        optional { slug = "reliable-recipe-viewer-rrv" }
+        optional { slug = "rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
     }
@@ -65,7 +65,7 @@ publishMods {
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "pLxsKvNt"
-        minecraftVersions.add("26.1-snapshot-2")
+        minecraftVersions.add("26.1-snapshot-4")
 
         optional { slug = "reliable-recipes" }
         optional { slug = "rrv" }
