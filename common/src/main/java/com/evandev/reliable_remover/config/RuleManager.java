@@ -52,7 +52,6 @@ public class RuleManager {
 
         if (!hasFiles) {
             generateDefaultConfig(configDir);
-            parseFile(configDir.resolve("default_rules.json"));
         }
 
         Constants.LOG.info("Loaded {} reliable remover rules.", RULES.size());
@@ -74,7 +73,8 @@ public class RuleManager {
                     }
                 ]""";
         try {
-            Files.writeString(configDir.resolve("removal_example.json"), defaultJson);
+            Files.writeString(configDir.resolve("removal_example.json.disabled"), defaultJson);
+            Constants.LOG.info("Created example config at config/reliable_remover/example_rules.json.disabled");
         } catch (Exception e) {
             Constants.LOG.error("Failed to generate default rule", e);
         }
@@ -83,12 +83,14 @@ public class RuleManager {
     private static void validateRules() {
         for (RemovalRule rule : RULES) {
             if (rule.filter != null && rule.filter.items != null) {
-                for (String itemId : rule.filter.items) {
+                rule.filter.items.removeIf(itemId -> {
                     ResourceLocation id = ResourceLocation.tryParse(itemId);
                     if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-                        Constants.LOG.warn("Reliable Remover: Rule contains invalid item ID '{}'. This item does not exist.", itemId);
+                        Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
+                        return true;
                     }
-                }
+                    return false;
+                });
             }
         }
     }
@@ -124,7 +126,13 @@ public class RuleManager {
 
     public static boolean isHidden(ItemStack stack, Level level) {
         if (stack == null || stack.isEmpty()) return false;
-        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (!BuiltInRegistries.ITEM.containsKey(itemId)) {
+            return false;
+        }
+
+        String id = itemId.toString();
         String dim = level != null ? level.dimension().location().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null);
     }

@@ -1,2 +1,1 @@
-* Fix handling arrays of mod IDs.
-* Safer empty item filter handling.
+* Safer handling of invalid item IDs.
