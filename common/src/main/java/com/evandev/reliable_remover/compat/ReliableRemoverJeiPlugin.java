@@ -8,7 +8,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,8 +19,8 @@ import java.util.List;
 public class ReliableRemoverJeiPlugin implements IModPlugin {
 
     @Override
-    public @NotNull ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(Constants.MOD_ID, "jei_plugin");
+    public @NotNull Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "jei_plugin");
     }
 
     @Override

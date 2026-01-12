@@ -5,7 +5,7 @@ import com.evandev.reliable_remover.config.RuleManager;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 
 public class ReliableRemoverMod implements ModInitializer {
@@ -19,8 +19,8 @@ public class ReliableRemoverMod implements ModInitializer {
 
     private static class FabricReloadListener extends ReloadListener implements IdentifiableResourceReloadListener {
         @Override
-        public ResourceLocation getFabricId() {
-            return ResourceLocation.fromNamespaceAndPath("reliable_remover", "reload_listener");
+        public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("reliable_remover", "reload_listener");
         }
     }
 }

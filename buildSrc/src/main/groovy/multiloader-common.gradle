@@ -70,6 +70,18 @@ repositories {
         name = "ClothConfig"
         url "https://maven.shedaniel.me/"
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Cassian's Maven"
+                url = uri("https://maven.cassian.cc")
+            }
+        }
+        filter {
+            includeGroupAndSubgroups("cc.cassian")
+        }
+    }
+
 }
 
 ['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->

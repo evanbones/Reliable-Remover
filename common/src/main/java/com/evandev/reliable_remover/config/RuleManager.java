@@ -8,7 +8,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -84,7 +84,7 @@ public class RuleManager {
         for (RemovalRule rule : RULES) {
             if (rule.filter != null && rule.filter.items != null) {
                 rule.filter.items.removeIf(itemId -> {
-                    ResourceLocation id = ResourceLocation.tryParse(itemId);
+                    Identifier id = Identifier.tryParse(itemId);
                     if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
                         Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
                         return true;
@@ -98,7 +98,7 @@ public class RuleManager {
     private static void logRemovedItems() {
         List<String> removedItems = BuiltInRegistries.ITEM.entrySet().stream()
                 .filter(entry -> isHidden(entry.getValue().getDefaultInstance()))
-                .map(entry -> entry.getKey().location().toString())
+                .map(entry -> entry.getKey().identifier().toString())
                 .collect(Collectors.toList());
 
         if (!removedItems.isEmpty()) {
@@ -127,13 +127,13 @@ public class RuleManager {
     public static boolean isHidden(ItemStack stack, Level level) {
         if (stack == null || stack.isEmpty()) return false;
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (!BuiltInRegistries.ITEM.containsKey(itemId)) {
             return false;
         }
 
         String id = itemId.toString();
-        String dim = level != null ? level.dimension().location().toString() : null;
+        String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null);
     }
 
@@ -144,14 +144,14 @@ public class RuleManager {
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        String dim = level != null ? level.dimension().location().toString() : null;
+        String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target) || isHidden(stack, level);
     }
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        String dim = level != null ? level.dimension().location().toString() : null;
+        String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target) || isHidden(stack, level);
     }
 
