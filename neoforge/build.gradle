@@ -56,7 +56,7 @@ publishMods {
         minecraftVersions.add("26.1-snapshot-2")
 
         optional { slug = "reliable-recipes" }
-        optional { slug = "rrv" }
+        optional { slug = "reliable-recipe-viewer-rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
     }

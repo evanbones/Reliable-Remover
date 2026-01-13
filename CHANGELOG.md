@@ -1,2 +1,1 @@
-* Safer handling of invalid item IDs.
-* Explicitly disable default config.
+* Update to 26.1 (thanks, Cassian!)
