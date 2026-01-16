@@ -1,2 +1,2 @@
-* Safer handling of invalid item IDs.
-* Explicitly disable default config.
+* Fix "not" rule handling with dimensions.
+* Improve potion matching logic.
