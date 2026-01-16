@@ -1,10 +1,11 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -55,14 +56,21 @@ public class RemovalRule {
             if (!matchesLogic(itemId, dimension, entityId)) return false;
 
             if (nbt != null) {
-                if (!stack.hasTag()) return false;
+                StringBuilder dataBuilder = new StringBuilder();
 
-                CompoundTag data = stack.getTag();
-                if (data == null) return false;
+                if (stack.has(DataComponents.POTION_CONTENTS)) {
+                    dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
+                }
+
+                if (stack.has(DataComponents.CUSTOM_DATA)) {
+                    dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
+                }
+
+                if (dataBuilder.isEmpty()) return false;
 
                 if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);
 
-                return compiledNbtPattern.matcher(data.toString()).matches();
+                return compiledNbtPattern.matcher(dataBuilder.toString()).matches();
             }
 
             return true;
@@ -84,7 +92,10 @@ public class RemovalRule {
             boolean hasItemFilter = (items != null && !items.isEmpty()) || pattern != null;
             boolean hasModFilter = (mod != null && !mod.isEmpty());
 
-            if (!hasItemFilter && !hasModFilter) return false;
+            if (!hasItemFilter && !hasModFilter) {
+                return (dimensions != null && !dimensions.isEmpty()) ||
+                        (entities != null && !entities.isEmpty());
+            }
 
             if (hasModFilter) {
                 String[] split = itemId.split(":");
