@@ -1,11 +1,9 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -56,21 +54,18 @@ public class RemovalRule {
             if (!matchesLogic(itemId, dimension, entityId)) return false;
 
             if (nbt != null) {
-                StringBuilder dataBuilder = new StringBuilder();
+                if (!stack.hasTag()) return false;
 
-                if (stack.has(DataComponents.POTION_CONTENTS)) {
-                    dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
+                String dataString = null;
+                if (stack.getTag() != null) {
+                    dataString = stack.getTag().toString();
                 }
-
-                if (stack.has(DataComponents.CUSTOM_DATA)) {
-                    dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
-                }
-
-                if (dataBuilder.isEmpty()) return false;
 
                 if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);
 
-                return compiledNbtPattern.matcher(dataBuilder.toString()).matches();
+                if (dataString != null) {
+                    return compiledNbtPattern.matcher(dataString).matches();
+                }
             }
 
             return true;
