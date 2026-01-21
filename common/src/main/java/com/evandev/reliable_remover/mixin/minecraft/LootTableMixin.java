@@ -13,7 +13,11 @@ import java.util.function.Consumer;
 @Mixin(LootTable.class)
 public class LootTableMixin {
 
-    @ModifyVariable(method = "getRandomItems(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V", at = @At("HEAD"), argsOnly = true)
+    @ModifyVariable(
+            method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V",
+            at = @At("HEAD"),
+            argsOnly = true
+    )
     private Consumer<ItemStack> reliable_remover$filterLoot(Consumer<ItemStack> original) {
         if (!ModConfig.get().removeItemsFromLootChests) {
             return original;

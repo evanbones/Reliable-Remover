@@ -46,6 +46,7 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 dependencies {
     // EMI
     modImplementation "dev.emi:emi-forge:${emi_version}"
+    modImplementation "maven.modrinth:emi-loot:${emi_loot_version}+forge"
 
     // JEI
     modImplementation "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
