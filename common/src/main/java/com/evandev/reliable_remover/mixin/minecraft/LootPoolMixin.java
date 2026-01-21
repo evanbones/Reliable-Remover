@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -25,8 +26,8 @@ public class LootPoolMixin {
         return Arrays.stream(entries)
                 .filter(entry -> {
                     if (entry instanceof LootItem lootItem) {
-                        Item item = ((LootItemAccessor) lootItem).getReliableRemoverItem();
-                        return !RuleManager.isHidden(new ItemStack(item));
+                        Holder<Item> itemHolder = ((LootItemAccessor) lootItem).getReliableRemoverItem();
+                        return !RuleManager.isHidden(new ItemStack(itemHolder));
                     }
                     return true;
                 })

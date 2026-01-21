@@ -17,13 +17,18 @@ import java.util.List;
 public class LootTableParserMixin {
 
     @Inject(
-            method = "parseItemEntry(ILnet/minecraft/world/item/ItemStack;[Lnet/minecraft/world/level/storage/loot/functions/LootItemFunction;[Lnet/minecraft/world/level/storage/loot/predicates/LootItemCondition;Z)Ljava/util/List;",
+            method = "parseItemEntry(ILnet/minecraft/world/item/ItemStack;Ljava/util/List;Ljava/util/List;Z)Ljava/util/List;",
             at = @At("RETURN"),
             cancellable = true,
             remap = false
     )
     private static void reliable_remover$filterEmiLootItems(
-            int weight, ItemStack item, LootItemFunction[] functions, LootItemCondition[] conditions, boolean parentIsAlternative, CallbackInfoReturnable<List<LootTableParser.ItemEntryResult>> cir
+            int weight,
+            ItemStack item,
+            List<LootItemFunction> functions,
+            List<LootItemCondition> conditions,
+            boolean parentIsAlternative,
+            CallbackInfoReturnable<List<LootTableParser.ItemEntryResult>> cir
     ) {
         List<LootTableParser.ItemEntryResult> original = cir.getReturnValue();
         if (original == null || original.isEmpty()) return;
