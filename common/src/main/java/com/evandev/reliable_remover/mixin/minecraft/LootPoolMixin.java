@@ -12,25 +12,25 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import java.util.Arrays;
+import java.util.List;
 
 @Mixin(LootPool.class)
 public class LootPoolMixin {
 
-    @ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true)
-    private static LootPoolEntryContainer[] reliable_remover$filterEntries(LootPoolEntryContainer[] entries) {
+    @ModifyVariable(method = "<init>", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private static List<LootPoolEntryContainer> reliable_remover$filterEntries(List<LootPoolEntryContainer> entries) {
         if (!ModConfig.get().removeItemsFromLootChests) {
             return entries;
         }
 
-        return Arrays.stream(entries)
+        return entries.stream()
                 .filter(entry -> {
                     if (entry instanceof LootItem lootItem) {
-                        Holder<Item> itemHolder = ((LootItemAccessor) lootItem).getReliableRemoverItem();
-                        return !RuleManager.isHidden(new ItemStack(itemHolder));
+                        Holder<Item> item = ((LootItemAccessor) lootItem).getReliableRemoverItem();
+                        return !RuleManager.isHidden(new ItemStack(item));
                     }
                     return true;
                 })
-                .toArray(LootPoolEntryContainer[]::new);
+                .toList();
     }
 }

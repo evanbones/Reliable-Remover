@@ -41,7 +41,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     // EMI
     implementation "dev.emi:emi-neoforge:${emi_version}"
-    implementation "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
+    compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
 
     // JEI
     implementation "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
