@@ -1,18 +1,7 @@
 {
   "id": "reliable-remover",
-  "modid": "reliable_remover",
   "platforms": {
     "curseforge": "reliable-remover",
     "modrinth": "reliable-remover"
-  },
-  "licenses": {
-    "project": {
-      "id": "MIT"
-    }
-  },
-  "versions": {
-    "1.20.1": "1.20.1",
-    "1.21.1": "1.21.1",
-    "26.1": "26.1"
   }
 }
