@@ -15,10 +15,13 @@ dependencies {
 
     // EMI
     modImplementation "dev.emi:emi-fabric:${emi_version}"
-    modImplementation "maven.modrinth:emi-loot:${emi_loot_version}+fabric"
+    modCompileOnly "maven.modrinth:emi-loot:${emi_loot_version}+fabric"
 
     // JEI
     modImplementation "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+
+    // Reliable Recipes
+    modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
 
     // Cloth Config
     modImplementation "me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}"
@@ -61,7 +64,7 @@ publishMods {
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
         projectId = "1420447"
-        minecraftVersions.add("1.20.1")
+        minecraftVersions.add("${minecraft_version}")
 
         optional { slug = "reliable-recipes" }
         optional { slug = "emi" }
@@ -72,7 +75,7 @@ publishMods {
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "pLxsKvNt"
-        minecraftVersions.add("1.20.1")
+        minecraftVersions.add("${minecraft_version}")
 
         optional { slug = "reliable-recipes" }
         optional { slug = "emi" }

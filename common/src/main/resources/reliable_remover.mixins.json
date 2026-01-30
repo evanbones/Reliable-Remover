@@ -9,6 +9,7 @@
     "emi.EmiStackListMixin",
     "emi.LootTableParserMixin",
     "minecraft.CreativeModeTabMixin",
+    "minecraft.EnchantmentHelperMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.LootItemAccessor",

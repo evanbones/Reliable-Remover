@@ -46,10 +46,13 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 dependencies {
     // EMI
     modImplementation "dev.emi:emi-forge:${emi_version}"
-    modImplementation "maven.modrinth:emi-loot:${emi_loot_version}+forge"
+    modCompileOnly "maven.modrinth:emi-loot:${emi_loot_version}+forge"
 
     // JEI
     modImplementation "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
+
+    // Reliable Recipes
+    modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_forge_version}"
 
     // Cloth Config
     modImplementation "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
