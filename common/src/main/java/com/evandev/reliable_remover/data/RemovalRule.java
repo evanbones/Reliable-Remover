@@ -4,11 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class RemovalRule {
@@ -36,22 +32,8 @@ public class RemovalRule {
     private transient List<Pattern> compiledPatterns;
     private transient Pattern compiledNbtPattern;
 
-    public enum Action {
-        @SerializedName(value = "REMOVE", alternate = {"remove", "Remove"})
-        REMOVE,
-        @SerializedName(value = "REMOVE_ATTACKS", alternate = {"remove_attacks", "Remove_Attacks"})
-        REMOVE_ATTACKS,
-        @SerializedName(value = "REMOVE_INTERACTIONS", alternate = {"remove_interactions", "Remove_Interactions"})
-        REMOVE_INTERACTIONS,
-        @SerializedName(value = "REMOVE_ENCHANTMENT", alternate = {"remove_enchantment", "Remove_Enchantment"})
-        REMOVE_ENCHANTMENT,
-        @SerializedName(value = "REMOVE_POTION", alternate = {"remove_potion", "Remove_Potion"})
-        REMOVE_POTION
-    }
-
     /**
-     * Merges fields from the legacy 'filter' object into this object
-     * if they are present.
+     * Merges fields from the legacy 'filter' object into this object if they are present.
      */
     public void mergeLegacy() {
         if (filter != null) {
@@ -158,5 +140,18 @@ public class RemovalRule {
                 ? regex.substring(1, regex.length() - 1)
                 : regex;
         return Pattern.compile(p);
+    }
+
+    public enum Action {
+        @SerializedName(value = "REMOVE", alternate = {"remove", "Remove"})
+        REMOVE,
+        @SerializedName(value = "REMOVE_ATTACKS", alternate = {"remove_attacks", "Remove_Attacks"})
+        REMOVE_ATTACKS,
+        @SerializedName(value = "REMOVE_INTERACTIONS", alternate = {"remove_interactions", "Remove_Interactions"})
+        REMOVE_INTERACTIONS,
+        @SerializedName(value = "REMOVE_ENCHANTMENT", alternate = {"remove_enchantment", "Remove_Enchantment"})
+        REMOVE_ENCHANTMENT,
+        @SerializedName(value = "REMOVE_POTION", alternate = {"remove_potion", "Remove_Potion"})
+        REMOVE_POTION
     }
 }

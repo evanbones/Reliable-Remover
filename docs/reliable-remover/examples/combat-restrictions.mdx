@@ -11,11 +11,9 @@ Prevents attacking with the "Stick" item.
 ```json
 {
   "action": "remove_attacks",
-  "filter": {
-    "items": [
-      "minecraft:stick"
-    ]
-  }
+  "items": [
+    "minecraft:stick"
+  ]
 }
 
 ```
@@ -27,9 +25,7 @@ Prevents attacking with any weapon from the `simplyswords` mod using a Regex pat
 ```json
 {
   "action": "remove_attacks",
-  "filter": {
-    "pattern": "/simplyswords:.*_sword/"
-  }
+  "pattern": "/simplyswords:.*_sword/"
 }
 
 ```
