@@ -1,0 +1,39 @@
+---
+title: Advanced Logic & NBT
+hide_meta: true
+---
+
+### The "Except" Rule (Inverted Logic)
+Remove all items from `examplemod`, *except* for `examplemod:safe_item`.
+
+```json
+{
+  "action": "remove",
+  "filter": {
+    "mod": "examplemod",
+    "not": {
+      "items": [
+        "examplemod:safe_item"
+      ]
+    }
+  }
+}
+
+```
+
+### NBT Data Filtering
+
+Remove any item that contains specific NBT data. This uses a Regex match against the item's NBT string.
+
+**Remove all Enchanted Books:**
+
+```json
+{
+  "action": "remove",
+  "filter": {
+    "items": ["minecraft:enchanted_book"],
+    "nbt": "{.*StoredEnchantments.*}"
+  }
+}
+
+```

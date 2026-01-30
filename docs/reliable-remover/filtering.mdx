@@ -1,0 +1,31 @@
+---
+title: Filtering
+hide_meta: true
+---
+
+The `filter` field determines which items are affected by a rule.
+
+### Filter Options
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| `items` | List of specific item IDs. | `["minecraft:tnt"]` |
+| `mod` | Target all items from a mod ID. | `"farmersdelight"` |
+| `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
+| `entities` | List of entity IDs (for interaction/attack rules). | `["minecraft:villager"]` |
+| `pattern` | Regex pattern to match item IDs. | `"/.*_sword/"` |
+| `nbt` | Regex pattern to match NBT data. | `"{.*Enchantments.*}"` |
+
+### Logic (`not`)
+You can use the `not` field to invert conditions. This is useful for creating exceptions (whitelists).
+
+```json
+"not": {
+  "items": ["minecraft:apple"]
+}
+
+```
+
+For complex logical examples, such as **"Ban Mod X except Item Y"** or **"Allow Item only in Dimension Z"**, please see the advanced examples page.
+
+[View 'Advanced Logic & NBT' Examples](/project/reliable-remover/latest/docs/reliable-remover/examples/advanced-logic)
