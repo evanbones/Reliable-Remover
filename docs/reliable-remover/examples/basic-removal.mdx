@@ -11,12 +11,10 @@ Removes TNT and Bedrock from the game completely.
 ```json
 {
   "action": "remove",
-  "filter": {
-    "items": [
-      "minecraft:tnt",
-      "minecraft:bedrock"
-    ]
-  }
+  "items": [
+    "minecraft:tnt",
+    "minecraft:bedrock"
+  ]
 }
 
 ```
@@ -28,11 +26,9 @@ Removes all items belonging to `farmersdelight`.
 ```json
 {
   "action": "remove",
-  "filter": {
-    "mod": [
-      "farmersdelight"
-    ]
-  }
+  "mod": [
+    "farmersdelight"
+  ]
 }
 
 ```
@@ -44,9 +40,7 @@ Removes all Swords from any mod.
 ```json
 {
   "action": "remove",
-  "filter": {
-    "pattern": "/.*_sword/"
-  }
+  "pattern": "/.*_sword/"
 }
 
 ```

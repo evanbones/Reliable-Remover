@@ -3,10 +3,12 @@ title: Removal Actions
 hide_meta: true
 ---
 
-There are three primary actions you can apply to items.
+There are five primary actions you can apply.
 
 ### `remove`
-The nuclear option. This completely scrubs the item from the game context based on your global config.
+The nuclear option.
+This completely scrubs the item from the game context based on your global config.
+
 * Removes from Creative Tabs, EMI/JEI/REI, Loot tables, and Villager trades.
 * Deletes from player inventories and world drops.
 
@@ -14,15 +16,39 @@ The nuclear option. This completely scrubs the item from the game context based 
 
 ### `remove_interactions`
 Prevents the player from "using" the item (Right-Click).
-* **Effect**: Cancels `useItem`, `useOn`, and `interactLivingEntity` events.
+
 * **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket).
 
 [View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
 
 ### `remove_attacks`
 Prevents the player from attacking entities while holding the specified item.
-* **Effect**: Cancels the attack event.
+
 * **Use Case**: Disable specific weapons or protect specific entities (like Villagers) from being hurt.
 
 [View 'Combat Restrictions' Examples](/project/reliable-remover/docs/reliable-remover/examples/combat-restrictions)
 
+### `remove_enchantment`
+Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchantment.
+
+* **Use Case**: Remove "Protection" or specific curses from the game entirely.
+
+```json
+{
+  "action": "remove_enchantment",
+  "items": ["minecraft:protection", "minecraft:mending"]
+}
+
+### `remove_potion`
+
+Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect.
+
+* **Use Case**: Remove "Poison" or "Invisibility" potions from the game.
+
+```json
+{
+  "action": "remove_potion",
+  "items": ["minecraft:poison", "minecraft:strong_poison"]
+}
+
+```

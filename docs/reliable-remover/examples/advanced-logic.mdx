@@ -9,13 +9,11 @@ Remove all items from `examplemod`, *except* for `examplemod:safe_item`.
 ```json
 {
   "action": "remove",
-  "filter": {
-    "mod": "examplemod",
-    "not": {
-      "items": [
-        "examplemod:safe_item"
-      ]
-    }
+  "mod": "examplemod",
+  "not": {
+    "items": [
+      "examplemod:safe_item"
+    ]
   }
 }
 
@@ -30,10 +28,8 @@ Remove any item that contains specific NBT data. This uses a Regex match against
 ```json
 {
   "action": "remove",
-  "filter": {
-    "items": ["minecraft:enchanted_book"],
-    "nbt": "{.*StoredEnchantments.*}"
-  }
+  "items": ["minecraft:enchanted_book"],
+  "nbt": "{.*StoredEnchantments.*}"
 }
 
 ```

@@ -30,15 +30,13 @@ This prevents Flint and Steel from being used anywhere *except* the Nether. We u
 ```json
 {
   "action": "remove_interactions",
-  "filter": {
-    "items": [
-      "minecraft:flint_and_steel"
-    ],
-    "not": {
-      "dimensions": [
-        "minecraft:the_nether"
-      ]
-    }
+  "items": [
+    "minecraft:flint_and_steel"
+  ],
+  "not": {
+    "dimensions": [
+      "minecraft:the_nether"
+    ]
   }
 }
 

@@ -3,25 +3,31 @@ title: Filtering
 hide_meta: true
 ---
 
-The `filter` field determines which items are affected by a rule.
+Reliable Remover uses a flat configuration structure. You define an action and then add filters directly to the object.
 
 ### Filter Options
 
 | Field | Description | Example |
 | :--- | :--- | :--- |
-| `items` | List of specific item IDs. | `["minecraft:tnt"]` |
+| `items` | List of specific IDs. | `["minecraft:tnt"]` |
 | `mod` | Target all items from a mod ID. | `"farmersdelight"` |
 | `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
 | `entities` | List of entity IDs (for interaction/attack rules). | `["minecraft:villager"]` |
-| `pattern` | Regex pattern to match item IDs. | `"/.*_sword/"` |
+| `patterns` | List of Regex patterns to match IDs. | `["/.*_sword/", "/.*_helmet/"]` |
 | `nbt` | Regex pattern to match NBT data. | `"{.*Enchantments.*}"` |
 
 ### Logic (`not`)
-You can use the `not` field to invert conditions. This is useful for creating exceptions (whitelists).
+
+You can use the `not` field to invert conditions.
+This is useful for creating exceptions (whitelists).
 
 ```json
-"not": {
-  "items": ["minecraft:apple"]
+{
+  "action": "remove",
+  "mod": ["examplemod"],
+  "not": {
+    "items": ["examplemod:safe_item"]
+  }
 }
 
 ```
