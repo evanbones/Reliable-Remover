@@ -3,27 +3,137 @@ title: Advanced Logic & NBT
 hide_meta: true
 ---
 
-### The "Except" Rule (Inverted Logic)
-Remove all items from `examplemod`, *except* for `examplemod:safe_item`.
+### Ban All Swords from Minecraft Only
+
+Uses the `mod` filter to limit the scope of the Regex pattern. It will remove `minecraft:diamond_sword` but keep `othermod:copper_sword`.
 
 ```json
 {
   "action": "remove",
-  "mod": "examplemod",
+  "mod": ["minecraft"],
+  "pattern": "/.*_sword/"
+}
+
+```
+
+### Ban All Spawn Eggs
+
+Uses a Regex pattern to match any item ending in `_spawn_egg` across all mods.
+
+```json
+{
+  "action": "remove",
+  "pattern": "/.*_spawn_egg/"
+}
+
+```
+
+## Inverted Logic (Whitelists)
+
+### Ban a Mod, Keep Specific Items
+
+Removes everything from `ae2` except for the Certus Quartz Crystal.
+
+```json
+{
+  "action": "remove",
+  "mod": ["ae2"],
   "not": {
-    "items": [
-      "examplemod:safe_item"
-    ]
+    "items": ["ae2:certus_quartz_crystal"]
   }
 }
 
 ```
 
-### NBT Data Filtering
+### Allow Elytra ONLY in the End
 
-Remove any item that contains specific NBT data. This uses a Regex match against the item's NBT string.
+Prevents the Elytra from being used (right-clicked) in any dimension except The End.
 
-**Remove all Enchanted Books:**
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:elytra"],
+  "not": {
+    "dimensions": ["minecraft:the_end"]
+  }
+}
+
+```
+
+## Interaction & Combat
+
+### Pacifist Mode (No Weapons)
+
+Prevents attacking with any item that has "sword" or "axe" in its ID.
+
+```json
+{
+  "action": "remove_attacks",
+  "patterns": [
+    "/.*_sword/",
+    "/.*_axe/"
+  ]
+}
+
+```
+
+### Protect Villagers & Golems
+
+Prevents players from attacking Villagers or Iron Golems with *any* item.
+
+```json
+{
+  "action": "remove_attacks",
+  "entities": [
+    "minecraft:villager",
+    "minecraft:iron_golem"
+  ]
+}
+
+```
+
+### Disable Shearing Sheep
+
+Prevents using Shears on Sheep, but allows using them on other things (like leaves or wool blocks).
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:shears"],
+  "entities": ["minecraft:sheep"]
+}
+
+```
+
+## NBT & Data
+
+### Remove Potions by Effect
+
+Removes any potion (Splash, Lingering, or Drinkable) that contains the `minecraft:night_vision` effect.
+
+```json
+{
+  "action": "remove_potion",
+  "items": ["minecraft:night_vision"]
+}
+
+```
+
+### Remove Items with Specific NBT
+
+Removes any item containing the text `"CustomModelData":1` in its NBT tag.
+
+```json
+{
+  "action": "remove",
+  "nbt": ".*\"CustomModelData\":1.*"
+}
+
+```
+
+### Remove All Enchanted Books
+
+This uses a Regex match against the item's NBT string.
 
 ```json
 {

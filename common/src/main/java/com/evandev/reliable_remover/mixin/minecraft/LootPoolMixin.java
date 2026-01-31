@@ -12,7 +12,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Mixin(LootPool.class)
 public class LootPoolMixin {
@@ -31,6 +33,6 @@ public class LootPoolMixin {
                     }
                     return true;
                 })
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 }

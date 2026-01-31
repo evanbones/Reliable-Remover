@@ -5,13 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-01-30
+
+### Added
+
+- `/reliable_remover` command for dumping item ids
+    - Supports `hotbar`, `inventory`, and `hand`
+
+### Fixed
+
+- Hopefully fixed issue with certain mods that could lead to loot tables being removed.
+
 ## [1.1.0] - 2026-01-30
 
 ### Added
 
 - Support for arrays in Regex pattern matching.
 - Much more lenient formatting for removal jsons.
-  - Arrays and single strings should generally be interchangeable in actions and filters.
+    - Arrays and single strings should generally be interchangeable in actions and filters.
 - Added dedicated Potion and Enchantment removal actions.
 - Enchantment removals now also remove enchantments from Enchanting Tables.
 
@@ -22,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed `filter` keyword for simplicity.
-  - Existing patterns will still work, but it's good practice to remove the `filter` block.
+    - Existing patterns will still work, but it's good practice to remove the `filter` block.
 
 ## [1.0.13] - 2026-01-21
 
