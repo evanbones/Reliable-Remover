@@ -70,7 +70,6 @@ public class RemovalRule {
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
         if (!matchesLogic(itemId, dimension, entityId)) return false;
 
-        // 1.20.1 NBT Logic
         if (nbt != null) {
             if (!stack.hasTag()) return false;
 
