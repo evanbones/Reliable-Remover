@@ -12,8 +12,6 @@
     "minecraft.EnchantmentHelperMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
-    "minecraft.LootItemAccessor",
-    "minecraft.LootPoolMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.ServerPlayerGameModeMixin",
