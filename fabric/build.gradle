@@ -35,10 +35,6 @@ loom {
         accessWidenerPath.set(aw)
     }
 
-    mixin {
-        defaultRefmapName.set("${mod_id}.refmap.json")
-    }
-
     runs {
         client {
             client()
@@ -57,7 +53,7 @@ loom {
 
 publishMods {
     file = tasks.named("remapJar").flatMap { it.archiveFile }
-    changelog = rootProject.file("CHANGELOG.md").text
+    changelog = rootProject.file("CHANGELOG-LATEST.md").text
     type = STABLE
     displayName = "${mod_name} Fabric ${minecraft_version} - ${project.version}"
     modLoaders.add("fabric")
