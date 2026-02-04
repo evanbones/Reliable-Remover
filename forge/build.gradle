@@ -52,6 +52,7 @@ dependencies {
     modImplementation "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
 
     // Reliable Recipes
+    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_forge_version}"
     modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_forge_version}"
 
     // Cloth Config
@@ -81,7 +82,6 @@ publishMods {
         projectId = "1420447"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "emi" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
@@ -92,7 +92,6 @@ publishMods {
         projectId = "pLxsKvNt"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "emi" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
