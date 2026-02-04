@@ -44,6 +44,7 @@ dependencies {
     compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
 
     // Reliable Recipes
+    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
     implementation "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
 
     // JEI
@@ -65,7 +66,6 @@ publishMods {
         projectId = "1420447"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "emi" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
@@ -76,7 +76,6 @@ publishMods {
         projectId = "pLxsKvNt"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "emi" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }

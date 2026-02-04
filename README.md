@@ -20,17 +20,15 @@ some reasons to consider switching!
   (including 26.1 snapshots!), while Item Obliterator is largely abandoned.
 * Live config reloading! Run /reload and see your changes instantly take place.
 * Proper EMI integration on all loaders/versions.
-* Automatic item/block tag and recipe removal when used
-  alongside [Reliable Recipes](https://www.curseforge.com/minecraft/mc-mods/reliable-recipes).
+* Automatic item/block tag and recipe removal.
 * Far better handling for Villager trade removal and loot table removal.
 * Better + more performant regex support, using precompiled blacklist rules.
 * More flexible support for configurations within subfolders and user-definable file structures.
 * Ability to define more complicated rules for specific matching.
 * Ability to filter by dimensions.
 * Additional support
-  for [TooManyRecipeViewers](https://modrinth.com/mod/tmrv), [Reliable Recipes](https://modrinth.com/mod/reliable-recipes),
-  and [EMI Loot](https://modrinth.com/mod/emi-loot).
-* Doesn't require any external libraries for core functionality.
+  for [TooManyRecipeViewers](https://modrinth.com/mod/tmrv) and [EMI Loot](https://modrinth.com/mod/emi-loot).
+* Doesn't require any external libraries.
 
 </details>
 

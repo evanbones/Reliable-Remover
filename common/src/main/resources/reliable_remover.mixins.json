@@ -3,6 +3,7 @@
   "minVersion": "0.8",
   "package": "com.evandev.reliable_remover.mixin",
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
+  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
     "emi.EmiStackListMixin",
