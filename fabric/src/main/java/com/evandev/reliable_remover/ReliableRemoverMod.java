@@ -7,6 +7,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 
@@ -14,17 +15,9 @@ public class ReliableRemoverMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        RuleManager.load();
+        // moved init and resource loader to ReloadableServerResourcesMixin
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ReliableRemoverCommands.register(dispatcher);
         });
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricReloadListener());
-    }
-
-    private static class FabricReloadListener extends ReloadListener implements IdentifiableResourceReloadListener {
-        @Override
-        public Identifier getFabricId() {
-            return Identifier.fromNamespaceAndPath("reliable_remover", "reload_listener");
-        }
     }
 }

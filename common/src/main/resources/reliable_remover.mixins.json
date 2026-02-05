@@ -15,7 +15,6 @@
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],
-  "client": [],
   "server": [],
   "injectors": {
     "defaultRequire": 1
