@@ -13,6 +13,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -31,7 +33,7 @@ import java.util.stream.Stream;
 
 public class RuleManager {
     private static final Gson GSON = new GsonBuilder()
-            .setLenient()
+            .setStrictness(Strictness.LENIENT)
             .registerTypeAdapter(new TypeToken<Set<String>>() {
             }.getType(), new StringOrSetDeserializer())
             .registerTypeAdapter(new TypeToken<List<String>>() {
@@ -101,7 +103,7 @@ public class RuleManager {
                         rule.action == RemovalRule.Action.REMOVE_INTERACTIONS) {
 
                     rule.items.removeIf(itemId -> {
-                        ResourceLocation id = ResourceLocation.tryParse(itemId);
+                        Identifier id = Identifier.tryParse(itemId);
                         if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
                             Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
                             return true;
@@ -169,28 +171,29 @@ public class RuleManager {
         return isHidden(ItemStackTemplate.fromNonEmptyStack(stack), level);
     }
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+    public static boolean isHidden(ItemStackTemplate stack, Level level) {
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(getItem(stack));
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String id = itemId.toString();
-            String dim = level != null ? level.dimension().location().toString() : null;
+            String dim = level != null ? level.dimension().identifier().toString() : null;
             if (checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null)) {
                 return true;
             }
         }
 
-        if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
+        if (stack.get(DataComponents.STORED_ENCHANTMENTS) != null) {
             if (isEnchantmentBlocked(stack.get(DataComponents.STORED_ENCHANTMENTS))) return true;
         }
-        if (stack.has(DataComponents.ENCHANTMENTS)) {
+        if (stack.get(DataComponents.ENCHANTMENTS) != null) {
             if (isEnchantmentBlocked(stack.get(DataComponents.ENCHANTMENTS))) return true;
         }
 
-        if (stack.has(DataComponents.POTION_CONTENTS)) {
+        if (stack.get(DataComponents.POTION_CONTENTS) != null) {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null) {
                 String potionId = contents.potion()
                         .flatMap(Holder::unwrapKey)
-                        .map(key -> key.location().toString())
+                        .map(key -> key.identifier().toString())
                         .orElse(null);
 
                 return potionId != null && checkRules(null, potionId, RemovalRule.Action.REMOVE_POTION, null, null);
@@ -205,7 +208,7 @@ public class RuleManager {
         for (var entry : enchantments.entrySet()) {
             String id = entry.getKey()
                     .unwrapKey()
-                    .map(key -> key.location().toString())
+                    .map(key -> key.identifier().toString())
                     .orElse(null);
 
             if (id != null && checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null)) {
@@ -306,7 +309,7 @@ public class RuleManager {
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
         return enchantment.unwrapKey()
-                .map(key -> key.location().toString())
+                .map(key -> key.identifier().toString())
                 .map(id -> checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null))
                 .orElse(false);
     }

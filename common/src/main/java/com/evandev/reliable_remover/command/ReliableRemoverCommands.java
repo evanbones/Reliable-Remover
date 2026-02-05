@@ -64,7 +64,7 @@ public class ReliableRemoverCommands {
                 }
             }
 
-            ItemStack offhand = inventory.offhand.getFirst();
+            ItemStack offhand = inventory.player.getOffhandItem();;
             if (!offhand.isEmpty()) {
                 items.add(getItemId(offhand));
             }
@@ -122,8 +122,8 @@ public class ReliableRemoverCommands {
         Component message = Component.literal(jsonArray)
                 .withStyle(Style.EMPTY
                         .withColor(ChatFormatting.GREEN)
-                        .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, jsonArray))
-                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("command.reliable_remover.dump.copy_tooltip")))
+                        .withClickEvent(new ClickEvent.CopyToClipboard(jsonArray))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.translatable("command.reliable_remover.dump.copy_tooltip")))
                 );
 
         source.sendSuccess(() -> Component.translatable(titleKey).withStyle(ChatFormatting.GOLD).append(":"), false);

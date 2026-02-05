@@ -66,17 +66,17 @@ public class RemovalRule {
         return matchesLogic(itemId, dimension, entityId);
     }
 
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
+    public boolean matches(ItemStackTemplate stack, String itemId, String dimension, String entityId) {
         if (!matchesLogic(itemId, dimension, entityId)) return false;
 
         if (nbt != null) {
             StringBuilder dataBuilder = new StringBuilder();
 
-            if (stack.has(DataComponents.POTION_CONTENTS)) {
+            if (stack.get(DataComponents.POTION_CONTENTS) != null) {
                 dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
             }
 
-            if (stack.has(DataComponents.CUSTOM_DATA)) {
+            if (stack.get(DataComponents.CUSTOM_DATA) != null) {
                 dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
             }
 

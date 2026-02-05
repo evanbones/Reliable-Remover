@@ -15,8 +15,8 @@ dependencies {
     compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"
 
     // Reliable Recipes
-    modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
-    include "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
+//    modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
+//    include "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
 
     // Cloth Config
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
