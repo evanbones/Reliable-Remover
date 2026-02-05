@@ -154,25 +154,16 @@ public class RuleManager {
 
     public static boolean isHidden(Item item) {
         if (isEmpty(item)) return false;
-        return isHidden(new ItemStackTemplate(item), null);
+        return isHidden(new ItemStack(item), null);
     }
 
     public static boolean isHidden(ItemStack stack) {
         if (isEmpty(stack)) return false;
-        return isHidden(ItemStackTemplate.fromNonEmptyStack(stack), null);
-    }
-
-    public static boolean isHidden(ItemStackTemplate stack) {
         return isHidden(stack, null);
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {
-        if (isEmpty(stack)) return false;
-        return isHidden(ItemStackTemplate.fromNonEmptyStack(stack), level);
-    }
-
-    public static boolean isHidden(ItemStackTemplate stack, Level level) {
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(getItem(stack));
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String id = itemId.toString();
             String dim = level != null ? level.dimension().identifier().toString() : null;
@@ -224,12 +215,7 @@ public class RuleManager {
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (isEmpty(stack)) return false;
-        return isAttackBlocked(ItemStackTemplate.fromNonEmptyStack(stack), level, target);
-    }
-
-    public static boolean isAttackBlocked(ItemStackTemplate stack, Level level, Entity target) {
-        if (isEmpty(stack)) return false;
-        String id = BuiltInRegistries.ITEM.getKey(getItem(stack)).toString();
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target) || isHidden(stack, level);
     }
@@ -252,17 +238,12 @@ public class RuleManager {
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (isEmpty(stack)) return false;
-        return isInteractionBlocked(ItemStackTemplate.fromNonEmptyStack(stack), level, target);
-    }
-
-    public static boolean isInteractionBlocked(ItemStackTemplate stack, Level level, Entity target) {
-        if (isEmpty(stack)) return false;
-        String id = BuiltInRegistries.ITEM.getKey(getItem(stack)).toString();
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target) || isHidden(stack, level);
     }
 
-    private static boolean checkRules(ItemStackTemplate stack, String itemId, RemovalRule.Action action, String dimension, Entity target) {
+    private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action, String dimension, Entity target) {
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
 
         for (RemovalRule rule : RULES) {
