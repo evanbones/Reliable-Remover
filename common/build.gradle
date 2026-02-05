@@ -14,7 +14,7 @@ neoForge {
 
 dependencies {
     // EMI
-    compileOnly("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}+${minecraft_version}")
+    implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}")
 
     // JEI
     compileOnly "mezz.jei:jei-1.21.11-common-api:${jei_version}"

@@ -45,4 +45,4 @@ plugins {
 rootProject.name = 'Reliable-Remover'
 include('common')
 include('fabric')
-include('neoforge')
+//include('neoforge')
