@@ -6,14 +6,15 @@
   "compatibilityLevel": "JAVA_18",
   "mixins": [
     "minecraft.CreativeModeTabMixin",
+    "minecraft.EnchantmentHelperMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
+    "minecraft.PlayerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],
-  "client": [],
   "server": [],
   "injectors": {
     "defaultRequire": 1

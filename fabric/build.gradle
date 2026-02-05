@@ -9,10 +9,14 @@ dependencies {
  
 
     // EMI
-    implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}+${minecraft_version}")
+    implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}")
 
     // JEI
     compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"
+
+    // Reliable Recipes
+//    modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
+//    include "maven.modrinth:reliable-recipes:${reliable_recipes_fabric_version}"
 
     // Cloth Config
     compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
@@ -46,7 +50,7 @@ loom {
 
 publishMods {
     file = tasks.named("jar").flatMap { it.archiveFile }
-    changelog = rootProject.file("CHANGELOG.md").text
+    changelog = rootProject.file("CHANGELOG-LATEST.md").text
     type = STABLE
     displayName = "${mod_name} Fabric ${minecraft_version} - ${project.version}"
     modLoaders.add("fabric")
@@ -56,8 +60,7 @@ publishMods {
         projectId = "1420447"
         minecraftVersions.add("26.1-snapshot")
 
-        optional { slug = "reliable-recipes" }
-        optional { slug = "reliable-recipe-viewer-rrv" }
+        optional { slug = "rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
     }
@@ -65,9 +68,8 @@ publishMods {
     modrinth {
         accessToken = providers.environmentVariable("MODRINTH_TOKEN")
         projectId = "pLxsKvNt"
-        minecraftVersions.add("26.1-snapshot-2")
+        minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }

@@ -1,0 +1,41 @@
+---
+title: Dimension Rules
+hide_meta: true
+---
+
+You can restrict items to specific dimensions using the `dimensions` filter.
+
+### Dimension Blacklist (Ban in Nether)
+Removes Water Buckets only if the player is in the Nether.
+
+```json
+{
+  "action": "remove",
+  "items": [
+    "minecraft:water_bucket"
+  ],
+  "dimensions": [
+    "minecraft:the_nether"
+  ]
+}
+
+```
+
+### Dimension Whitelist (Only Allow in Nether)
+
+This prevents Flint and Steel from being used anywhere *except* the Nether. We use the `not` logic filter to achieve this.
+
+```json
+{
+  "action": "remove_interactions",
+  "items": [
+    "minecraft:flint_and_steel"
+  ],
+  "not": {
+    "dimensions": [
+      "minecraft:the_nether"
+    ]
+  }
+}
+
+```

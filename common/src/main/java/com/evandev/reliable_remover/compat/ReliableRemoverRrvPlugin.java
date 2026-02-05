@@ -26,13 +26,15 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerPlugin {
     }
 
 	public static void init() {
-		ItemView.addClientReloadCallback(() -> BuiltInRegistries.ITEM.forEach(item -> {
+		ItemView.addClientReloadCallback(() -> {
 			ModConfig.get();
 			RuleManager.load();
-			if (!ModConfig.get().removeItemsFromEmi) return;
-			if (RuleManager.isHidden(item.getDefaultInstance())) {
-				ItemView.excludeItem(item);
-			}
-		}));
+			BuiltInRegistries.ITEM.forEach(item -> {
+				if (!ModConfig.get().removeItemsFromEmi) return;
+				if (RuleManager.isHidden(item.getDefaultInstance())) {
+					ItemView.excludeItem(item);
+				}
+			});
+		});
 	}
 }

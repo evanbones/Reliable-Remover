@@ -1,0 +1,33 @@
+---
+title: Usage
+hide_meta: true
+---
+
+The mod watches a specific folder in your instance for JSON files: `./config/reliable_remover/`.
+You can place as many JSON files as you like in this folder or in subfolders.
+
+If the folder is empty when the game starts, a `removal_example.json` file will be generated automatically to help you
+get started.
+
+### Global Configuration
+
+Global settings can be configured via the **Cloth Config** screen in-game or by editing `config/reliable_remover.json`.
+
+### JSON Structure
+
+You can define a single rule or **multiple rules** in a single JSON file. To define multiple rules, simply wrap them in
+a JSON Array `[...]`.
+
+```json
+[
+  {
+    "action": "remove",
+    ...
+  },
+  {
+    "action": "remove_attacks",
+    ...
+  }
+]
+
+```

@@ -3,26 +3,43 @@ package com.evandev.reliable_remover.config;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
 import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RuleManager {
-    private static final Gson GSON = new GsonBuilder().setLenient().create();
+    private static final Gson GSON = new GsonBuilder()
+            .setStrictness(Strictness.LENIENT)
+            .registerTypeAdapter(new TypeToken<Set<String>>() {
+            }.getType(), new StringOrSetDeserializer())
+            .registerTypeAdapter(new TypeToken<List<String>>() {
+            }.getType(), new StringOrListDeserializer())
+            .create();
+
     private static final List<RemovalRule> RULES = new ArrayList<>();
 
     public static void load() {
@@ -64,12 +81,10 @@ public class RuleManager {
                 [
                     {
                         "action": "remove",
-                        "filter": {
-                            "items": [
-                                "examplemod:item1",
-                                "examplemod:item2"
-                            ]
-                        }
+                        "items": [
+                            "examplemod:item1",
+                            "examplemod:item2"
+                        ]
                     }
                 ]""";
         try {
@@ -82,22 +97,27 @@ public class RuleManager {
 
     private static void validateRules() {
         for (RemovalRule rule : RULES) {
-            if (rule.filter != null && rule.filter.items != null) {
-                rule.filter.items.removeIf(itemId -> {
-                    Identifier id = Identifier.tryParse(itemId);
-                    if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-                        Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
-                        return true;
-                    }
-                    return false;
-                });
+            if (rule.items != null) {
+                if (rule.action == RemovalRule.Action.REMOVE ||
+                        rule.action == RemovalRule.Action.REMOVE_ATTACKS ||
+                        rule.action == RemovalRule.Action.REMOVE_INTERACTIONS) {
+
+                    rule.items.removeIf(itemId -> {
+                        Identifier id = Identifier.tryParse(itemId);
+                        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+                            Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
             }
         }
     }
 
     private static void logRemovedItems() {
         List<String> removedItems = BuiltInRegistries.ITEM.entrySet().stream()
-                .filter(entry -> isHidden(entry.getValue().getDefaultInstance()))
+                .filter(entry -> isHidden(entry.getValue()))
                 .map(entry -> entry.getKey().identifier().toString())
                 .collect(Collectors.toList());
 
@@ -108,33 +128,85 @@ public class RuleManager {
     }
 
     private static void parseFile(Path path) {
-        try (FileReader reader = new FileReader(path.toFile())) {
-            JsonElement json = JsonParser.parseReader(reader);
-            if (json.isJsonArray()) {
-                for (JsonElement e : json.getAsJsonArray()) RULES.add(GSON.fromJson(e, RemovalRule.class));
-            } else if (json.isJsonObject()) {
-                RULES.add(GSON.fromJson(json, RemovalRule.class));
+        try (FileReader fileReader = new FileReader(path.toFile())) {
+            JsonReader reader = new JsonReader(fileReader);
+            reader.setLenient(true);
+
+            while (reader.peek() != com.google.gson.stream.JsonToken.END_DOCUMENT) {
+                JsonElement json = JsonParser.parseReader(reader);
+
+                if (json.isJsonArray()) {
+                    for (JsonElement e : json.getAsJsonArray()) {
+                        RemovalRule rule = GSON.fromJson(e, RemovalRule.class);
+                        rule.mergeLegacy();
+                        RULES.add(rule);
+                    }
+                } else if (json.isJsonObject()) {
+                    RemovalRule rule = GSON.fromJson(json, RemovalRule.class);
+                    rule.mergeLegacy();
+                    RULES.add(rule);
+                }
             }
         } catch (Exception e) {
             Constants.LOG.error("Error parsing file: {}", path, e);
         }
     }
 
+    public static boolean isHidden(Item item) {
+        if (isEmpty(item)) return false;
+        return isHidden(new ItemStack(item), null);
+    }
+
     public static boolean isHidden(ItemStack stack) {
+        if (isEmpty(stack)) return false;
         return isHidden(stack, null);
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {
-        if (stack == null || stack.isEmpty()) return false;
-
         Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (!BuiltInRegistries.ITEM.containsKey(itemId)) {
-            return false;
+        if (BuiltInRegistries.ITEM.containsKey(itemId)) {
+            String id = itemId.toString();
+            String dim = level != null ? level.dimension().identifier().toString() : null;
+            if (checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null)) {
+                return true;
+            }
         }
 
-        String id = itemId.toString();
-        String dim = level != null ? level.dimension().identifier().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null);
+        if (stack.get(DataComponents.STORED_ENCHANTMENTS) != null) {
+            if (isEnchantmentBlocked(stack.get(DataComponents.STORED_ENCHANTMENTS))) return true;
+        }
+        if (stack.get(DataComponents.ENCHANTMENTS) != null) {
+            if (isEnchantmentBlocked(stack.get(DataComponents.ENCHANTMENTS))) return true;
+        }
+
+        if (stack.get(DataComponents.POTION_CONTENTS) != null) {
+            PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+            if (contents != null) {
+                String potionId = contents.potion()
+                        .flatMap(Holder::unwrapKey)
+                        .map(key -> key.identifier().toString())
+                        .orElse(null);
+
+                return potionId != null && checkRules(null, potionId, RemovalRule.Action.REMOVE_POTION, null, null);
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isEnchantmentBlocked(ItemEnchantments enchantments) {
+        if (enchantments == null) return false;
+        for (var entry : enchantments.entrySet()) {
+            String id = entry.getKey()
+                    .unwrapKey()
+                    .map(key -> key.identifier().toString())
+                    .orElse(null);
+
+            if (id != null && checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isHidden(String itemId) {
@@ -142,14 +214,30 @@ public class RuleManager {
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
-        if (stack == null || stack.isEmpty()) return false;
+        if (isEmpty(stack)) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target) || isHidden(stack, level);
     }
 
+    private static boolean isEmpty(Item item) {
+        return item == null || item == Items.AIR;
+    }
+
+	private static boolean isEmpty(ItemStackTemplate template) {
+		return template == null || isEmpty(getItem(template));
+	}
+
+    private static boolean isEmpty(ItemStack stack) {
+        return stack == null || stack.isEmpty() || isEmpty(stack.getItem());
+    }
+
+    private static Item getItem(ItemStackTemplate stack) {
+        return stack.item().value();
+    }
+
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
-        if (stack == null || stack.isEmpty()) return false;
+        if (isEmpty(stack)) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().identifier().toString() : null;
         return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target) || isHidden(stack, level);
@@ -160,15 +248,50 @@ public class RuleManager {
 
         for (RemovalRule rule : RULES) {
             if (rule.action == action) {
-                if (rule.filter != null) {
-                    if (stack != null) {
-                        if (rule.filter.matches(stack, itemId, dimension, entityId)) return true;
-                    } else {
-                        if (rule.filter.matches(itemId, dimension, entityId)) return true;
-                    }
+                if (stack != null) {
+                    if (rule.matches(stack, itemId, dimension, entityId)) return true;
+                } else {
+                    if (rule.matches(itemId, dimension, entityId)) return true;
                 }
             }
         }
         return false;
+    }
+
+    private static class StringOrSetDeserializer implements JsonDeserializer<Set<String>> {
+        @Override
+        public Set<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            Set<String> set = new HashSet<>();
+            if (json.isJsonArray()) {
+                for (JsonElement e : json.getAsJsonArray()) {
+                    set.add(e.getAsString());
+                }
+            } else if (json.isJsonPrimitive()) {
+                set.add(json.getAsString());
+            }
+            return set;
+        }
+    }
+
+    private static class StringOrListDeserializer implements JsonDeserializer<List<String>> {
+        @Override
+        public List<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            List<String> list = new ArrayList<>();
+            if (json.isJsonArray()) {
+                for (JsonElement e : json.getAsJsonArray()) {
+                    list.add(e.getAsString());
+                }
+            } else if (json.isJsonPrimitive()) {
+                list.add(json.getAsString());
+            }
+            return list;
+        }
+    }
+
+    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return enchantment.unwrapKey()
+                .map(key -> key.identifier().toString())
+                .map(id -> checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null))
+                .orElse(false);
     }
 }
