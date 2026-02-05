@@ -3,6 +3,7 @@ package com.evandev.reliable_remover.data;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.component.CustomData;
 
 import java.util.HashSet;
@@ -52,11 +53,11 @@ public class RemovalRule {
             return matchesLogic(itemId, dimension, entityId);
         }
 
-        public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
+        public boolean matches(ItemStackTemplate stack, String itemId, String dimension, String entityId) {
             if (!matchesLogic(itemId, dimension, entityId)) return false;
 
             if (nbt != null) {
-                if (!stack.has(DataComponents.CUSTOM_DATA)) return false;
+                if (stack.get(DataComponents.CUSTOM_DATA) == null) return false;
 
                 CustomData data = stack.get(DataComponents.CUSTOM_DATA);
                 if (data == null) return false;

@@ -38,14 +38,6 @@ public abstract class ServerPlayerMixin extends Player {
         }
     }
 
-    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$attack(Entity target, CallbackInfo ci) {
-        if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level(), target)) {
-            this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
-            ci.cancel();
-        }
-    }
-
     @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$cancelSwing(InteractionHand hand, CallbackInfo ci) {
         if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level(), null)) {
