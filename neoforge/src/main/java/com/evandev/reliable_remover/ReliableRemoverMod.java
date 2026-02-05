@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover;
 
 import com.evandev.reliable_remover.client.ClientConfigSetup;
-import com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin;
+import com.evandev.reliable_remover.command.ReliableRemoverCommands;
 import com.evandev.reliable_remover.config.ReloadListener;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.resources.Identifier;
@@ -12,7 +12,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @Mod(ReliableRemoverMod.MOD_ID)
 public class ReliableRemoverMod {
@@ -21,10 +22,15 @@ public class ReliableRemoverMod {
     public ReliableRemoverMod(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
         NeoForge.EVENT_BUS.addListener(this::addReloadListener);
+        NeoForge.EVENT_BUS.addListener(ReliableRemoverMod::onRegisterCommands);
 
         if (FMLEnvironment.getDist().isClient()) {
             ClientConfigSetup.register(modContainer);
         }
+    }
+
+    public static void onRegisterCommands(RegisterCommandsEvent event) {
+        ReliableRemoverCommands.register(event.getDispatcher());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

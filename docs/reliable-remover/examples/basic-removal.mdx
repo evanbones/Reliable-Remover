@@ -1,0 +1,46 @@
+---
+title: Basic Removal
+hide_meta: true
+---
+
+These examples use the `remove` action. This effectively deletes the item from the game, removing it from the creative tabs, recipe viewers, loot tables, and recipes/tags.
+
+### Remove Specific Items
+Removes TNT and Bedrock from the game completely.
+
+```json
+{
+  "action": "remove",
+  "items": [
+    "minecraft:tnt",
+    "minecraft:bedrock"
+  ]
+}
+
+```
+
+### Remove an Entire Mod
+
+Removes all items belonging to `farmersdelight`.
+
+```json
+{
+  "action": "remove",
+  "mod": [
+    "farmersdelight"
+  ]
+}
+
+```
+
+### Remove Items by Regex Pattern
+
+Removes all Swords from any mod.
+
+```json
+{
+  "action": "remove",
+  "pattern": "/.*_sword/"
+}
+
+```

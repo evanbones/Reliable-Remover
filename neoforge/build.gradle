@@ -23,6 +23,7 @@ neoForge {
             server()
         }
     }
+
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
@@ -36,6 +37,10 @@ dependencies {
     // EMI
     implementation("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${rrv_version}+${minecraft_version}")
 
+    // Reliable Recipes
+    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
+    implementation "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
+
     // JEI
     compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"
 
@@ -45,7 +50,7 @@ dependencies {
 
 publishMods {
     file = tasks.named("jar").flatMap { it.archiveFile }
-    changelog = rootProject.file("CHANGELOG.md").text
+    changelog = rootProject.file("CHANGELOG-LATEST.md").text
     type = STABLE
     displayName = "${mod_name} NeoForge ${minecraft_version} - ${project.version}"
     modLoaders.add("neoforge")
@@ -53,9 +58,8 @@ publishMods {
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
         projectId = "1420447"
-        minecraftVersions.add("26.1-snapshot-2")
+        minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }
@@ -66,7 +70,6 @@ publishMods {
         projectId = "pLxsKvNt"
         minecraftVersions.add("26.1-snapshot")
 
-        optional { slug = "reliable-recipes" }
         optional { slug = "rrv" }
         optional { slug = "jei" }
         optional { slug = "cloth-config" }

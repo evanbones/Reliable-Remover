@@ -1,0 +1,45 @@
+---
+title: Combat Restrictions
+hide_meta: true
+---
+
+These examples use the `remove_attacks` action to prevent dealing damage with specific items.
+
+### Disable Attacking with Specific Items
+Prevents attacking with the "Stick" item.
+
+```json
+{
+  "action": "remove_attacks",
+  "items": [
+    "minecraft:stick"
+  ]
+}
+
+```
+
+### Disable Modded Weapons
+
+Prevents attacking with any weapon from the `simplyswords` mod using a Regex pattern.
+
+```json
+{
+  "action": "remove_attacks",
+  "pattern": "/simplyswords:.*_sword/"
+}
+
+```
+
+### Protect Specific Entities
+
+Prevents players from attacking Villagers with *any* item. Note that the filter is empty for items, meaning it applies to everything when targeting a Villager.
+
+```json
+{
+  "action": "remove_attacks",
+  "entities": [
+    "minecraft:villager"
+  ]
+}
+
+```

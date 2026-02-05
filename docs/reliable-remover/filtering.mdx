@@ -1,0 +1,37 @@
+---
+title: Filtering
+hide_meta: true
+---
+
+Reliable Remover uses a flat configuration structure. You define an action and then add filters directly to the object.
+
+### Filter Options
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| `items` | List of specific IDs. | `["minecraft:tnt"]` |
+| `mod` | Target all items from a mod ID. | `"farmersdelight"` |
+| `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
+| `entities` | List of entity IDs (for interaction/attack rules). | `["minecraft:villager"]` |
+| `patterns` | List of Regex patterns to match IDs. | `["/.*_sword/", "/.*_helmet/"]` |
+| `nbt` | Regex pattern to match NBT data. | `"{.*Enchantments.*}"` |
+
+### Logic (`not`)
+
+You can use the `not` field to invert conditions.
+This is useful for creating exceptions (whitelists).
+
+```json
+{
+  "action": "remove",
+  "mod": ["examplemod"],
+  "not": {
+    "items": ["examplemod:safe_item"]
+  }
+}
+
+```
+
+For complex logical examples, such as **"Ban Mod X except Item Y"** or **"Allow Item only in Dimension Z"**, please see the advanced examples page.
+
+[View 'Advanced Logic & NBT' Examples](/project/reliable-remover/latest/docs/reliable-remover/examples/advanced-logic)

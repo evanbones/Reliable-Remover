@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_18",
   "mixins": [
     "minecraft.CreativeModeTabMixin",
+    "minecraft.EnchantmentHelperMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.LootTableMixin",
