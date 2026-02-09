@@ -1,4 +1,3 @@
 ### Fixed
 
-- Fixed incompatibility with Immersive Engineering.
-- Fix log warning about missing EMI loot.
+- Fixed issue with empty tags in recipe viewers.

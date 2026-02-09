@@ -3,7 +3,6 @@ package com.evandev.reliable_remover;
 import com.evandev.reliable_remover.client.ClientConfigSetup;
 import com.evandev.reliable_remover.command.ReliableRemoverCommands;
 import com.evandev.reliable_remover.config.ReloadListener;
-import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -34,7 +33,7 @@ public class ReliableRemoverMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        RuleManager.load();
+        CommonClass.init();
     }
 
     private void addReloadListener(final AddReloadListenerEvent event) {
