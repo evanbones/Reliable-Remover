@@ -32,7 +32,7 @@ public class ReliableRemoverMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        RuleManager.load();
+        CommonClass.init();
     }
 
     private void addReloadListener(final AddReloadListenerEvent event) {
