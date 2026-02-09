@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issue with empty tags in recipe viewers.
+- Bump Reliable Recipes version.
