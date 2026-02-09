@@ -1,3 +1,4 @@
-### Changed
+### Fixed
 
-- Reliable Recipes is now bundled by default in the mod.
+- Fixed incompatibility with Immersive Engineering.
+- Fix log warning about missing EMI loot.
