@@ -20,7 +20,8 @@ public abstract class ItemEntityMixin extends Entity {
         super(type, level);
     }
 
-    @Shadow public abstract ItemStack getItem();
+    @Shadow
+    public abstract ItemStack getItem();
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void reliable_remover$tick(CallbackInfo ci) {
