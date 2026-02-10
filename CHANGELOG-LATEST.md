@@ -1,3 +1,3 @@
 ### Fixed
 
-- Bump Reliable Recipes version.
+- Fixed crash with EMI loot.

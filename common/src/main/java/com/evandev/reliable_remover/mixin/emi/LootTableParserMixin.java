@@ -19,8 +19,7 @@ public class LootTableParserMixin {
     @Inject(
             method = "parseItemEntry(ILnet/minecraft/world/item/ItemStack;Ljava/util/List;Ljava/util/List;Z)Ljava/util/List;",
             at = @At("RETURN"),
-            cancellable = true,
-            remap = false
+            cancellable = true
     )
     private static void reliable_remover$filterEmiLootItems(
             int weight,
