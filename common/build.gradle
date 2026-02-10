@@ -17,7 +17,6 @@ legacyForge {
 dependencies {
     // EMI
     compileOnly "dev.emi:emi-xplat-mojmap:${emi_version}"
-    compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+forge"
 
     // JEI
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
