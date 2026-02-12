@@ -21,10 +21,7 @@ import java.io.FileReader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -287,6 +284,13 @@ public class RuleManager {
         return false;
     }
 
+    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return enchantment.unwrapKey()
+                .map(key -> key.location().toString())
+                .map(id -> checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null))
+                .orElse(false);
+    }
+
     private static class StringOrSetDeserializer implements JsonDeserializer<Set<String>> {
         @Override
         public Set<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -315,12 +319,5 @@ public class RuleManager {
             }
             return list;
         }
-    }
-
-    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
-        return enchantment.unwrapKey()
-                .map(key -> key.location().toString())
-                .map(id -> checkRules(null, id, RemovalRule.Action.REMOVE_ENCHANTMENT, null, null))
-                .orElse(false);
     }
 }
