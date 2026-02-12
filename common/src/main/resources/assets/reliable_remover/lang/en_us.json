@@ -13,6 +13,8 @@
   "config.reliable_remover.option.remove_dropped_items.tooltip": "Instantly removes restricted items when they are dropped in the world.",
   "config.reliable_remover.option.remove_loot_items": "Remove from Loot",
   "config.reliable_remover.option.remove_loot_items.tooltip": "Prevents restricted items from generating as loot.",
+  "config.reliable_remover.option.remove_storage_items": "Remove Items from Storage",
+  "config.reliable_remover.option.remove_storage_items.tooltip": "If enabled, banned items will be removed from Chests, Barrels, Shulker Boxes, etc. when the block inventory is opened.",
 
   "tooltip.reliable_remover.item_disabled": "§4Unobtainable",
   "message.reliable_remover.item_removed": "Unobtainable item removed from inventory.",

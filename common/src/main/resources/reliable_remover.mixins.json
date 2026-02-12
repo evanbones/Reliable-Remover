@@ -13,6 +13,7 @@
     "minecraft.ItemStackMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
+    "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],
