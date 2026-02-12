@@ -37,10 +37,17 @@ public class RuleManager {
             }.getType(), new StringOrListDeserializer())
             .create();
 
-    private static final List<RemovalRule> RULES = new ArrayList<>();
+    private static final Map<RemovalRule.Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(RemovalRule.Action.class);
+    private static final Set<String> GLOBALLY_BANNED_ITEMS = new HashSet<>();
 
     public static void load() {
-        RULES.clear();
+        RULES_BY_ACTION.clear();
+        GLOBALLY_BANNED_ITEMS.clear();
+
+        for (RemovalRule.Action action : RemovalRule.Action.values()) {
+            RULES_BY_ACTION.put(action, new ArrayList<>());
+        }
+
         Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
 
         if (!Files.exists(configDir)) {
@@ -68,8 +75,11 @@ public class RuleManager {
             generateDefaultConfig(configDir);
         }
 
-        Constants.LOG.info("Loaded {} reliable remover rules.", RULES.size());
         validateRules();
+        optimizeRules();
+
+        int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
+        Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
         logRemovedItems();
     }
 
@@ -93,23 +103,50 @@ public class RuleManager {
     }
 
     private static void validateRules() {
-        for (RemovalRule rule : RULES) {
-            if (rule.items != null) {
-                if (rule.action == RemovalRule.Action.REMOVE ||
-                        rule.action == RemovalRule.Action.REMOVE_ATTACKS ||
-                        rule.action == RemovalRule.Action.REMOVE_INTERACTIONS) {
+        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+            for (RemovalRule rule : rules) {
+                if (rule.items != null) {
+                    if (rule.action == RemovalRule.Action.REMOVE ||
+                            rule.action == RemovalRule.Action.REMOVE_ATTACKS ||
+                            rule.action == RemovalRule.Action.REMOVE_INTERACTIONS) {
 
-                    rule.items.removeIf(itemId -> {
-                        ResourceLocation id = ResourceLocation.tryParse(itemId);
-                        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-                            Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
-                            return true;
-                        }
-                        return false;
-                    });
+                        rule.items.removeIf(itemId -> {
+                            ResourceLocation id = ResourceLocation.tryParse(itemId);
+                            if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
+                                return true;
+                            }
+                            return false;
+                        });
+                    }
                 }
             }
         }
+    }
+
+    private static void optimizeRules() {
+        List<RemovalRule> removeRules = RULES_BY_ACTION.get(RemovalRule.Action.REMOVE);
+        if (removeRules == null) return;
+
+        Iterator<RemovalRule> iterator = removeRules.iterator();
+        while (iterator.hasNext()) {
+            RemovalRule rule = iterator.next();
+            if (isSimpleRule(rule)) {
+                GLOBALLY_BANNED_ITEMS.addAll(rule.items);
+                iterator.remove();
+            }
+        }
+    }
+
+    private static boolean isSimpleRule(RemovalRule rule) {
+        return (rule.dimensions == null || rule.dimensions.isEmpty()) &&
+                (rule.entities == null || rule.entities.isEmpty()) &&
+                (rule.mod == null || rule.mod.isEmpty()) &&
+                (rule.pattern == null || rule.pattern.isEmpty()) &&
+                (rule.patterns == null || rule.patterns.isEmpty()) &&
+                rule.nbt == null &&
+                rule.not == null &&
+                rule.items != null && !rule.items.isEmpty();
     }
 
     private static void logRemovedItems() {
@@ -134,19 +171,21 @@ public class RuleManager {
 
                 if (json.isJsonArray()) {
                     for (JsonElement e : json.getAsJsonArray()) {
-                        RemovalRule rule = GSON.fromJson(e, RemovalRule.class);
-                        rule.mergeLegacy();
-                        RULES.add(rule);
+                        addRule(GSON.fromJson(e, RemovalRule.class));
                     }
                 } else if (json.isJsonObject()) {
-                    RemovalRule rule = GSON.fromJson(json, RemovalRule.class);
-                    rule.mergeLegacy();
-                    RULES.add(rule);
+                    addRule(GSON.fromJson(json, RemovalRule.class));
                 }
             }
         } catch (Exception e) {
             Constants.LOG.error("Error parsing file: {}", path, e);
         }
+    }
+
+    private static void addRule(RemovalRule rule) {
+        rule.mergeLegacy();
+        if (rule.action == null) rule.action = RemovalRule.Action.REMOVE;
+        RULES_BY_ACTION.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
     }
 
     public static boolean isHidden(ItemStack stack) {
@@ -157,8 +196,11 @@ public class RuleManager {
         if (stack == null || stack.isEmpty()) return false;
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        String id = itemId.toString();
+
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
-            String id = itemId.toString();
             String dim = level != null ? level.dimension().location().toString() : null;
             if (checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null)) {
                 return true;
@@ -203,27 +245,37 @@ public class RuleManager {
     }
 
     public static boolean isHidden(String itemId) {
+        if (GLOBALLY_BANNED_ITEMS.contains(itemId)) return true;
         return checkRules(null, itemId, RemovalRule.Action.REMOVE, null, null);
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
+
+        if (isHidden(stack, level)) return true;
+
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target) || isHidden(stack, level);
+        return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target);
     }
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
+
+        if (isHidden(stack, level)) return true;
+
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target) || isHidden(stack, level);
+        return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target);
     }
 
     private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action, String dimension, Entity target) {
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
 
-        for (RemovalRule rule : RULES) {
+        List<RemovalRule> rules = RULES_BY_ACTION.get(action);
+        if (rules == null || rules.isEmpty()) return false;
+
+        for (RemovalRule rule : rules) {
             if (rule.action == action) {
                 if (stack != null) {
                     if (rule.matches(stack, itemId, dimension, entityId)) return true;

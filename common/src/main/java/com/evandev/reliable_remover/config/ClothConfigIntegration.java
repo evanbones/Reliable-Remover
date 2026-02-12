@@ -56,6 +56,12 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeItemsFromLootChests = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_storage_items"), config.removeItemsFromStorage)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_storage_items.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromStorage = newValue)
+                .build());
+
         return builder.build();
     }
 }
