@@ -26,6 +26,18 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.showRemovalMessage = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.show_attack_message"), config.showAttackMessage)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.show_attack_message.tooltip"))
+                .setSaveConsumer(newValue -> config.showAttackMessage = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.show_hand_swing_message"), config.showHandSwingMessage)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.show_hand_swing_message.tooltip"))
+                .setSaveConsumer(newValue -> config.showHandSwingMessage = newValue)
+                .build());
+
         general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_creative_tab_items"), config.removeItemsFromCreativeTabs)
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("config.reliable_remover.option.remove_creative_tab_items.tooltip"))

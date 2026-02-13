@@ -26,7 +26,7 @@ public class LootTableMixin {
         ObjectArrayList<ItemStack> generatedLoot = cir.getReturnValue();
 
         if (generatedLoot != null) {
-            generatedLoot.removeIf(RuleManager::isHidden);
+            generatedLoot.removeIf(RuleManager::isLootBlocked);
         }
     }
 }

@@ -36,7 +36,7 @@ public class LootTableParserMixin {
         boolean changed = false;
 
         for (LootTableParser.ItemEntryResult result : original) {
-            if (RuleManager.isHidden(result.item())) {
+            if (RuleManager.isLootBlocked(result.item())) {
                 changed = true;
             } else {
                 filtered.add(result);
