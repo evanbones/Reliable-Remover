@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.config;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
 import com.google.gson.*;
@@ -33,14 +34,14 @@ public class RuleManager {
             }.getType(), new StringOrListDeserializer())
             .create();
 
-    private static final Map<RemovalRule.Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(RemovalRule.Action.class);
+    private static final Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static final Set<String> GLOBALLY_BANNED_ITEMS = new HashSet<>();
 
     public static void load() {
         RULES_BY_ACTION.clear();
         GLOBALLY_BANNED_ITEMS.clear();
 
-        for (RemovalRule.Action action : RemovalRule.Action.values()) {
+        for (Action action : Action.values()) {
             RULES_BY_ACTION.put(action, new ArrayList<>());
         }
 
@@ -102,9 +103,12 @@ public class RuleManager {
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {
                 if (rule.items != null) {
-                    if (rule.action == RemovalRule.Action.REMOVE ||
-                            rule.action == RemovalRule.Action.REMOVE_ATTACKS ||
-                            rule.action == RemovalRule.Action.REMOVE_INTERACTIONS) {
+                    if (rule.action == Action.REMOVE ||
+                            rule.action == Action.REMOVE_ATTACKS ||
+                            rule.action == Action.REMOVE_INTERACTIONS ||
+                            rule.action == Action.REMOVE_TRADE ||
+                            rule.action == Action.REMOVE_LOOT ||
+                            rule.action == Action.REMOVE_HAND_SWING) {
 
                         rule.items.removeIf(itemId -> {
                             ResourceLocation id = ResourceLocation.tryParse(itemId);
@@ -121,7 +125,7 @@ public class RuleManager {
     }
 
     private static void optimizeRules() {
-        List<RemovalRule> removeRules = RULES_BY_ACTION.get(RemovalRule.Action.REMOVE);
+        List<RemovalRule> removeRules = RULES_BY_ACTION.get(Action.REMOVE);
         if (removeRules == null) return;
 
         Iterator<RemovalRule> iterator = removeRules.iterator();
@@ -179,8 +183,7 @@ public class RuleManager {
     }
 
     private static void addRule(RemovalRule rule) {
-        rule.mergeLegacy();
-        if (rule.action == null) rule.action = RemovalRule.Action.REMOVE;
+        if (rule.action == null) rule.action = Action.REMOVE;
         RULES_BY_ACTION.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
     }
 
@@ -198,7 +201,7 @@ public class RuleManager {
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
-            if (checkRules(stack, id, RemovalRule.Action.REMOVE, dim, null)) {
+            if (checkRules(stack, id, Action.REMOVE, dim, null)) {
                 return true;
             }
         }
@@ -210,35 +213,50 @@ public class RuleManager {
 
         Potion potion = PotionUtils.getPotion(stack);
         ResourceLocation potionId = BuiltInRegistries.POTION.getKey(potion);
-        return checkRules(null, potionId.toString(), RemovalRule.Action.REMOVE_POTION, null, null);
-    }
-
-    public static boolean isHidden(String itemId) {
-        if (GLOBALLY_BANNED_ITEMS.contains(itemId)) return true;
-        return checkRules(null, itemId, RemovalRule.Action.REMOVE, null, null);
+        return checkRules(null, potionId.toString(), Action.REMOVE_POTION, null, null);
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
 
-        if (isHidden(stack, level)) return true;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_ATTACKS, dim, target);
+        return checkRules(stack, id, Action.REMOVE_ATTACKS, dim, target);
     }
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
 
-        if (isHidden(stack, level)) return true;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        return checkRules(stack, id, Action.REMOVE_INTERACTIONS, dim, target);
+    }
+
+    public static boolean isTradeBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (isHidden(stack)) return true;
+
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return checkRules(stack, id, Action.REMOVE_TRADE, null, null);
+    }
+
+    public static boolean isLootBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (isHidden(stack)) return true;
+
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return checkRules(stack, id, Action.REMOVE_LOOT, null, null);
+    }
+
+    public static boolean isHandSwingBlocked(ItemStack stack, Level level) {
+        if (stack == null || stack.isEmpty()) return false;
 
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, RemovalRule.Action.REMOVE_INTERACTIONS, dim, target);
+        return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null);
     }
 
-    private static boolean checkRules(ItemStack stack, String itemId, RemovalRule.Action action, String dimension, Entity target) {
+    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target) {
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
 
         List<RemovalRule> rules = RULES_BY_ACTION.get(action);
@@ -259,7 +277,7 @@ public class RuleManager {
     public static boolean isEnchantmentBlocked(Enchantment enchantment) {
         ResourceLocation id = BuiltInRegistries.ENCHANTMENT.getKey(enchantment);
         if (id != null) {
-            return checkRules(null, id.toString(), RemovalRule.Action.REMOVE_ENCHANTMENT, null, null);
+            return checkRules(null, id.toString(), Action.REMOVE_ENCHANTMENT, null, null);
         }
         return false;
     }

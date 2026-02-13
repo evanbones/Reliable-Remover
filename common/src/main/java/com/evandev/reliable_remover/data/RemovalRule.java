@@ -3,18 +3,11 @@ package com.evandev.reliable_remover.data;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class RemovalRule {
     public Action action;
-
-    @Deprecated
-    @SerializedName("filter")
-    public RemovalRule filter;
 
     public Set<String> items = new HashSet<>();
     public Set<String> dimensions = new HashSet<>();
@@ -33,26 +26,6 @@ public class RemovalRule {
 
     private transient List<Pattern> compiledPatterns;
     private transient Pattern compiledNbtPattern;
-
-    /**
-     * Merges fields from the legacy 'filter' object into this object
-     * if they are present.
-     */
-    public void mergeLegacy() {
-        if (filter != null) {
-            if (filter.items != null) this.items.addAll(filter.items);
-            if (filter.dimensions != null) this.dimensions.addAll(filter.dimensions);
-            if (filter.entities != null) this.entities.addAll(filter.entities);
-            if (filter.mod != null) this.mod.addAll(filter.mod);
-            if (filter.patterns != null) this.patterns.addAll(filter.patterns);
-
-            if (this.pattern == null) this.pattern = filter.pattern;
-            if (this.nbt == null) this.nbt = filter.nbt;
-            if (this.not == null) this.not = filter.not;
-
-            this.filter = null;
-        }
-    }
 
     public boolean matches(String itemId) {
         return matches(itemId, null);
@@ -142,16 +115,4 @@ public class RemovalRule {
         return Pattern.compile(p);
     }
 
-    public enum Action {
-        @SerializedName(value = "REMOVE", alternate = {"remove", "Remove"})
-        REMOVE,
-        @SerializedName(value = "REMOVE_ATTACKS", alternate = {"remove_attacks", "Remove_Attacks"})
-        REMOVE_ATTACKS,
-        @SerializedName(value = "REMOVE_INTERACTIONS", alternate = {"remove_interactions", "Remove_Interactions"})
-        REMOVE_INTERACTIONS,
-        @SerializedName(value = "REMOVE_ENCHANTMENT", alternate = {"remove_enchantment", "Remove_Enchantment"})
-        REMOVE_ENCHANTMENT,
-        @SerializedName(value = "REMOVE_POTION", alternate = {"remove_potion", "Remove_Potion"})
-        REMOVE_POTION
-    }
 }

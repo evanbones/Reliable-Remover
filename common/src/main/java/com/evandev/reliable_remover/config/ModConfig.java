@@ -16,6 +16,8 @@ public class ModConfig {
 
     private static ModConfig INSTANCE;
 
+    public boolean showAttackMessage = true;
+    public boolean showHandSwingMessage = true;
     public boolean showRemovalMessage = true;
     public boolean removeItemsFromCreativeTabs = true;
     public boolean removeItemsFromEmi = true;

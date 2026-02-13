@@ -16,9 +16,9 @@ public class MerchantMenuMixin {
         MerchantOffers offers = cir.getReturnValue();
         if (offers != null) {
             offers.removeIf(offer ->
-                    RuleManager.isHidden(offer.getResult()) ||
-                            RuleManager.isHidden(offer.getBaseCostA()) ||
-                            RuleManager.isHidden(offer.getCostB())
+                    RuleManager.isTradeBlocked(offer.getResult()) ||
+                            RuleManager.isTradeBlocked(offer.getBaseCostA()) ||
+                            RuleManager.isTradeBlocked(offer.getCostB())
             );
         }
     }

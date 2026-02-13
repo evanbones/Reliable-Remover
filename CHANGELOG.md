@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-13
+
+### Changed
+
+- Removed logic for parsing legacy `filter` blocks.
+    - IMPORTANT: This can affect legacy removal rules! Please remove any `filter` blocks from your JSONs as they are now
+      redundant.
+
+### Added
+
+- Added `remove_trade` action to remove items only from Villager trades.
+- Added `remove_loot` action to remove items only from loot tables.
+- Added `remove_hand_swing` action to disable hand swinging.
+- Added message when trying to attack or swing with items targeted by `remove_attack` or `remove_hand_swing` actions.
+
 ## [1.1.5] - 2026-02-12
 
 ### Added

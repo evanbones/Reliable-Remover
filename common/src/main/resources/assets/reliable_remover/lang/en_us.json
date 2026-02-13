@@ -3,6 +3,10 @@
   "config.reliable_remover.category.general": "General",
   "config.reliable_remover.option.show_removal_message": "Show Removal Message",
   "config.reliable_remover.option.show_removal_message.tooltip": "Shows a message above the hotbar when a restricted item is removed from your inventory.",
+  "config.reliable_remover.option.show_attack_message": "Show Attack Message",
+  "config.reliable_remover.option.show_attack_message.tooltip": "Shows a message above the hotbar when trying to hit a mob using an item with attacks disabled.",
+  "config.reliable_remover.option.show_hand_swing_message": "Show Hand Swing Message",
+  "config.reliable_remover.option.show_hand_swing_message.tooltip": "Shows a message above the hotbar when trying to swing an item with hand swing disabled.",
   "config.reliable_remover.option.remove_creative_tab_items": "Remove from Creative Tabs",
   "config.reliable_remover.option.remove_creative_tab_items.tooltip": "Hides restricted items from the Creative Mode menu.",
   "config.reliable_remover.option.remove_emi_items": "Remove from EMI",
@@ -20,6 +24,7 @@
   "message.reliable_remover.item_removed": "Unobtainable item removed from inventory.",
   "message.reliable_remover.interaction_disabled": "Item interactions are disabled.",
   "message.reliable_remover.attack_disabled": "Attacking with this item is disabled.",
+  "message.reliable_remover.swing_disabled": "Swinging with this item is disabled.",
 
   "command.reliable_remover.dump.hand_empty": "Main hand is empty.",
   "command.reliable_remover.dump.hotbar_empty": "Hotbar is empty.",
