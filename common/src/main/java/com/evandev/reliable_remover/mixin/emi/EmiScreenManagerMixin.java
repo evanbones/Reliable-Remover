@@ -30,7 +30,7 @@ public class EmiScreenManagerMixin {
                 EmiIngredient ingredient = hovered.getStack();
 
                 if (ingredient != null && !ingredient.getEmiStacks().isEmpty()) {
-                    EmiStack emiStack = ingredient.getEmiStacks().getFirst();
+                    EmiStack emiStack = ingredient.getEmiStacks().get(0);
                     ResourceLocation id = emiStack.getId();
 
                     if (id != null) {
