@@ -12,6 +12,7 @@ get started.
 ### Global Configuration
 
 Global settings can be configured via the **Cloth Config** screen in-game or by editing `config/reliable_remover.json`.
+This includes toggling visibility messages and enabling Dev Mode for quick removals using EMI.
 
 ### JSON Structure
 
@@ -31,3 +32,16 @@ a JSON Array `[...]`.
 ]
 
 ```
+
+### EMI Integration (Dev Mode)
+
+If EMI is installed and Dev Mode is enabled in the config, you can manage removals directly from the EMI side panel:
+
+* Remove Item: Hover over any item in the EMI list and press Delete (or Backspace).
+* Automatic Reload: The mod can automatically trigger a full data reload (/reload) after a removal to ensure the item is
+immediately hidden from all menus.
+
+#### Dynamic Removals
+
+* When you remove an item via the EMI interface, the rule is saved to `config/reliable_remover/generated_removals.json`.
+You can manually edit this file or use the `/reliable_remover undo <id>` command to revert changes.

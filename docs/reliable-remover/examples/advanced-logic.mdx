@@ -105,6 +105,21 @@ Prevents using Shears on Sheep, but allows using them on other things (like leav
 
 ```
 
+### Disable Hand Swinging for Multiple Tools
+
+This rule uses the `patterns` list to block the swing animation for all shovels and pickaxes.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "patterns": [
+    "/.*_shovel/",
+    "/.*_pickaxe/"
+  ]
+}
+
+```
+
 ## NBT & Data
 
 ### Remove Potions by Effect

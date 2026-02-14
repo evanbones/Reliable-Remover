@@ -3,9 +3,10 @@ title: Removal Actions
 hide_meta: true
 ---
 
-There are five primary actions you can apply.
+There are many actions you can apply to items.
 
 ### `remove`
+
 The nuclear option.
 This completely scrubs the item from the game context based on your global config.
 
@@ -15,6 +16,7 @@ This completely scrubs the item from the game context based on your global confi
 [View 'Basic Removal' Examples](/project/reliable-remover/docs/reliable-remover/examples/basic-removal)
 
 ### `remove_interactions`
+
 Prevents the player from "using" the item (Right-Click).
 
 * **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket).
@@ -22,13 +24,15 @@ Prevents the player from "using" the item (Right-Click).
 [View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
 
 ### `remove_attacks`
+
 Prevents the player from attacking entities while holding the specified item.
 
-* **Use Case**: Disable specific weapons or protect specific entities (like Villagers) from being hurt.
+* **Use Case**: Disable specific weapons or protect specific entities from being hurt.
 
 [View 'Combat Restrictions' Examples](/project/reliable-remover/docs/reliable-remover/examples/combat-restrictions)
 
 ### `remove_enchantment`
+
 Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchantment.
 
 * **Use Case**: Remove "Protection" or specific curses from the game entirely.
@@ -51,6 +55,20 @@ Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing th
 {
   "action": "remove_potion",
   "items": ["minecraft:poison", "minecraft:strong_poison"]
+}
+
+```
+
+###`remove_hand_swing`
+
+Prevents the player from swinging their hand while holding the specified item.
+
+* **Use Case**: Useful for disabling the "swing" animation for items that shouldn't appear to be used as tools or weapons.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "items": ["minecraft:stick"]
 }
 
 ```

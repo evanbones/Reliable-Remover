@@ -10,10 +10,11 @@ Reliable Remover uses a flat configuration structure. You define an action and t
 | Field | Description | Example |
 | :--- | :--- | :--- |
 | `items` | List of specific IDs. | `["minecraft:tnt"]` |
+| `tags` | List of item tags to remove. | `["minecraft:logs"]` |
 | `mod` | Target all items from a mod ID. | `"farmersdelight"` |
 | `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
 | `entities` | List of entity IDs (for interaction/attack rules). | `["minecraft:villager"]` |
-| `patterns` | List of Regex patterns to match IDs. | `["/.*_sword/", "/.*_helmet/"]` |
+| `patterns` | A list of Regex patterns to match multiple item IDs. | `["/.*_sword/", "/.*_helmet/"]` |
 | `nbt` | Regex pattern to match NBT data. | `"{.*Enchantments.*}"` |
 
 ### Logic (`not`)
