@@ -6,6 +6,7 @@
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
@@ -18,6 +19,7 @@
     "minecraft.ServerPlayerMixin"
   ],
   "client": [
+    "client.ScreenMixin",
     "minecraft.MinecraftMixin"
   ],
   "server": [],

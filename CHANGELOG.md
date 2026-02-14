@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added config options for dev behaviour using EMI, like deleting items in-game by pressing the delete key.
+- Added support for item tags in actions, using a `#` prefix or a `tags` block.
 - Added `remove_trade` action to remove items only from Villager trades.
 - Added `remove_loot` action to remove items only from loot tables.
 - Added `remove_hand_swing` action to disable hand swinging.
