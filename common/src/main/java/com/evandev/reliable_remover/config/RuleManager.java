@@ -119,10 +119,7 @@ public class RuleManager {
                                 return true;
                             }
                         } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
-                            if (!BuiltInRegistries.ENCHANTMENT.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid enchantment ID '{}'.", itemId);
-                                return true;
-                            }
+                            return false; // enchantments are dynamic registries, can't validate them statically, so we assume they're valid
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)) {
                                 Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
