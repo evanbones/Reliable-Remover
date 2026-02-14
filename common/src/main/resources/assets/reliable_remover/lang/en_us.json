@@ -32,5 +32,21 @@
   "command.reliable_remover.dump.copy_tooltip": "Click to Copy Config JSON",
   "command.reliable_remover.dump.title.hand": "Main Hand Item",
   "command.reliable_remover.dump.title.hotbar": "Hotbar Items",
-  "command.reliable_remover.dump.title.inventory": "All Inventory Items"
+  "command.reliable_remover.dump.title.inventory": "All Inventory Items",
+
+  "config.reliable_remover.category.emi": "EMI Actions",
+  "config.reliable_remover.option.enable_emi_removal": "Enable Dev Mode",
+  "config.reliable_remover.option.enable_emi_removal.tooltip": "Enable dev mode to delete items directly by hovering and pressing Delete in EMI.",
+  "config.reliable_remover.option.show_toast": "Show Toast",
+  "config.reliable_remover.option.show_toast.tooltip": "Show a toast after removing an item through EMI.",
+  "config.reliable_remover.option.show_chat_messages": "Show Chat Messages",
+  "config.reliable_remover.option.show_chat_messages.tooltip": "Show chat feedback and UNDO buttons after removing an item through EMI.",
+  "config.reliable_remover.option.reload_emi": "Reload After Removal",
+  "config.reliable_remover.option.reload_emi.tooltip": "Runs /reload immediately after an item is removed.",
+
+  "toast.reliable_remover.permission_denied": "Reliable Remover: You need OP to delete items.",
+  "toast.reliable_remover.undo": "[UNDO]",
+  "toast.reliable_remover.deleted": "Reliable Remover: Removed item %s",
+  "toast.reliable_remover.restored_item": "Reliable Remover: Restored item %s",
+  "toast.reliable_remover.restored_item_failed": "Could not restore item %s (not in cache or already exists)"
 }

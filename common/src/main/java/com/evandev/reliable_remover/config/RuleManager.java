@@ -104,22 +104,28 @@ public class RuleManager {
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {
                 if (rule.items != null) {
-                    if (rule.action == Action.REMOVE ||
-                            rule.action == Action.REMOVE_ATTACKS ||
-                            rule.action == Action.REMOVE_INTERACTIONS ||
-                            rule.action == Action.REMOVE_TRADE ||
-                            rule.action == Action.REMOVE_LOOT ||
-                            rule.action == Action.REMOVE_HAND_SWING) {
+                    rule.items.removeIf(itemId -> {
+                        if (itemId.startsWith("#")) return false;
 
-                        rule.items.removeIf(itemId -> {
-                            ResourceLocation id = ResourceLocation.tryParse(itemId);
-                            if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'. This item does not exist.", itemId);
-                                return true;
-                            }
-                            return false;
-                        });
-                    }
+                        ResourceLocation id = ResourceLocation.tryParse(itemId);
+                        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+                            Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+
+                if (rule.tags != null) {
+                    rule.tags.removeIf(tagId -> {
+                        String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+                        ResourceLocation id = ResourceLocation.tryParse(cleanTagId);
+                        if (id == null) {
+                            Constants.LOG.warn("Reliable Remover: Skipping invalid tag ID '{}'.", tagId);
+                            return true;
+                        }
+                        return false;
+                    });
                 }
             }
         }
@@ -145,6 +151,7 @@ public class RuleManager {
                 (rule.mod == null || rule.mod.isEmpty()) &&
                 (rule.pattern == null || rule.pattern.isEmpty()) &&
                 (rule.patterns == null || rule.patterns.isEmpty()) &&
+                (rule.tags == null || rule.tags.isEmpty()) &&
                 rule.nbt == null &&
                 rule.not == null &&
                 rule.items != null && !rule.items.isEmpty();

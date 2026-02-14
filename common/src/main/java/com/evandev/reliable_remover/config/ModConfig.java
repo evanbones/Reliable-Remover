@@ -26,6 +26,11 @@ public class ModConfig {
     public boolean removeItemsFromLootChests = true;
     public boolean removeItemsFromStorage = true;
 
+    public boolean enableEmiRemoval = false;
+    public boolean showEmiToast = true;
+    public boolean showEmiChatMessages = true;
+    public boolean reloadAfterRemoval = false;
+
     public static ModConfig get() {
         if (INSTANCE == null) {
             load();

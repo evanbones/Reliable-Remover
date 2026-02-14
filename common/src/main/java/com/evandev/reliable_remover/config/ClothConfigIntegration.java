@@ -74,6 +74,32 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeItemsFromStorage = newValue)
                 .build());
 
+        ConfigCategory emiCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.emi"));
+
+        emiCategory.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.enable_emi_removal"), config.enableEmiRemoval)
+                .setDefaultValue(false)
+                .setTooltip(Component.translatable("config.reliable_remover.option.enable_emi_removal.tooltip"))
+                .setSaveConsumer(newValue -> config.enableEmiRemoval = newValue)
+                .build());
+
+        emiCategory.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.show_toast"), config.showEmiToast)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.show_toast.tooltip"))
+                .setSaveConsumer(newValue -> config.showEmiToast = newValue)
+                .build());
+
+        emiCategory.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.show_chat_messages"), config.showEmiChatMessages)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.show_chat_messages.tooltip"))
+                .setSaveConsumer(newValue -> config.showEmiChatMessages = newValue)
+                .build());
+
+        emiCategory.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.reload_emi"), config.reloadAfterRemoval)
+                .setDefaultValue(false)
+                .setTooltip(Component.translatable("config.reliable_remover.option.reload_emi.tooltip"))
+                .setSaveConsumer(newValue -> config.reloadAfterRemoval = newValue)
+                .build());
+
         return builder.build();
     }
 }

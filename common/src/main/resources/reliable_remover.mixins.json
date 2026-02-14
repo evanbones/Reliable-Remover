@@ -6,6 +6,7 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
+    "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",
     "emi.LootTableParserMixin",
     "minecraft.CreativeModeTabMixin",
@@ -19,6 +20,7 @@
     "minecraft.ServerPlayerMixin"
   ],
   "client": [
+    "client.ScreenMixin",
     "minecraft.MinecraftMixin"
   ],
   "server": [],

@@ -1,16 +1,20 @@
 package com.evandev.reliable_remover.command;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -29,6 +33,14 @@ public class ReliableRemoverCommands {
                         .executes(ReliableRemoverCommands::dumpHotbar))
                 .then(Commands.literal("inventory")
                         .executes(ReliableRemoverCommands::dumpInventory))
+                .then(Commands.literal("remove")
+                        .requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("id", ResourceLocationArgument.id())
+                                .executes(ReliableRemoverCommands::executeRemove)))
+                .then(Commands.literal("undo")
+                        .requires(s -> s.hasPermission(2))
+                        .then(Commands.argument("id", ResourceLocationArgument.id())
+                                .executes(ReliableRemoverCommands::executeUndo)))
         );
     }
 
@@ -128,5 +140,43 @@ public class ReliableRemoverCommands {
 
         source.sendSuccess(() -> Component.translatable(titleKey).withStyle(ChatFormatting.GOLD).append(":"), false);
         source.sendSuccess(() -> message, false);
+    }
+
+    private static int executeRemove(CommandContext<CommandSourceStack> context) {
+        ResourceLocation id = ResourceLocationArgument.getId(context, "id");
+        String itemId = id.toString();
+
+        if (RuleConfigIO.addRemovalRule(itemId)) {
+            if (ModConfig.get().showEmiChatMessages) {
+                Component undoButton = Component.translatable("toast.reliable_remover.undo")
+                        .withStyle(Style.EMPTY
+                                .withColor(ChatFormatting.GOLD)
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reliable_remover undo " + itemId))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to restore item"))));
+
+                context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.deleted", itemId)
+                        .append(" ").append(undoButton), true);
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int executeUndo(CommandContext<CommandSourceStack> context) {
+        ResourceLocation id = ResourceLocationArgument.getId(context, "id");
+        String itemId = id.toString();
+
+        if (RuleConfigIO.removeRemovalRule(itemId)) {
+            context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
+
+            if (ModConfig.get().reloadAfterRemoval) {
+                context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
+            }
+
+            return 1;
+        } else {
+            context.getSource().sendFailure(Component.translatable("toast.reliable_remover.restored_item_failed", itemId));
+            return 0;
+        }
     }
 }

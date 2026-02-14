@@ -2,6 +2,10 @@ package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
@@ -16,6 +20,9 @@ public class RemovalRule {
 
     @SerializedName(value = "mod", alternate = {"mods"})
     public Set<String> mod = new HashSet<>();
+
+    @SerializedName(value = "tag", alternate = {"tags"})
+    public Set<String> tags = new HashSet<>();
 
     public String pattern;
     @SerializedName(value = "patterns", alternate = {"regex"})
@@ -78,9 +85,10 @@ public class RemovalRule {
             if (!entities.contains(entityId)) return false;
         }
 
-        boolean hasLegacyPattern = pattern != null && !pattern.isEmpty();
+        boolean hasPattern = pattern != null && !pattern.isEmpty();
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
-        boolean hasItemFilter = (items != null && !items.isEmpty()) || hasLegacyPattern || hasPatternList;
+        boolean hasTagFilter = tags != null && !tags.isEmpty();
+        boolean hasItemFilter = (items != null && !items.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
@@ -94,12 +102,45 @@ public class RemovalRule {
             if (!hasItemFilter) return true;
         }
 
-        if (items != null && items.contains(itemId)) return true;
+        ResourceLocation itemLocation = ResourceLocation.tryParse(itemId);
 
-        if (hasLegacyPattern || hasPatternList) {
+        if (items != null && !items.isEmpty()) {
+            for (String filter : items) {
+                if (filter.startsWith("#")) {
+                    String tagId = filter.substring(1);
+                    ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
+
+                    if (tagLocation != null && itemLocation != null) {
+                        boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                                .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
+                                .orElse(false);
+
+                        if (isHandled) return true;
+                    }
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (hasTagFilter) {
+            for (String tagId : tags) {
+                String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+                ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+
+                if (tagLocation != null && itemLocation != null) {
+                    boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                            .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
+                            .orElse(false);
+                    if (isHandled) return true;
+                }
+            }
+        }
+
+        if (hasPattern || hasPatternList) {
             if (compiledPatterns == null) {
                 compiledPatterns = new ArrayList<>();
-                if (hasLegacyPattern) compiledPatterns.add(compile(pattern));
+                if (hasPattern) compiledPatterns.add(compile(pattern));
                 if (hasPatternList) {
                     for (String p : patterns) compiledPatterns.add(compile(p));
                 }
