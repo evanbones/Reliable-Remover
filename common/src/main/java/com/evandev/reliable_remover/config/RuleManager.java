@@ -108,10 +108,28 @@ public class RuleManager {
                         if (itemId.startsWith("#")) return false;
 
                         ResourceLocation id = ResourceLocation.tryParse(itemId);
-                        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-                            Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                        if (id == null) {
+                            Constants.LOG.warn("Reliable Remover: Skipping completely invalid ID '{}'.", itemId);
                             return true;
                         }
+
+                        if (rule.action == Action.REMOVE_POTION) {
+                            if (!BuiltInRegistries.POTION.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid potion ID '{}'.", itemId);
+                                return true;
+                            }
+                        } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
+                            if (!BuiltInRegistries.ENCHANTMENT.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid enchantment ID '{}'.", itemId);
+                                return true;
+                            }
+                        } else {
+                            if (!BuiltInRegistries.ITEM.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                                return true;
+                            }
+                        }
+
                         return false;
                     });
                 }
