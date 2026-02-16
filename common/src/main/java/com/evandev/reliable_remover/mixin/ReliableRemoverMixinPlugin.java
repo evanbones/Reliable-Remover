@@ -14,6 +14,7 @@ public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
     @Override
     public void onLoad(String mixinPackage) {
         isEmiLoaded = checkClass("dev.emi.emi.api.recipe.EmiRecipe");
+        isEmiLootLoaded = checkClass("fzzyhmstrs.emi_loot.EMILoot");
     }
 
     private boolean checkClass(String className) {
@@ -29,6 +30,10 @@ public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains(".emi.EmiStackListMixin")) {
             return isEmiLoaded;
+        }
+
+        if (mixinClassName.contains(".emi.LootTableParserMixin")) {
+            return isEmiLootLoaded;
         }
 
         return true;

@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed validation error in `remove_potion` and `remove_enchantment` actions.
+- Fixed EMI Loot integration on 1.20.1.
