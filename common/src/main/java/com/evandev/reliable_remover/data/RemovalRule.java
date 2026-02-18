@@ -36,8 +36,8 @@ public class RemovalRule {
 
     public RemovalRule not;
 
-    private transient List<Pattern> compiledPatterns;
-    private transient List<Pattern> compiledNbtPatterns;
+    private transient volatile List<Pattern> compiledPatterns;
+    private transient volatile List<Pattern> compiledNbtPatterns;
 
     public boolean matches(String itemId) {
         return matches(itemId, null);
@@ -59,9 +59,14 @@ public class RemovalRule {
             if (!stack.hasTag()) return false;
 
             if (compiledNbtPatterns == null) {
-                compiledNbtPatterns = new ArrayList<>();
-                for (String p : nbt) {
-                    compiledNbtPatterns.add(compile(p));
+                synchronized (this) {
+                    if (compiledNbtPatterns == null) {
+                        List<Pattern> list = new ArrayList<>();
+                        for (String p : nbt) {
+                            list.add(compile(p));
+                        }
+                        compiledNbtPatterns = list;
+                    }
                 }
             }
 
@@ -145,10 +150,15 @@ public class RemovalRule {
 
         if (hasPattern || hasPatternList) {
             if (compiledPatterns == null) {
-                compiledPatterns = new ArrayList<>();
-                if (hasPattern) compiledPatterns.add(compile(pattern));
-                if (hasPatternList) {
-                    for (String p : patterns) compiledPatterns.add(compile(p));
+                synchronized (this) {
+                    if (compiledPatterns == null) {
+                        List<Pattern> list = new ArrayList<>();
+                        if (hasPattern) list.add(compile(pattern));
+                        if (hasPatternList) {
+                            for (String p : patterns) list.add(compile(p));
+                        }
+                        compiledPatterns = list;
+                    }
                 }
             }
             for (Pattern p : compiledPatterns) {

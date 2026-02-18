@@ -33,15 +33,14 @@ public class RuleManager {
             }.getType(), new StringOrListDeserializer())
             .create();
 
-    private static final Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
-    private static final Set<String> GLOBALLY_BANNED_ITEMS = new HashSet<>();
+    private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
+    private static volatile Set<String> GLOBALLY_BANNED_ITEMS = new HashSet<>();
 
     public static void load() {
-        RULES_BY_ACTION.clear();
-        GLOBALLY_BANNED_ITEMS.clear();
-
+        Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
+        Set<String> newBanned = new HashSet<>();
         for (Action action : Action.values()) {
-            RULES_BY_ACTION.put(action, new ArrayList<>());
+            newRules.put(action, new ArrayList<>());
         }
 
         Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
@@ -55,24 +54,23 @@ public class RuleManager {
 
         boolean hasFiles = false;
         try (Stream<Path> paths = Files.walk(configDir)) {
-            List<Path> files = paths.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".json"))
-                    .toList();
-
+            List<Path> files = paths.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".json")).toList();
             if (!files.isEmpty()) {
                 hasFiles = true;
-                files.forEach(RuleManager::parseFile);
+                files.forEach(path -> parseFile(path, newRules));
             }
         } catch (Exception e) {
             Constants.LOG.error("Failed to load removal rules", e);
         }
 
-        if (!hasFiles) {
-            generateDefaultConfig(configDir);
-        }
+        if (!hasFiles) generateDefaultConfig(configDir);
 
-        validateRules();
-        optimizeRules();
+        validateRules(newRules);
+        optimizeRules(newRules, newBanned);
+
+        // Atomically swap the references
+        RULES_BY_ACTION = newRules;
+        GLOBALLY_BANNED_ITEMS = newBanned;
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -98,8 +96,8 @@ public class RuleManager {
         }
     }
 
-    private static void validateRules() {
-        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+    private static void validateRules(Map<Action, List<RemovalRule>> rulesByAction) {
+        for (List<RemovalRule> rules : rulesByAction.values()) {
             for (RemovalRule rule : rules) {
                 if (rule.items != null) {
                     rule.items.removeIf(itemId -> {
@@ -147,15 +145,15 @@ public class RuleManager {
         }
     }
 
-    private static void optimizeRules() {
-        List<RemovalRule> removeRules = RULES_BY_ACTION.get(Action.REMOVE);
+    private static void optimizeRules(Map<Action, List<RemovalRule>> rulesByAction, Set<String> globallyBannedItems) {
+        List<RemovalRule> removeRules = rulesByAction.get(Action.REMOVE);
         if (removeRules == null) return;
 
         Iterator<RemovalRule> iterator = removeRules.iterator();
         while (iterator.hasNext()) {
             RemovalRule rule = iterator.next();
             if (isSimpleRule(rule)) {
-                GLOBALLY_BANNED_ITEMS.addAll(rule.items);
+                globallyBannedItems.addAll(rule.items);
                 iterator.remove();
             }
         }
@@ -186,7 +184,7 @@ public class RuleManager {
         Constants.LOG.info("Reliable Remover: Removed {} items from the game.", count);
     }
 
-    private static void parseFile(Path path) {
+    private static void parseFile(Path path, Map<Action, List<RemovalRule>> rulesByAction) {
         try (FileReader fileReader = new FileReader(path.toFile())) {
             JsonReader reader = new JsonReader(fileReader);
             reader.setLenient(true);
@@ -196,10 +194,10 @@ public class RuleManager {
 
                 if (json.isJsonArray()) {
                     for (JsonElement e : json.getAsJsonArray()) {
-                        addRule(GSON.fromJson(e, RemovalRule.class));
+                        addRule(GSON.fromJson(e, RemovalRule.class), rulesByAction);
                     }
                 } else if (json.isJsonObject()) {
-                    addRule(GSON.fromJson(json, RemovalRule.class));
+                    addRule(GSON.fromJson(json, RemovalRule.class), rulesByAction);
                 }
             }
         } catch (Exception e) {
@@ -207,9 +205,9 @@ public class RuleManager {
         }
     }
 
-    private static void addRule(RemovalRule rule) {
+    private static void addRule(RemovalRule rule, Map<Action, List<RemovalRule>> rulesByAction) {
         if (rule.action == null) rule.action = Action.REMOVE;
-        RULES_BY_ACTION.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
+        rulesByAction.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
     }
 
     public static boolean isHidden(ItemStack stack) {
