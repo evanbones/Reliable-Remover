@@ -15,7 +15,7 @@ Reliable Remover uses a flat configuration structure. You define an action and t
 | `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
 | `entities` | List of entity IDs (for interaction/attack rules). | `["minecraft:villager"]` |
 | `patterns` | A list of Regex patterns to match multiple item IDs. | `["/.*_sword/", "/.*_helmet/"]` |
-| `nbt` | Regex pattern to match NBT data. | `"{.*Enchantments.*}"` |
+| `nbt` | Regex pattern (or array of patterns) to match NBT data. | `["{.*Enchantments.*}"]` |
 
 ### Logic (`not`)
 

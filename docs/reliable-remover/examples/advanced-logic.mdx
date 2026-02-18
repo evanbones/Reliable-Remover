@@ -136,12 +136,15 @@ Removes any potion (Splash, Lingering, or Drinkable) that contains the `minecraf
 
 ### Remove Items with Specific NBT
 
-Removes any item containing the text `"CustomModelData":1` in its NBT tag.
+Removes any item containing the text `"CustomModelData":1` or `"CustomModelData":2` in its NBT tag.
 
 ```json
 {
   "action": "remove",
-  "nbt": ".*\"CustomModelData\":1.*"
+  "nbt": [
+    ".*\"CustomModelData\":1.*",
+    ".*\"CustomModelData\":2.*"
+  ]
 }
 
 ```
@@ -154,7 +157,7 @@ This uses a Regex match against the item's NBT string.
 {
   "action": "remove",
   "items": ["minecraft:enchanted_book"],
-  "nbt": "{.*StoredEnchantments.*}"
+  "nbt": ["{.*StoredEnchantments.*}"]
 }
 
 ```
