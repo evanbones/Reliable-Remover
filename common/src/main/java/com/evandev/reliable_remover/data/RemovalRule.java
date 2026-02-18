@@ -28,12 +28,13 @@ public class RemovalRule {
     @SerializedName(value = "patterns", alternate = {"regex"})
     public List<String> patterns = new ArrayList<>();
 
-    public String nbt;
+    @SerializedName(value = "nbt", alternate = {"nbts"})
+    public List<String> nbt = new ArrayList<>();
 
     public RemovalRule not;
 
     private transient List<Pattern> compiledPatterns;
-    private transient Pattern compiledNbtPattern;
+    private transient List<Pattern> compiledNbtPatterns;
 
     public boolean matches(String itemId) {
         return matches(itemId, null);
@@ -44,14 +45,14 @@ public class RemovalRule {
     }
 
     public boolean matches(String itemId, String dimension, String entityId) {
-        if (nbt != null) return false;
+        if (nbt != null && !nbt.isEmpty()) return false;
         return matchesLogic(itemId, dimension, entityId);
     }
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
         if (!matchesLogic(itemId, dimension, entityId)) return false;
 
-        if (nbt != null) {
+        if (nbt != null && !nbt.isEmpty()) {
             StringBuilder dataBuilder = new StringBuilder();
 
             if (stack.has(DataComponents.POTION_CONTENTS)) {
@@ -64,9 +65,18 @@ public class RemovalRule {
 
             if (dataBuilder.isEmpty()) return false;
 
-            if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);
+            if (compiledNbtPatterns == null) {
+                compiledNbtPatterns = new ArrayList<>();
+                for (String p : nbt) {
+                    compiledNbtPatterns.add(compile(p));
+                }
+            }
 
-            return compiledNbtPattern.matcher(dataBuilder.toString()).matches();
+            String dataStr = dataBuilder.toString();
+            for (Pattern p : compiledNbtPatterns) {
+                if (p.matcher(dataStr).matches()) return true;
+            }
+            return false;
         }
 
         return true;
@@ -88,12 +98,14 @@ public class RemovalRule {
         boolean hasPattern = pattern != null && !pattern.isEmpty();
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
+        boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
         boolean hasItemFilter = (items != null && !items.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
             return (dimensions != null && !dimensions.isEmpty()) ||
-                    (entities != null && !entities.isEmpty());
+                    (entities != null && !entities.isEmpty()) ||
+                    hasNbtFilter;
         }
 
         if (hasModFilter) {

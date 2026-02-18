@@ -166,7 +166,7 @@ public class RuleManager {
                 (rule.pattern == null || rule.pattern.isEmpty()) &&
                 (rule.patterns == null || rule.patterns.isEmpty()) &&
                 (rule.tags == null || rule.tags.isEmpty()) &&
-                rule.nbt == null &&
+                (rule.nbt == null || rule.nbt.isEmpty()) &&
                 rule.not == null &&
                 rule.items != null && !rule.items.isEmpty();
     }

@@ -1,3 +1,8 @@
+### Added
+
+- Added support for `nbt` arrays.
+
 ### Fixed
 
-- Fixed validation error in `remove_potion` and `remove_enchantment` actions.
+- Fixed `nbt` filters requiring `items` array or similar.
+- Fixed crash with mods that early register potions and enchantments.
