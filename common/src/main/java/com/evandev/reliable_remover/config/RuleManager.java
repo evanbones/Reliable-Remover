@@ -23,7 +23,6 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RuleManager {
@@ -173,15 +172,16 @@ public class RuleManager {
     }
 
     private static void logRemovedItems() {
-        List<String> removedItems = BuiltInRegistries.ITEM.entrySet().stream()
-                .filter(entry -> isHidden(entry.getValue().getDefaultInstance()))
-                .map(entry -> entry.getKey().location().toString())
-                .collect(Collectors.toList());
+        long count = BuiltInRegistries.ITEM.keySet().stream()
+                .filter(location -> {
+                    String id = location.toString();
+                    if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
 
-        if (!removedItems.isEmpty()) {
-            Constants.LOG.info("Reliable Remover: Removed {} items from the game.", removedItems.size());
-            Constants.LOG.debug("Removed items: {}", String.join(", ", removedItems));
-        }
+                    return checkRules(null, id, Action.REMOVE, null, null);
+                })
+                .count();
+
+        Constants.LOG.info("Reliable Remover: Removed {} items from the game.", count);
     }
 
     private static void parseFile(Path path) {
