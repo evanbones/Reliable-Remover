@@ -1,3 +1,8 @@
+### Added
+
+- Added support for `nbt` arrays.
+
 ### Fixed
 
-- Fixed EMI Loot integration on 1.20.1.
+- Fixed `nbt` filters requiring `items` array or similar.
+- Fixed crash with mods that early register potions and enchantments.

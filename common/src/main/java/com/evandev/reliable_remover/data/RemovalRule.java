@@ -1,17 +1,14 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class RemovalRule {
@@ -31,12 +28,13 @@ public class RemovalRule {
     @SerializedName(value = "patterns", alternate = {"regex"})
     public List<String> patterns = new ArrayList<>();
 
-    public String nbt;
+    @SerializedName(value = "nbt", alternate = {"nbts"})
+    public List<String> nbt = new ArrayList<>();
 
     public RemovalRule not;
 
     private transient List<Pattern> compiledPatterns;
-    private transient Pattern compiledNbtPattern;
+    private transient List<Pattern> compiledNbtPatterns;
 
     public boolean matches(String itemId) {
         return matches(itemId, null);
@@ -47,26 +45,38 @@ public class RemovalRule {
     }
 
     public boolean matches(String itemId, String dimension, String entityId) {
-        if (nbt != null) return false;
+        if (nbt != null && !nbt.isEmpty()) return false;
         return matchesLogic(itemId, dimension, entityId);
     }
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
         if (!matchesLogic(itemId, dimension, entityId)) return false;
 
-        if (nbt != null) {
-            if (!stack.hasTag()) return false;
+        if (nbt != null && !nbt.isEmpty()) {
+            StringBuilder dataBuilder = new StringBuilder();
 
-            String dataString = null;
-            if (stack.getTag() != null) {
-                dataString = stack.getTag().toString();
+            if (stack.has(DataComponents.POTION_CONTENTS)) {
+                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
             }
 
-            if (dataString == null) return false;
+            if (stack.has(DataComponents.CUSTOM_DATA)) {
+                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
+            }
 
-            if (compiledNbtPattern == null) compiledNbtPattern = Pattern.compile(nbt);
+            if (dataBuilder.isEmpty()) return false;
 
-            return compiledNbtPattern.matcher(dataString).matches();
+            if (compiledNbtPatterns == null) {
+                compiledNbtPatterns = new ArrayList<>();
+                for (String p : nbt) {
+                    compiledNbtPatterns.add(compile(p));
+                }
+            }
+
+            String dataStr = dataBuilder.toString();
+            for (Pattern p : compiledNbtPatterns) {
+                if (p.matcher(dataStr).matches()) return true;
+            }
+            return false;
         }
 
         return true;
@@ -88,12 +98,14 @@ public class RemovalRule {
         boolean hasPattern = pattern != null && !pattern.isEmpty();
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
+        boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
         boolean hasItemFilter = (items != null && !items.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
             return (dimensions != null && !dimensions.isEmpty()) ||
-                    (entities != null && !entities.isEmpty());
+                    (entities != null && !entities.isEmpty()) ||
+                    hasNbtFilter;
         }
 
         if (hasModFilter) {
@@ -108,7 +120,15 @@ public class RemovalRule {
             for (String filter : items) {
                 if (filter.startsWith("#")) {
                     String tagId = filter.substring(1);
-                    if (checkTag(itemLocation, tagId)) return true;
+                    ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
+
+                    if (tagLocation != null && itemLocation != null) {
+                        boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                                .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
+                                .orElse(false);
+
+                        if (isHandled) return true;
+                    }
                 } else if (filter.equals(itemId)) {
                     return true;
                 }
@@ -117,7 +137,15 @@ public class RemovalRule {
 
         if (hasTagFilter) {
             for (String tagId : tags) {
-                if (checkTag(itemLocation, tagId)) return true;
+                String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+                ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+
+                if (tagLocation != null && itemLocation != null) {
+                    boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                            .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
+                            .orElse(false);
+                    if (isHandled) return true;
+                }
             }
         }
 
@@ -137,20 +165,11 @@ public class RemovalRule {
         return false;
     }
 
-    private boolean checkTag(ResourceLocation itemLocation, String tagId) {
-        if (itemLocation == null) return false;
-        ResourceLocation tagLocation = ResourceLocation.tryParse(tagId.startsWith("#") ? tagId.substring(1) : tagId);
-        if (tagLocation == null) return false;
-
-        return BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
-                .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
-                .orElse(false);
-    }
-
     private Pattern compile(String regex) {
         String p = regex.startsWith("/") && regex.endsWith("/")
                 ? regex.substring(1, regex.length() - 1)
                 : regex;
         return Pattern.compile(p);
     }
+
 }
