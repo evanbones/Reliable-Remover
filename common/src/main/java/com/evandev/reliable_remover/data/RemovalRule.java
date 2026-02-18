@@ -1,14 +1,17 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class RemovalRule {
@@ -53,17 +56,7 @@ public class RemovalRule {
         if (!matchesLogic(itemId, dimension, entityId)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
-            StringBuilder dataBuilder = new StringBuilder();
-
-            if (stack.has(DataComponents.POTION_CONTENTS)) {
-                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
-            }
-
-            if (stack.has(DataComponents.CUSTOM_DATA)) {
-                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
-            }
-
-            if (dataBuilder.isEmpty()) return false;
+            if (!stack.hasTag()) return false;
 
             if (compiledNbtPatterns == null) {
                 compiledNbtPatterns = new ArrayList<>();
@@ -72,7 +65,7 @@ public class RemovalRule {
                 }
             }
 
-            String dataStr = dataBuilder.toString();
+            String dataStr = stack.getTag().toString();
             for (Pattern p : compiledNbtPatterns) {
                 if (p.matcher(dataStr).matches()) return true;
             }
@@ -123,7 +116,8 @@ public class RemovalRule {
                     ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
 
                     if (tagLocation != null && itemLocation != null) {
-                        boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                        // 1.20.1 requires creating a ResourceKey to get a Holder from the registry
+                        boolean isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
                                 .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
                                 .orElse(false);
 
@@ -141,7 +135,7 @@ public class RemovalRule {
                 ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
 
                 if (tagLocation != null && itemLocation != null) {
-                    boolean isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
+                    boolean isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
                             .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
                             .orElse(false);
                     if (isHandled) return true;
@@ -171,5 +165,4 @@ public class RemovalRule {
                 : regex;
         return Pattern.compile(p);
     }
-
 }
