@@ -121,7 +121,6 @@ public class RemovalRule {
                     ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
 
                     if (tagLocation != null && itemLocation != null) {
-                        // 1.20.1 requires creating a ResourceKey to get a Holder from the registry
                         boolean isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
                                 .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
                                 .orElse(false);
