@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ReliableRemoverCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("reliable_remover")
+        dispatcher.register(Commands.literal("rremover")
                 .then(Commands.literal("hand")
                         .executes(ReliableRemoverCommands::dumpHand))
                 .then(Commands.literal("hotbar")
@@ -151,7 +151,7 @@ public class ReliableRemoverCommands {
                 Component undoButton = Component.translatable("toast.reliable_remover.undo")
                         .withStyle(Style.EMPTY
                                 .withColor(ChatFormatting.GOLD)
-                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reliable_remover undo " + itemId))
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rremover undo " + itemId))
                                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to restore item"))));
 
                 context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.deleted", itemId)
