@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed possible concurrency issues with EMI and rule loading.
+- Changed command prefix from `/reliable_remover` to `/rremover` (you're welcome, Emma!)

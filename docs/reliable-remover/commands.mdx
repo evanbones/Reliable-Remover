@@ -5,7 +5,7 @@ hide_meta: true
 
 Reliable Remover includes a set of utility commands to help you quickly identify item IDs and generate JSON arrays for your configuration files.
 
-## `/reliable_remover`
+## `/rremover`
 
 The output of these commands is formatted as a JSON Array (e.g., `["minecraft:apple", "minecraft:stick"]`). You can click the output in the chat to **automatically copy it to your clipboard**.
 
@@ -14,7 +14,7 @@ Dumps the ID of the item currently held in your main hand.
 
 **Usage:**
 ```text
-/reliable_remover hand
+/rremover hand
 
 ```
 
@@ -25,7 +25,7 @@ Dumps the IDs of all items currently in your Hotbar and your Offhand.
 **Usage:**
 
 ```text
-/reliable_remover hotbar
+/rremover hotbar
 
 ```
 
@@ -36,7 +36,7 @@ Dumps the IDs of every item in your player inventory, including the hotbar and a
 **Usage:**
 
 ```text
-/reliable_remover inventory
+/rremover inventory
 
 ```
 
@@ -45,7 +45,7 @@ Dumps the IDs of every item in your player inventory, including the hotbar and a
 ### Workflow Example
 
 1. Fill your inventory with the items you want to ban.
-2. Run `/reliable_remover inventory`.
+2. Run `/rremover inventory`.
 3. Click the green text in the chat to copy.
 4. Paste directly into your `items` list in `config/reliable_remover/rules.json`.
 
