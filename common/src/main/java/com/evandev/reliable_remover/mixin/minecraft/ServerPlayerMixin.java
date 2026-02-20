@@ -29,7 +29,7 @@ public abstract class ServerPlayerMixin extends Player {
             for (int i = 0; i < this.getInventory().getContainerSize(); i++) {
                 ItemStack stack = this.getInventory().getItem(i);
                 if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
-                    stack.setCount(0);
+                    this.getInventory().setItem(i, ItemStack.EMPTY);
                     if (ModConfig.get().showRemovalMessage) {
                         this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
                     }

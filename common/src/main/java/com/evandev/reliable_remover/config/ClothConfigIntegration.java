@@ -74,6 +74,18 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeItemsFromStorage = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_info_tabs"), config.removeItemsFromInfoTabs)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_info_tabs.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsFromInfoTabs = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_mob_equipment"), config.removeMobEquipment)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_mob_equipment.tooltip"))
+                .setSaveConsumer(newValue -> config.removeMobEquipment = newValue)
+                .build());
+
         ConfigCategory emiCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.emi"));
 
         emiCategory.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.enable_emi_removal"), config.enableEmiRemoval)

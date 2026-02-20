@@ -161,3 +161,30 @@ This uses a Regex match against the item's NBT string.
 }
 
 ```
+
+## Entity Equipment
+
+### Strip Specific Weapons from Mobs
+Because the `entities` filter can be tied to the `remove` action, you can selectively strip equipment from specific mobs without banning the item for players.
+
+This rule will actively delete Diamond Swords from Zombies, but players and other entities will still be able to use them:
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond_sword"],
+  "entities": ["minecraft:zombie"]
+}
+
+```
+
+### Strip All Armor from Skeletons
+Using regex patterns, you can completely prevent Skeletons from wearing any helmet.
+
+```json
+{
+  "action": "remove",
+  "patterns": ["/.*_helmet/"],
+  "entities": ["minecraft:skeleton"]
+}
+
+```

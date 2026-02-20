@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-19
+
+### Added
+
+- Removed items are now removed from mob equipment.
+- Removed items are now removed from JEI/EMI info.
+- Removed items are now removed from grindstone and anvil repairing recipes.
+- Added filter for mob equipment specific removal.
+
 ## [1.2.4] - 2026-02-18
 
 ### Changed

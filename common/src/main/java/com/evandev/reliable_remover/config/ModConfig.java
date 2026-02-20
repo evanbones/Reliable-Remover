@@ -25,6 +25,8 @@ public class ModConfig {
     public boolean removeDroppedItems = true;
     public boolean removeItemsFromLootChests = true;
     public boolean removeItemsFromStorage = true;
+    public boolean removeItemsFromInfoTabs = true;
+    public boolean removeMobEquipment = true;
 
     public boolean enableEmiRemoval = false;
     public boolean showEmiToast = true;
