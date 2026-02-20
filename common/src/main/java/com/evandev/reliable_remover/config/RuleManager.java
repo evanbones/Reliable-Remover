@@ -211,10 +211,14 @@ public class RuleManager {
     }
 
     public static boolean isHidden(ItemStack stack) {
-        return isHidden(stack, null);
+        return isHidden(stack, null, null);
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {
+        return isHidden(stack, level, null);
+    }
+
+    public static boolean isHidden(ItemStack stack, Level level, Entity holder) {
         if (stack == null || stack.isEmpty()) return false;
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
@@ -224,7 +228,7 @@ public class RuleManager {
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
-            if (checkRules(stack, id, Action.REMOVE, dim, null)) {
+            if (checkRules(stack, id, Action.REMOVE, dim, holder)) {
                 return true;
             }
         }
@@ -236,7 +240,7 @@ public class RuleManager {
 
         Potion potion = PotionUtils.getPotion(stack);
         ResourceLocation potionId = BuiltInRegistries.POTION.getKey(potion);
-        return checkRules(null, potionId.toString(), Action.REMOVE_POTION, null, null);
+        return checkRules(null, potionId.toString(), Action.REMOVE_POTION, null, holder);
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {

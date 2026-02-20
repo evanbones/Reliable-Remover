@@ -28,14 +28,12 @@ public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.contains(".emi.EmiStackListMixin")) {
+        if (mixinClassName.contains(".emi.")) {
+            if (mixinClassName.contains("LootTableParserMixin")) {
+                return isEmiLootLoaded;
+            }
             return isEmiLoaded;
         }
-
-        if (mixinClassName.contains(".emi.LootTableParserMixin")) {
-            return isEmiLootLoaded;
-        }
-
         return true;
     }
 
