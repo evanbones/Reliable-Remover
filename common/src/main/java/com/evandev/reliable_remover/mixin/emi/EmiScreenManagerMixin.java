@@ -40,7 +40,7 @@ public class EmiScreenManagerMixin {
                             if (!mc.player.hasPermissions(2)) {
                                 mc.player.displayClientMessage(Component.translatable("toast.reliable_remover.permission_denied"), true);
                             } else {
-                                mc.player.connection.sendCommand("reliable_remover remove " + id);
+                                mc.player.connection.sendCommand("rremover remove " + id);
 
                                 if (ModConfig.get().showEmiToast) {
                                     ItemDeletionToastOverlay.show(
