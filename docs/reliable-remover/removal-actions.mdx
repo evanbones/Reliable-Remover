@@ -72,3 +72,18 @@ Prevents the player from swinging their hand while holding the specified item.
 }
 
 ```
+
+### `remove_info`
+
+Hides the specified item's Information tab/recipe from EMI and JEI.
+Items hidden using the standard `remove` action are also removed from info tabs by default (configurable via `removeItemsFromInfoTabs`).
+
+* **Use Case**: You want an item to be visible and craftable, but you want to hide its specific tutorial, lore, or information page from recipe viewers.
+
+```json
+{
+  "action": "remove_info",
+  "items": ["quark:trowel"]
+}
+
+```

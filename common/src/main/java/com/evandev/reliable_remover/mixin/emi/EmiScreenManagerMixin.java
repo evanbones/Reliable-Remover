@@ -2,10 +2,12 @@ package com.evandev.reliable_remover.mixin.emi;
 
 import com.evandev.reliable_remover.client.ItemDeletionToastOverlay;
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleConfigIO;
 import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.EmiStackInteraction;
+import dev.emi.emi.registry.EmiStackList;
 import dev.emi.emi.screen.EmiScreenManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -15,6 +17,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mixin(value = EmiScreenManager.class, remap = false)
 public class EmiScreenManagerMixin {
@@ -41,16 +46,13 @@ public class EmiScreenManagerMixin {
                                 mc.player.displayClientMessage(Component.translatable("toast.reliable_remover.permission_denied"), true);
                             } else {
                                 mc.player.connection.sendCommand("rremover remove " + id);
+                                RuleConfigIO.addRemovalRule(id.toString());
 
                                 if (ModConfig.get().showEmiToast) {
                                     ItemDeletionToastOverlay.show(
                                             Component.literal(id.toString()),
                                             emiStack.getItemStack()
                                     );
-                                }
-
-                                if (ModConfig.get().reloadAfterRemoval) {
-                                    mc.player.connection.sendCommand("reload");
                                 }
                             }
                         }

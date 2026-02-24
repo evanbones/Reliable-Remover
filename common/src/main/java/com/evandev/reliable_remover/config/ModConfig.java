@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -32,6 +34,7 @@ public class ModConfig {
     public boolean showEmiToast = true;
     public boolean showEmiChatMessages = true;
     public boolean reloadAfterRemoval = false;
+    public List<String> blacklistedItems = new ArrayList<>();
 
     public static ModConfig get() {
         if (INSTANCE == null) {
