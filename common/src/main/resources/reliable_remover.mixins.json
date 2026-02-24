@@ -9,6 +9,7 @@
     "emi.EmiRegistryImplMixin",
     "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",
+    "minecraft.AnvilMenuMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
     "minecraft.ItemEntityMixin",
@@ -17,6 +18,7 @@
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.RandomizableContainerMixin",
+    "minecraft.RecipeManagerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"
   ],

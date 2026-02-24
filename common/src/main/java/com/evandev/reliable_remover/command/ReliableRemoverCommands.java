@@ -157,6 +157,10 @@ public class ReliableRemoverCommands {
                 context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.deleted", itemId)
                         .append(" ").append(undoButton), true);
             }
+
+            if (ModConfig.get().reloadAfterRemoval) {
+                context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
+            }
             return 1;
         }
         return 0;

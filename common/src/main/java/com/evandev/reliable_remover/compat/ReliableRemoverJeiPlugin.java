@@ -42,19 +42,18 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
             ingredientManager.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, itemsToHide);
         }
 
-        if (ModConfig.get().removeItemsFromInfoTabs) {
-            IRecipeManager recipeManager = jeiRuntime.getRecipeManager();
+        IRecipeManager recipeManager = jeiRuntime.getRecipeManager();
+        boolean hideGlobalInfo = ModConfig.get().removeItemsFromInfoTabs;
 
-            List<IJeiIngredientInfoRecipe> recipesToHide = recipeManager.createRecipeLookup(RecipeTypes.INFORMATION)
-                    .get()
-                    .filter(recipe -> recipe.getIngredients().stream()
-                            .map(typed -> typed.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY))
-                            .anyMatch(stack -> !stack.isEmpty() && RuleManager.isHidden(stack)))
-                    .toList();
+        List<IJeiIngredientInfoRecipe> recipesToHide = recipeManager.createRecipeLookup(RecipeTypes.INFORMATION)
+                .get()
+                .filter(recipe -> recipe.getIngredients().stream()
+                        .map(typed -> typed.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY))
+                        .anyMatch(stack -> !stack.isEmpty() && ((hideGlobalInfo && RuleManager.isHidden(stack)) || RuleManager.isInfoBlocked(stack))))
+                .toList();
 
-            if (!recipesToHide.isEmpty()) {
-                recipeManager.hideRecipes(RecipeTypes.INFORMATION, recipesToHide);
-            }
+        if (!recipesToHide.isEmpty()) {
+            recipeManager.hideRecipes(RecipeTypes.INFORMATION, recipesToHide);
         }
     }
 }

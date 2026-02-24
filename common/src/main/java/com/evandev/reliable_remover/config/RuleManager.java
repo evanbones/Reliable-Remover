@@ -22,6 +22,7 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class RuleManager {
@@ -34,11 +35,11 @@ public class RuleManager {
             .create();
 
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
-    private static volatile Set<String> GLOBALLY_BANNED_ITEMS = new HashSet<>();
+    private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
-        Set<String> newBanned = new HashSet<>();
+        Set<String> newBanned = ConcurrentHashMap.newKeySet();
         for (Action action : Action.values()) {
             newRules.put(action, new ArrayList<>());
         }
@@ -68,9 +69,9 @@ public class RuleManager {
         validateRules(newRules);
         optimizeRules(newRules, newBanned);
 
-        // Atomically swap the references
         RULES_BY_ACTION = newRules;
         GLOBALLY_BANNED_ITEMS = newBanned;
+        GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -168,7 +169,8 @@ public class RuleManager {
                 (rule.tags == null || rule.tags.isEmpty()) &&
                 (rule.nbt == null || rule.nbt.isEmpty()) &&
                 rule.not == null &&
-                rule.items != null && !rule.items.isEmpty();
+                rule.items != null && !rule.items.isEmpty() &&
+                rule.items.stream().noneMatch(id -> id.startsWith("#"));
     }
 
     private static void logRemovedItems() {
@@ -177,7 +179,11 @@ public class RuleManager {
                     String id = location.toString();
                     if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
 
-                    return checkRules(null, id, Action.REMOVE, null, null);
+                    if (checkRules(null, id, Action.REMOVE, null, null)) {
+                        GLOBALLY_BANNED_ITEMS.add(id);
+                        return true;
+                    }
+                    return false;
                 })
                 .count();
 
@@ -229,6 +235,9 @@ public class RuleManager {
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
             if (checkRules(stack, id, Action.REMOVE, dim, holder)) {
+                if (dim == null && holder == null) {
+                    GLOBALLY_BANNED_ITEMS.add(id);
+                }
                 return true;
             }
         }
@@ -281,6 +290,13 @@ public class RuleManager {
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
         return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null);
+    }
+
+    public static boolean isInfoBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return checkRules(stack, id, Action.REMOVE_INFO, null, null);
     }
 
     private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target) {

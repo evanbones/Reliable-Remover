@@ -6,6 +6,8 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
+
 public class ClothConfigIntegration {
 
     public static Screen createScreen(Screen parent) {
@@ -84,6 +86,15 @@ public class ClothConfigIntegration {
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("config.reliable_remover.option.remove_mob_equipment.tooltip"))
                 .setSaveConsumer(newValue -> config.removeMobEquipment = newValue)
+                .build());
+
+        general.addEntry(entryBuilder.startStrList(Component.translatable("config.reliable_remover.option.blacklisted_items"), config.blacklistedItems)
+                .setDefaultValue(new ArrayList<>())
+                .setTooltip(Component.translatable("config.reliable_remover.option.blacklisted_items.tooltip"))
+                .setSaveConsumer(newValue -> {
+                    config.blacklistedItems = newValue;
+                    RuleManager.load();
+                })
                 .build());
 
         ConfigCategory emiCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.emi"));

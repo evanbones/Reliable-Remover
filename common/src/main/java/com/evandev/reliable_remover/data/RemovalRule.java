@@ -6,6 +6,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -49,11 +50,11 @@ public class RemovalRule {
 
     public boolean matches(String itemId, String dimension, String entityId) {
         if (nbt != null && !nbt.isEmpty()) return false;
-        return matchesLogic(itemId, dimension, entityId);
+        return matchesLogic(null, itemId, dimension, entityId);
     }
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
-        if (!matchesLogic(itemId, dimension, entityId)) return false;
+        if (!matchesLogic(stack, itemId, dimension, entityId)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (!stack.hasTag()) return false;
@@ -80,8 +81,8 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(String itemId, String dimension, String entityId) {
-        if (not != null && not.matchesLogic(itemId, dimension, entityId)) return false;
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId) {
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId)) return false;
 
         if (dimensions != null && !dimensions.isEmpty()) {
             if (dimension == null) return false;
@@ -121,10 +122,15 @@ public class RemovalRule {
                     ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
 
                     if (tagLocation != null && itemLocation != null) {
-                        boolean isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
-                                .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
-                                .orElse(false);
-
+                        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                        boolean isHandled;
+                        if (stack != null && !stack.isEmpty()) {
+                            isHandled = stack.is(tagKey);
+                        } else {
+                            isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
+                                    .map(holder -> holder.is(tagKey))
+                                    .orElse(false);
+                        }
                         if (isHandled) return true;
                     }
                 } else if (filter.equals(itemId)) {
@@ -139,9 +145,15 @@ public class RemovalRule {
                 ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
 
                 if (tagLocation != null && itemLocation != null) {
-                    boolean isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
-                            .map(holder -> holder.is(TagKey.create(Registries.ITEM, tagLocation)))
-                            .orElse(false);
+                    TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                    boolean isHandled;
+                    if (stack != null && !stack.isEmpty()) {
+                        isHandled = stack.is(tagKey);
+                    } else {
+                        isHandled = BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
+                                .map(holder -> holder.is(tagKey))
+                                .orElse(false);
+                    }
                     if (isHandled) return true;
                 }
             }

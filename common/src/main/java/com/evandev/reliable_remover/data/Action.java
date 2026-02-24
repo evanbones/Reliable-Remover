@@ -18,5 +18,7 @@ public enum Action {
     @SerializedName(value = "REMOVE_LOOT", alternate = {"remove_loot", "remove_loot_tables", "remove_loot_table", "remove_loots", "Remove_Loot"})
     REMOVE_LOOT,
     @SerializedName(value = "REMOVE_HAND_SWING", alternate = {"remove_swing", "remove_swings", "remove_hand_swings", "remove_hand_swing", "Remove_Hand_Swing"})
-    REMOVE_HAND_SWING
+    REMOVE_HAND_SWING,
+    @SerializedName(value = "REMOVE_INFO", alternate = {"remove_info", "remove_information", "Remove_Info"})
+    REMOVE_INFO
 }
