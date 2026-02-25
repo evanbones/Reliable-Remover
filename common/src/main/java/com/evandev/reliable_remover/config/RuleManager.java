@@ -241,10 +241,49 @@ public class RuleManager {
         }
 
         if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
-            if (isEnchantmentBlocked(stack.get(DataComponents.STORED_ENCHANTMENTS))) return true;
+            ItemEnchantments enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
+            if (enchantments != null) {
+                boolean changed = false;
+                ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+
+                for (var entry : enchantments.entrySet()) {
+                    if (isEnchantmentBlocked(entry.getKey())) {
+                        changed = true;
+                    } else {
+                        validEnchantments.set(entry.getKey(), entry.getIntValue());
+                    }
+                }
+
+                if (changed) {
+                    if (id.equals("minecraft:enchanted_book")) {
+                        return true;
+                    }
+                    stack.set(DataComponents.STORED_ENCHANTMENTS, validEnchantments.toImmutable());
+                }
+            }
         }
+
         if (stack.has(DataComponents.ENCHANTMENTS)) {
-            if (isEnchantmentBlocked(stack.get(DataComponents.ENCHANTMENTS))) return true;
+            ItemEnchantments enchantments = stack.get(DataComponents.ENCHANTMENTS);
+            if (enchantments != null) {
+                boolean changed = false;
+                ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+
+                for (var entry : enchantments.entrySet()) {
+                    if (isEnchantmentBlocked(entry.getKey())) {
+                        changed = true;
+                    } else {
+                        validEnchantments.set(entry.getKey(), entry.getIntValue());
+                    }
+                }
+
+                if (changed) {
+                    if (id.equals("minecraft:enchanted_book")) {
+                        return true;
+                    }
+                    stack.set(DataComponents.ENCHANTMENTS, validEnchantments.toImmutable());
+                }
+            }
         }
 
         if (stack.has(DataComponents.POTION_CONTENTS)) {
@@ -263,21 +302,6 @@ public class RuleManager {
     }
 
     // TODO: refactor these to reduce duplication
-    private static boolean isEnchantmentBlocked(ItemEnchantments enchantments) {
-        if (enchantments == null) return false;
-        for (var entry : enchantments.entrySet()) {
-            String id = entry.getKey()
-                    .unwrapKey()
-                    .map(key -> key.location().toString())
-                    .orElse(null);
-
-            if (id != null && checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
 
