@@ -243,8 +243,23 @@ public class RuleManager {
         }
 
         Map<Enchantment, Integer> enchants = EnchantmentHelper.getEnchantments(stack);
-        for (Enchantment enc : enchants.keySet()) {
-            if (isEnchantmentBlocked(enc)) return true;
+        boolean changedEnchantments = false;
+        Map<Enchantment, Integer> validEnchantments = new LinkedHashMap<>();
+
+        for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+            if (isEnchantmentBlocked(entry.getKey())) {
+                changedEnchantments = true;
+            } else {
+                validEnchantments.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (changedEnchantments) {
+            if (BuiltInRegistries.ITEM.getKey(stack.getItem()).toString().equals("minecraft:enchanted_book")) {
+                return true;
+            }
+
+            EnchantmentHelper.setEnchantments(validEnchantments, stack);
         }
 
         Potion potion = PotionUtils.getPotion(stack);

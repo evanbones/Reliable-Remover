@@ -49,7 +49,7 @@ dependencies {
     modCompileOnly "maven.modrinth:emi-loot:${emi_loot_version}+forge"
 
     // JEI
-    modImplementation "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
+    modCompileOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
 
     // Reliable Recipes
     jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_forge_version}"
