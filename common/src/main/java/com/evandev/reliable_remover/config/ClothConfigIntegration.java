@@ -94,7 +94,9 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeMobEquipment = newValue)
                 .build());
 
-        general.addEntry(entryBuilder.startStrList(Component.translatable("config.reliable_remover.option.blacklisted_items"), config.blacklistedItems)
+        ConfigCategory blacklistCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.blacklist"));
+
+        blacklistCategory.addEntry(entryBuilder.startStrList(Component.translatable("config.reliable_remover.option.blacklisted_items"), config.blacklistedItems)
                 .setDefaultValue(new ArrayList<>())
                 .setTooltip(Component.translatable("config.reliable_remover.option.blacklisted_items.tooltip"))
                 .setSaveConsumer(newValue -> {

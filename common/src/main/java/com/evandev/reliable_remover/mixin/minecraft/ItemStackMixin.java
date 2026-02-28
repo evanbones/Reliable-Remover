@@ -5,11 +5,13 @@ import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,6 +30,16 @@ public class ItemStackMixin {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
             cir.setReturnValue(InteractionResult.FAIL);
+        }
+    }
+
+    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$blockUse(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
+        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, level, player)) {
+            if (player != null && ModConfig.get().showRemovalMessage) {
+                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
+            }
+            cir.setReturnValue(InteractionResultHolder.fail((ItemStack) (Object) this));
         }
     }
 
