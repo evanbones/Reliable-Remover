@@ -9,13 +9,10 @@ base {
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
     mavenCentral()
-    // https://docs.gradle.org/current/userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository
     exclusiveContent {
         forRepository {
             maven {
@@ -25,6 +22,7 @@ repositories {
         }
         filter { includeGroupAndSubgroups('org.spongepowered') }
     }
+
     exclusiveContent {
         forRepositories(
                 maven {
@@ -38,10 +36,12 @@ repositories {
         )
         filter { includeGroup('org.parchmentmc.data') }
     }
+
     maven {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
+
     exclusiveContent {
         forRepository {
             maven {
@@ -53,19 +53,24 @@ repositories {
             includeGroup "maven.modrinth"
         }
     }
+
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+
     maven {
         name = "TerraformersMC"
         url = "https://maven.terraformersmc.com/"
     }
+
     maven {
         name = "ClothConfig"
         url "https://maven.shedaniel.me/"
     }
 }
 
-// Declare capabilities on the outgoing configurations.
-// Read more about capabilities here: https://docs.gradle.org/current/userguide/component_capabilities.html#sec:declaring-additional-capabilities-for-a-local-component
-['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+['apiElements', 'runtimeElements'].each { variant ->
     configurations."$variant".outgoing {
         capability("$group:${project.name}:$version")
         capability("$group:${base.archivesName.get()}:$version")
@@ -74,12 +79,6 @@ repositories {
     }
     publishing.publications.configureEach {
         suppressPomMetadataWarningsFor(variant)
-    }
-}
-
-sourcesJar {
-    from(rootProject.file('LICENSE')) {
-        rename { "${it}_${mod_name}" }
     }
 }
 
@@ -99,21 +98,21 @@ jar {
 
 processResources {
     var expandProps = [
-            'version'                      : version,
-            'group'                        : project.group, //Else we target the task's group.
-            'minecraft_version'            : minecraft_version,
-            'minecraft_version_range'      : minecraft_version_range,
-            'fabric_version'               : fabric_version,
-            'fabric_loader_version'        : fabric_loader_version,
-            'mod_name'                     : mod_name,
-            'mod_author'                   : mod_author,
-            'mod_id'                       : mod_id,
-            'license'                      : license,
-            'description'                  : project.description,
-            "forge_version": forge_version,
+            'version'                   : version,
+            'group'                     : project.group,
+            'minecraft_version'         : minecraft_version,
+            'minecraft_version_range'   : minecraft_version_range,
+            'fabric_version'            : fabric_version,
+            'fabric_loader_version'     : fabric_loader_version,
+            'mod_name'                  : mod_name,
+            'mod_author'                : mod_author,
+            'mod_id'                    : mod_id,
+            'license'                   : license,
+            'description'               : project.description,
+            "forge_version"             : forge_version,
             "forge_loader_version_range": forge_loader_version_range,
-            'credits'                      : credits,
-            'java_version'                 : java_version
+            'credits'                   : credits,
+            'java_version'              : java_version
     ]
 
     var jsonExpandProps = expandProps.collectEntries {

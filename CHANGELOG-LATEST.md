@@ -1,3 +1,8 @@
-### Fixed
+### Added
 
-- `remove_enchantment` now removes enchantments from items instead of removing the item itself.
+- Added proper developer API.
+- Removed items are now automatically removed from inventories when opened.
+
+### Changed
+
+- Backend changes and reworks.

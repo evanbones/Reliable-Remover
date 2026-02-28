@@ -21,6 +21,9 @@ dependencies {
     // JEI
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
 
+    // Reliable Recipes
+    compileOnly "maven.modrinth:reliable-recipes:${reliable_recipes_version}-forge-1.20.1"
+
     // Cloth Config
     compileOnly "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 
