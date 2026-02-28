@@ -9,6 +9,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
@@ -55,6 +57,24 @@ public abstract class ServerPlayerMixin extends Player {
                 this.displayClientMessage(Component.translatable("message.reliable_remover.swing_disabled"), true);
             }
             ci.cancel();
+        }
+    }
+
+    @Inject(method = "initMenu", at = @At("HEAD"))
+    private void reliable_remover$onInitMenu(AbstractContainerMenu menu, CallbackInfo ci) {
+        if (!ModConfig.get().removeItemsOnInventoryOpen) return;
+
+        boolean changed = false;
+        for (Slot slot : menu.slots) {
+            ItemStack stack = slot.getItem();
+            if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
+                slot.set(ItemStack.EMPTY);
+                changed = true;
+            }
+        }
+
+        if (changed && ModConfig.get().showRemovalMessage) {
+            this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
         }
     }
 }

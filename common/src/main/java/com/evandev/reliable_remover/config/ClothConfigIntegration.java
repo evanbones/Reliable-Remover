@@ -58,6 +58,12 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeItemsFromInventories = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_on_inventory_open"), config.removeItemsOnInventoryOpen)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_on_inventory_open.tooltip"))
+                .setSaveConsumer(newValue -> config.removeItemsOnInventoryOpen = newValue)
+                .build());
+
         general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_dropped_items"), config.removeDroppedItems)
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("config.reliable_remover.option.remove_dropped_items.tooltip"))

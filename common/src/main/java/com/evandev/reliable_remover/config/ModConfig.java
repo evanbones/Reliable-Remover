@@ -24,6 +24,7 @@ public class ModConfig {
     public boolean removeItemsFromCreativeTabs = true;
     public boolean removeItemsFromEmi = true;
     public boolean removeItemsFromInventories = true;
+    public boolean removeItemsOnInventoryOpen = true;
     public boolean removeDroppedItems = true;
     public boolean removeItemsFromLootChests = true;
     public boolean removeItemsFromStorage = true;

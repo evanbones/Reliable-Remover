@@ -4,9 +4,6 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,8 +15,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
-import java.io.FileReader;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -27,23 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class RuleManager {
-    private static final Gson GSON = new GsonBuilder()
-            .setLenient()
-            .registerTypeAdapter(new TypeToken<Set<String>>() {
-            }.getType(), new StringOrSetDeserializer())
-            .registerTypeAdapter(new TypeToken<List<String>>() {
-            }.getType(), new StringOrListDeserializer())
-            .create();
-
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
         Set<String> newBanned = ConcurrentHashMap.newKeySet();
-        for (Action action : Action.values()) {
-            newRules.put(action, new ArrayList<>());
-        }
+        for (Action action : Action.values()) newRules.put(action, new ArrayList<>());
 
         Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
 
@@ -59,7 +44,7 @@ public class RuleManager {
             List<Path> files = paths.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".json")).toList();
             if (!files.isEmpty()) {
                 hasFiles = true;
-                files.forEach(path -> parseFile(path, newRules));
+                files.forEach(path -> RuleParser.parseFile(path, newRules));
             }
         } catch (Exception e) {
             Constants.LOG.error("Failed to load removal rules", e);
@@ -186,32 +171,6 @@ public class RuleManager {
                 .count();
 
         Constants.LOG.info("Reliable Remover: Removed {} items from the game.", count);
-    }
-
-    private static void parseFile(Path path, Map<Action, List<RemovalRule>> rulesByAction) {
-        try (FileReader fileReader = new FileReader(path.toFile())) {
-            JsonReader reader = new JsonReader(fileReader);
-            reader.setLenient(true);
-
-            while (reader.peek() != com.google.gson.stream.JsonToken.END_DOCUMENT) {
-                JsonElement json = JsonParser.parseReader(reader);
-
-                if (json.isJsonArray()) {
-                    for (JsonElement e : json.getAsJsonArray()) {
-                        addRule(GSON.fromJson(e, RemovalRule.class), rulesByAction);
-                    }
-                } else if (json.isJsonObject()) {
-                    addRule(GSON.fromJson(json, RemovalRule.class), rulesByAction);
-                }
-            }
-        } catch (Exception e) {
-            Constants.LOG.error("Error parsing file: {}", path, e);
-        }
-    }
-
-    private static void addRule(RemovalRule rule, Map<Action, List<RemovalRule>> rulesByAction) {
-        if (rule.action == null) rule.action = Action.REMOVE;
-        rulesByAction.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
     }
 
     public static boolean isHidden(ItemStack stack) {
@@ -374,33 +333,4 @@ public class RuleManager {
                 .orElse(false);
     }
 
-    private static class StringOrSetDeserializer implements JsonDeserializer<Set<String>> {
-        @Override
-        public Set<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            Set<String> set = new HashSet<>();
-            if (json.isJsonArray()) {
-                for (JsonElement e : json.getAsJsonArray()) {
-                    set.add(e.getAsString());
-                }
-            } else if (json.isJsonPrimitive()) {
-                set.add(json.getAsString());
-            }
-            return set;
-        }
-    }
-
-    private static class StringOrListDeserializer implements JsonDeserializer<List<String>> {
-        @Override
-        public List<String> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            List<String> list = new ArrayList<>();
-            if (json.isJsonArray()) {
-                for (JsonElement e : json.getAsJsonArray()) {
-                    list.add(e.getAsString());
-                }
-            } else if (json.isJsonPrimitive()) {
-                list.add(json.getAsString());
-            }
-            return list;
-        }
-    }
 }
