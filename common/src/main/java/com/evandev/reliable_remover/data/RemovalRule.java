@@ -1,15 +1,22 @@
 package com.evandev.reliable_remover.data;
 
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.enchantment.Enchantment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class RemovalRule {
@@ -29,7 +36,7 @@ public class RemovalRule {
     @SerializedName(value = "patterns", alternate = {"regex"})
     public List<String> patterns = new ArrayList<>();
 
-    @SerializedName(value = "nbt", alternate = {"nbts"})
+    @SerializedName(value = "nbt", alternate = {"nbts", "components"})
     public List<String> nbt = new ArrayList<>();
 
     public RemovalRule not;
@@ -37,48 +44,23 @@ public class RemovalRule {
     private transient volatile List<Pattern> compiledPatterns;
     private transient volatile List<Pattern> compiledNbtPatterns;
 
-    public boolean matches(String itemId) {
-        return matches(itemId, null);
-    }
-
-    public boolean matches(String itemId, String dimension) {
-        return matches(itemId, dimension, null);
-    }
-
-    public boolean matches(String itemId, String dimension, String entityId) {
-        if (nbt != null && !nbt.isEmpty()) return false;
-        return matchesLogic(null, itemId, dimension, entityId);
-    }
-
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId) {
-        if (!matchesLogic(stack, itemId, dimension, entityId)) return false;
+    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder) {
+        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
-            StringBuilder dataBuilder = new StringBuilder();
-
-            if (stack.has(DataComponents.POTION_CONTENTS)) {
-                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.POTION_CONTENTS)));
-            }
-
-            if (stack.has(DataComponents.CUSTOM_DATA)) {
-                dataBuilder.append(Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)));
-            }
-
-            if (dataBuilder.isEmpty()) return false;
+            if (stack == null || stack.isEmpty() || !stack.has(DataComponents.CUSTOM_DATA)) return false;
 
             if (compiledNbtPatterns == null) {
                 synchronized (this) {
                     if (compiledNbtPatterns == null) {
                         List<Pattern> list = new ArrayList<>();
-                        for (String p : nbt) {
-                            list.add(compile(p));
-                        }
+                        for (String p : nbt) list.add(compile(p));
                         compiledNbtPatterns = list;
                     }
                 }
             }
 
-            String dataStr = dataBuilder.toString();
+            String dataStr = stack.get(DataComponents.CUSTOM_DATA).getUnsafe().toString();
             for (Pattern p : compiledNbtPatterns) {
                 if (p.matcher(dataStr).matches()) return true;
             }
@@ -88,17 +70,18 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId) {
-        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId)) return false;
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder) {
+        if (currentAction == null) currentAction = Action.REMOVE;
+
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder))
+            return false;
 
         if (dimensions != null && !dimensions.isEmpty()) {
-            if (dimension == null) return false;
-            if (!dimensions.contains(dimension)) return false;
+            if (dimension == null || !dimensions.contains(dimension)) return false;
         }
 
         if (entities != null && !entities.isEmpty()) {
-            if (entityId == null) return false;
-            if (!entities.contains(entityId)) return false;
+            if (entityId == null || !entities.contains(entityId)) return false;
         }
 
         boolean hasPattern = pattern != null && !pattern.isEmpty();
@@ -125,22 +108,7 @@ public class RemovalRule {
         if (items != null && !items.isEmpty()) {
             for (String filter : items) {
                 if (filter.startsWith("#")) {
-                    String tagId = filter.substring(1);
-                    ResourceLocation tagLocation = ResourceLocation.tryParse(tagId);
-
-                    if (tagLocation != null && itemLocation != null) {
-                        TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
-                        boolean isHandled;
-                        if (stack != null && !stack.isEmpty()) {
-                            isHandled = stack.is(tagKey);
-                        } else {
-                            isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
-                                    .map(holder -> holder.is(tagKey))
-                                    .orElse(false);
-                        }
-
-                        if (isHandled) return true;
-                    }
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
                 } else if (filter.equals(itemId)) {
                     return true;
                 }
@@ -149,21 +117,7 @@ public class RemovalRule {
 
         if (hasTagFilter) {
             for (String tagId : tags) {
-                String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
-                ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
-
-                if (tagLocation != null && itemLocation != null) {
-                    TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
-                    boolean isHandled;
-                    if (stack != null && !stack.isEmpty()) {
-                        isHandled = stack.is(tagKey);
-                    } else {
-                        isHandled = BuiltInRegistries.ITEM.getHolder(itemLocation)
-                                .map(holder -> holder.is(tagKey))
-                                .orElse(false);
-                    }
-                    if (isHandled) return true;
-                }
+                if (checkTag(tagId, itemLocation, stack, currentAction, registryHolder)) return true;
             }
         }
 
@@ -185,6 +139,42 @@ public class RemovalRule {
             }
         }
 
+        return false;
+    }
+
+    private boolean checkTag(String tagId, ResourceLocation itemLocation, ItemStack stack, Action currentAction, Holder<?> registryHolder) {
+        String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+        ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+
+        if (tagLocation != null && itemLocation != null) {
+            if (currentAction == Action.REMOVE_POTION) {
+                TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
+                return BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
+                        .map(holder -> holder.is(tagKey))
+                        .orElse(false);
+            } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
+                if (registryHolder != null) {
+                    TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                    try {
+                        @SuppressWarnings("unchecked")
+                        Holder<Enchantment> enchHolder = (Holder<Enchantment>) registryHolder;
+                        return enchHolder.is(tagKey);
+                    } catch (ClassCastException e) {
+                        return false;
+                    }
+                }
+                return false;
+            } else {
+                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                if (stack != null && !stack.isEmpty()) {
+                    return stack.is(tagKey);
+                } else {
+                    return BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
+                            .map(holder -> holder.is(tagKey))
+                            .orElse(false);
+                }
+            }
+        }
         return false;
     }
 

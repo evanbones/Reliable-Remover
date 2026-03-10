@@ -102,14 +102,13 @@ public class RuleManager {
                                 return true;
                             }
                         } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
-                            return false; // enchantments are dynamic registries, can't validate them statically, so we assume they're valid
+                            return false;
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)) {
                                 Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
                                 return true;
                             }
                         }
-
                         return false;
                     });
                 }
@@ -162,7 +161,7 @@ public class RuleManager {
                     String id = location.toString();
                     if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
 
-                    if (checkRules(null, id, Action.REMOVE, null, null)) {
+                    if (checkRules(null, id, Action.REMOVE, null, null, null)) {
                         GLOBALLY_BANNED_ITEMS.add(id);
                         return true;
                     }
@@ -191,7 +190,7 @@ public class RuleManager {
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
-            if (checkRules(stack, id, Action.REMOVE, dim, holder)) {
+            if (checkRules(stack, id, Action.REMOVE, dim, holder, null)) {
                 if (dim == null && holder == null) {
                     GLOBALLY_BANNED_ITEMS.add(id);
                 }
@@ -253,62 +252,62 @@ public class RuleManager {
                         .map(key -> key.location().toString())
                         .orElse(null);
 
-                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder);
+                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null);
             }
         }
 
         return false;
     }
 
-    // TODO: refactor these to reduce duplication
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_ATTACKS, dim, target);
+        return checkRules(stack, id, Action.REMOVE_ATTACKS, dim, target, null);
     }
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_INTERACTIONS, dim, target);
+        return checkRules(stack, id, Action.REMOVE_INTERACTIONS, dim, target, null);
     }
 
     public static boolean isTradeBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         if (isHidden(stack)) return true;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_TRADE, null, null);
+        return checkRules(stack, id, Action.REMOVE_TRADE, null, null, null);
     }
 
     public static boolean isLootBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         if (isHidden(stack)) return true;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_LOOT, null, null);
+        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null);
     }
 
     public static boolean isHandSwingBlocked(ItemStack stack, Level level) {
         if (stack == null || stack.isEmpty()) return false;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null);
+        return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null, null);
     }
 
     public static boolean isInfoBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
-
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_INFO, null, null);
+        return checkRules(stack, id, Action.REMOVE_INFO, null, null, null);
     }
 
-    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target) {
+    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return enchantment.unwrapKey()
+                .map(key -> key.location().toString())
+                .map(id -> checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment))
+                .orElse(false);
+    }
+
+    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder) {
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
 
         List<RemovalRule> rules = RULES_BY_ACTION.get(action);
@@ -316,21 +315,9 @@ public class RuleManager {
 
         for (RemovalRule rule : rules) {
             if (rule.action == action) {
-                if (stack != null) {
-                    if (rule.matches(stack, itemId, dimension, entityId)) return true;
-                } else {
-                    if (rule.matches(itemId, dimension, entityId)) return true;
-                }
+                if (rule.matches(stack, itemId, dimension, entityId, registryHolder)) return true;
             }
         }
         return false;
     }
-
-    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
-        return enchantment.unwrapKey()
-                .map(key -> key.location().toString())
-                .map(id -> checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null))
-                .orElse(false);
-    }
-
 }
