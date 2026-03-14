@@ -1,8 +1,8 @@
 ### Changed
 
-- Bumped Reliable Recipes version.
+- Items given with `/give` will now be removed instantly and inform the player.
+- Hardened blacklisted item detection.
 
 ### Fixed
 
-- Possible issues with NBT on 1.21.1.
-- Tags not working for `remove_potion` and `remove_enchantment` actions.
+- Fixed creative mode hot reloading.
