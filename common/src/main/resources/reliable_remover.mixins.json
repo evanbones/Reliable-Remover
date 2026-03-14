@@ -12,6 +12,7 @@
     "minecraft.AnvilMenuMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
+    "minecraft.GiveCommandMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.LivingEntityMixin",

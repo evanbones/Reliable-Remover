@@ -1,7 +1,8 @@
 ### Changed
 
-- Bumped Reliable Recipes version.
+- Items given with `/give` will now be removed instantly and inform the player.
+- Hardened blacklisted item detection.
 
 ### Fixed
 
-- `remove_potion` rules now properly support tags.
+- Fixed creative mode hot reloading.
