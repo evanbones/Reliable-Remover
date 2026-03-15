@@ -29,7 +29,7 @@ public abstract class ItemEntityMixin extends Entity {
 
         if (!this.level().isClientSide && this.tickCount % 20 == 0) {
             ItemStack stack = this.getItem();
-            if (!stack.isEmpty() && RuleManager.isHidden(stack)) {
+            if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level(), this, "entity")) {
                 this.discard();
             }
         }
@@ -37,7 +37,7 @@ public abstract class ItemEntityMixin extends Entity {
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void reliable_remover$checkLoad(net.minecraft.nbt.CompoundTag compound, CallbackInfo ci) {
-        if (ModConfig.get().removeDroppedItems && RuleManager.isHidden(this.getItem())) {
+        if (ModConfig.get().removeDroppedItems && RuleManager.isHidden(this.getItem(), this.level(), this, "entity")) {
             this.discard();
         }
     }

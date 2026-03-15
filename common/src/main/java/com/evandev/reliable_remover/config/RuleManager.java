@@ -61,7 +61,6 @@ public class RuleManager {
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
-        logRemovedItems();
     }
 
     private static void generateDefaultConfig(Path configDir) {
@@ -150,37 +149,26 @@ public class RuleManager {
                 (rule.patterns == null || rule.patterns.isEmpty()) &&
                 (rule.tags == null || rule.tags.isEmpty()) &&
                 (rule.nbt == null || rule.nbt.isEmpty()) &&
+                (rule.registry == null || rule.registry.isEmpty()) &&
+                (rule.tagType == null || rule.tagType.isEmpty()) &&
                 rule.not == null &&
                 rule.items != null && !rule.items.isEmpty() &&
                 rule.items.stream().noneMatch(id -> id.startsWith("#"));
     }
 
-    private static void logRemovedItems() {
-        long count = BuiltInRegistries.ITEM.keySet().stream()
-                .filter(location -> {
-                    String id = location.toString();
-                    if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
-
-                    if (checkRules(null, id, Action.REMOVE, null, null, null)) {
-                        GLOBALLY_BANNED_ITEMS.add(id);
-                        return true;
-                    }
-                    return false;
-                })
-                .count();
-
-        Constants.LOG.info("Reliable Remover: Removed {} items from the game.", count);
-    }
-
     public static boolean isHidden(ItemStack stack) {
-        return isHidden(stack, null, null);
+        return isHidden(stack, null, null, "item");
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {
-        return isHidden(stack, level, null);
+        return isHidden(stack, level, null, "item");
     }
 
     public static boolean isHidden(ItemStack stack, Level level, Entity holder) {
+        return isHidden(stack, level, holder, "item");
+    }
+
+    public static boolean isHidden(ItemStack stack, Level level, Entity holder, String context) {
         if (stack == null || stack.isEmpty()) return false;
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
@@ -190,8 +178,8 @@ public class RuleManager {
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
-            if (checkRules(stack, id, Action.REMOVE, dim, holder, null)) {
-                if (dim == null && holder == null) {
+            if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) {
+                if (dim == null && holder == null && (context == null || context.equals("item"))) {
                     GLOBALLY_BANNED_ITEMS.add(id);
                 }
                 return true;
@@ -213,9 +201,7 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    if (id.equals("minecraft:enchanted_book")) {
-                        return true;
-                    }
+                    if (id.equals("minecraft:enchanted_book")) return true;
                     stack.set(DataComponents.STORED_ENCHANTMENTS, validEnchantments.toImmutable());
                 }
             }
@@ -236,9 +222,7 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    if (id.equals("minecraft:enchanted_book")) {
-                        return true;
-                    }
+                    if (id.equals("minecraft:enchanted_book")) return true;
                     stack.set(DataComponents.ENCHANTMENTS, validEnchantments.toImmutable());
                 }
             }
@@ -252,7 +236,7 @@ public class RuleManager {
                         .map(key -> key.location().toString())
                         .orElse(null);
 
-                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null);
+                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
             }
         }
 
@@ -263,51 +247,51 @@ public class RuleManager {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_ATTACKS, dim, target, null);
+        return checkRules(stack, id, Action.REMOVE_ATTACKS, dim, target, null, "attack");
     }
 
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_INTERACTIONS, dim, target, null);
+        return checkRules(stack, id, Action.REMOVE_INTERACTIONS, dim, target, null, "interaction");
     }
 
     public static boolean isTradeBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         if (isHidden(stack)) return true;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_TRADE, null, null, null);
+        return checkRules(stack, id, Action.REMOVE_TRADE, null, null, null, "trade");
     }
 
     public static boolean isLootBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         if (isHidden(stack)) return true;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null);
+        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
     }
 
     public static boolean isHandSwingBlocked(ItemStack stack, Level level) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null, null);
+        return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null, null, "swing");
     }
 
     public static boolean isInfoBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_INFO, null, null, null);
+        return checkRules(stack, id, Action.REMOVE_INFO, null, null, null, "info");
     }
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
         return enchantment.unwrapKey()
                 .map(key -> key.location().toString())
-                .map(id -> checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment))
+                .map(id -> checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment"))
                 .orElse(false);
     }
 
-    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder) {
+    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
 
         List<RemovalRule> rules = RULES_BY_ACTION.get(action);
@@ -315,7 +299,7 @@ public class RuleManager {
 
         for (RemovalRule rule : rules) {
             if (rule.action == action) {
-                if (rule.matches(stack, itemId, dimension, entityId, registryHolder)) return true;
+                if (rule.matches(stack, itemId, dimension, entityId, registryHolder, context)) return true;
             }
         }
         return false;

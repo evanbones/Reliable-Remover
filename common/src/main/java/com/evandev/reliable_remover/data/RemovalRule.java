@@ -32,6 +32,12 @@ public class RemovalRule {
     @SerializedName(value = "tag", alternate = {"tags"})
     public Set<String> tags = new HashSet<>();
 
+    @SerializedName(value = "registry", alternate = {"registries"})
+    public Set<String> registry = new HashSet<>();
+
+    @SerializedName(value = "tag_type", alternate = {"tag_types"})
+    public Set<String> tagType = new HashSet<>();
+
     public String pattern;
     @SerializedName(value = "patterns", alternate = {"regex"})
     public List<String> patterns = new ArrayList<>();
@@ -44,8 +50,8 @@ public class RemovalRule {
     private transient volatile List<Pattern> compiledPatterns;
     private transient volatile List<Pattern> compiledNbtPatterns;
 
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder)) return false;
+    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
+        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty() || !stack.has(DataComponents.CUSTOM_DATA)) return false;
@@ -70,11 +76,31 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder) {
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder, String context) {
         if (currentAction == null) currentAction = Action.REMOVE;
 
-        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder))
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder, context))
             return false;
+
+        if (context != null) {
+            if (this.registry != null && !this.registry.isEmpty()) {
+                boolean matchesReg = false;
+                for (String reg : this.registry) {
+                    if (context.contains(reg)) {
+                        matchesReg = true;
+                        break;
+                    }
+                }
+                if (!matchesReg) return false;
+            }
+
+            if (this.tagType != null && !this.tagType.isEmpty()) {
+                if (context.startsWith("tag:")) {
+                    String type = context.substring(4);
+                    if (!this.tagType.contains(type)) return false;
+                }
+            }
+        }
 
         if (dimensions != null && !dimensions.isEmpty()) {
             if (dimension == null || !dimensions.contains(dimension)) return false;

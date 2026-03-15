@@ -6,6 +6,6 @@ import com.evandev.reliable_remover.config.RuleManager;
 public class CommonClass {
     public static void init() {
         RuleManager.load();
-        ReliableRecipesAPI.registerItemHider(RuleManager::isHidden);
+        ReliableRecipesAPI.registerContextualItemHider((stack, context) -> RuleManager.isHidden(stack, null, null, context));
     }
 }
