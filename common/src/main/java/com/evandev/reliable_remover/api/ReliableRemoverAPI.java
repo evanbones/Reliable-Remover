@@ -1,7 +1,6 @@
 package com.evandev.reliable_remover.api;
 
 import com.evandev.reliable_remover.config.RuleManager;
-import net.minecraft.core.Holder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
