@@ -3,7 +3,7 @@ title: Filtering
 hide_meta: true
 ---
 
-Reliable Remover uses a flat configuration structure. You define an action and then add filters directly to the object.
+In Reliable Remover, you define an action and then add filters to the action.
 
 ### Filter Options
 
@@ -16,6 +16,8 @@ Reliable Remover uses a flat configuration structure. You define an action and t
 | `entities` | List of entity IDs (for interaction, attack, and equipment removal rules). | `["minecraft:villager"]` |
 | `patterns` | A list of Regex patterns to match multiple item IDs. | `["/.*_sword/", "/.*_helmet/"]` |
 | `nbt` | Regex pattern (or array of patterns) to match NBT data. | `["{.*Enchantments.*}"]` |
+| `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
+| `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
 
 ### Logic (`not`)
 
