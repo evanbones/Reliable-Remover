@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed removed items still showing up in EMI tags.
+- Fixed component matching aggressively caching IDs.

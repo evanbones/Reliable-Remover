@@ -179,9 +179,6 @@ public class RuleManager {
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
             if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) {
-                if (dim == null && holder == null && (context == null || context.equals("item"))) {
-                    GLOBALLY_BANNED_ITEMS.add(id);
-                }
                 return true;
             }
         }
