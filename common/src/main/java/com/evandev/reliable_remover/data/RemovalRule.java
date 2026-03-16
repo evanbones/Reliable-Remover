@@ -54,7 +54,7 @@ public class RemovalRule {
         if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
-            if (stack == null || stack.isEmpty() || !stack.has(DataComponents.CUSTOM_DATA)) return false;
+            if (stack == null || stack.isEmpty()) return false;
 
             if (compiledNbtPatterns == null) {
                 synchronized (this) {
@@ -66,9 +66,15 @@ public class RemovalRule {
                 }
             }
 
-            String dataStr = stack.get(DataComponents.CUSTOM_DATA).getUnsafe().toString();
+            String componentsStr = stack.getComponents().toString();
+            String customDataStr = stack.has(DataComponents.CUSTOM_DATA)
+                    ? stack.get(DataComponents.CUSTOM_DATA).getUnsafe().toString()
+                    : "";
+
             for (Pattern p : compiledNbtPatterns) {
-                if (p.matcher(dataStr).matches()) return true;
+                if (p.matcher(componentsStr).matches() || (!customDataStr.isEmpty() && p.matcher(customDataStr).matches())) {
+                    return true;
+                }
             }
             return false;
         }
