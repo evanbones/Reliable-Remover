@@ -9,6 +9,7 @@
     "emi.EmiRegistryImplMixin",
     "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",
+    "emi.EmiTagsMixin",
     "emi.LootTableParserMixin",
     "minecraft.AnvilMenuMixin",
     "minecraft.CreativeModeTabMixin",

@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed regex matching to properly support components.
+- Fixed removed items still showing up in EMI tags.
