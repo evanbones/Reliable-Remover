@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed component matching aggressively caching IDs.
+- Fixed "War Pigs" advancement not triggering correctly (#48).

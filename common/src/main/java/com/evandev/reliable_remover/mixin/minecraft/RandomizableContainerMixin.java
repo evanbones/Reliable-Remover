@@ -15,9 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RandomizableContainerBlockEntity.class)
 public abstract class RandomizableContainerMixin {
 
-    @Inject(method = "createMenu", at = @At("HEAD"))
+    @Inject(method = "createMenu", at = @At("RETURN"))
     private void reliable_remover$filterItemsOnOpen(int containerId, Inventory playerInventory, Player player, CallbackInfoReturnable<AbstractContainerMenu> cir) {
         if (!ModConfig.get().removeItemsFromStorage) return;
+        if (cir.getReturnValue() == null) return;
 
         RandomizableContainerBlockEntity container = (RandomizableContainerBlockEntity) (Object) this;
 
