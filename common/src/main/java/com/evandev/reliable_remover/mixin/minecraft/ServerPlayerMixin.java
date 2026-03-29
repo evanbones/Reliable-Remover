@@ -3,11 +3,9 @@ package com.evandev.reliable_remover.mixin.minecraft;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -31,7 +29,7 @@ public abstract class ServerPlayerMixin extends Player {
                 if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
                     stack.setCount(0);
                     if (ModConfig.get().showRemovalMessage) {
-                        this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
+                        this.sendSystemMessage(Component.translatable("message.reliable_remover.item_removed"));
                     }
                 }
             }

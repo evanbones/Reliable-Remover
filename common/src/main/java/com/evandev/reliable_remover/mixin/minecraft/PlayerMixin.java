@@ -16,18 +16,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends Avatar {
-	@Shadow
-	public abstract void displayClientMessage(Component component, boolean overlayMessage);
 
-	protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
-		super(type, level);
-	}
+    protected PlayerMixin(EntityType<? extends LivingEntity> type, Level level) {
+        super(type, level);
+    }
 
-	@Inject(method = "attack", at = @At("HEAD"), cancellable = true)
-	private void reliable_remover$attack(Entity target, CallbackInfo ci) {
-		if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level(), target)) {
-			this.displayClientMessage(Component.translatable("message.reliable_remover.attack_disabled"), true);
-			ci.cancel();
-		}
-	}
+    @Shadow
+    public abstract void sendOverlayMessage(Component message);
+
+    @Inject(method = "attack", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$attack(Entity target, CallbackInfo ci) {
+        if (RuleManager.isAttackBlocked(this.getMainHandItem(), this.level(), target)) {
+            this.sendOverlayMessage(Component.translatable("message.reliable_remover.attack_disabled"));
+            ci.cancel();
+        }
+    }
 }

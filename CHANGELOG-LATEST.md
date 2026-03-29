@@ -1,3 +1,3 @@
 ### Changed
 
-- Reliable Recipes is now bundled by default in the mod.
+- Updated 26.1 port to work with the release version.

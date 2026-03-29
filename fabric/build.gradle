@@ -1,14 +1,12 @@
 plugins {
     id 'multiloader-loader'
     id 'net.fabricmc.fabric-loom'
-    id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
- 
 
-    // EMI
+    // RRV
     implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}")
 
     // JEI
@@ -26,52 +24,25 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
 }
 
-loom {
-    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
-    if (aw.exists()) {
-        accessWidenerPath.set(aw)
-    }
-
-    runs {
-        client {
-            client()
-            setConfigName('Fabric Client')
-            ideConfigGenerated(true)
-            runDir('runs/client')
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'includeInternal', 'modCompileClasspath'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'fabric')
         }
-        server {
-            server()
-            setConfigName('Fabric Server')
-            ideConfigGenerated(true)
-            runDir('runs/server')
+    }
+}
+
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'fabric')
+            }
         }
     }
 }
 
 publishMods {
     file = tasks.named("jar").flatMap { it.archiveFile }
-    changelog = rootProject.file("CHANGELOG-LATEST.md").text
-    type = STABLE
-    displayName = "${mod_name} Fabric ${minecraft_version} - ${project.version}"
-    modLoaders.add("fabric")
-
-    curseforge {
-        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
-        projectId = "1420447"
-        minecraftVersions.add("26.1-snapshot")
-
-        optional { slug = "rrv" }
-        optional { slug = "jei" }
-        optional { slug = "cloth-config" }
-    }
-
-    modrinth {
-        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
-        projectId = "pLxsKvNt"
-        minecraftVersions.add("${minecraft_version}")
-
-        optional { slug = "rrv" }
-        optional { slug = "jei" }
-        optional { slug = "cloth-config" }
-    }
 }

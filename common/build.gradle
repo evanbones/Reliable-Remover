@@ -5,7 +5,6 @@ plugins {
 
 neoForge {
     neoFormVersion = neo_form_version
-
     def at = file('src/main/resources/META-INF/accesstransformer.cfg')
     if (at.exists()) {
         accessTransformers.from(at.absolutePath)
@@ -13,8 +12,8 @@ neoForge {
 }
 
 dependencies {
-    // EMI
-    implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}")
+    // RRV
+    compileOnly "cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}"
 
     // JEI
     compileOnly "mezz.jei:jei-1.21.11-common-api:${jei_version}"
@@ -42,4 +41,23 @@ configurations {
 artifacts {
     commonJava sourceSets.main.java.sourceDirectories.singleFile
     commonResources sourceSets.main.resources.sourceDirectories.singleFile
+}
+
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+}
+
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'common')
+            }
+        }
+    }
 }
