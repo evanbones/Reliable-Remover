@@ -18,6 +18,7 @@ In Reliable Remover, you define an action and then add filters to the action.
 | `nbt` | Regex pattern (or array of patterns) to match NBT data. | `["{.*Enchantments.*}"]` |
 | `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
 | `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
+| `replace_with` | Replaces the removed item in all recipes with this specified item ID. | `"minecraft:copper_ingot"` |
 
 ### Logic (`not`)
 

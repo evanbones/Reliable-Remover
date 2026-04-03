@@ -58,3 +58,18 @@ Removes all logs from the game by targeting their item tag.
 }
 
 ```
+
+### Remove an Item but Salvage its Recipes
+
+Removes Diamonds from the game completely, but replaces them with Emeralds in all crafting recipes, furnace recipes, and machine outputs.
+
+```json
+{
+  "action": "remove",
+  "items": [
+    "minecraft:diamond"
+  ],
+  "replace_with": "minecraft:emerald"
+}
+
+```
