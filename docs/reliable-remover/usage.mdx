@@ -33,15 +33,15 @@ a JSON Array `[...]`.
 
 ```
 
-### EMI Integration (Dev Mode)
+### EMI Integration
 
-If EMI is installed and Dev Mode is enabled in the config, you can manage removals directly from the EMI side panel:
+If EMI is installed and Dev Mode is enabled in the Reliable Remover config, you can manage removals directly from the EMI side panel:
 
-* Remove Item: Hover over any item in the EMI list and press Delete (or Backspace).
-* Automatic Reload: The mod can automatically trigger a full data reload (/reload) after a removal to ensure the item is
+* Remove Item: Hover over any item in the EMI list and press Delete (or Backspace). This keybind is changable in Controls.
+* Automatic Reload: The mod can automatically trigger a full reload (/reload) after a removal to ensure the item is
 immediately hidden from all menus.
 
 #### Dynamic Removals
 
-* When you remove an item via the EMI interface, the rule is saved to `config/reliable_remover/generated_removals.json`.
-You can manually edit this file or use the `/reliable_remover undo <id>` command to revert changes.
+* When you remove an item via the EMI interface, the rule is saved to the blacklist in `config/reliable_remover.json`.
+You can manually edit this file, use cloth config, or use the `/reliable_remover undo <item_id>` command to revert changes.
