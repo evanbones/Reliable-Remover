@@ -44,6 +44,9 @@ public class RemovalRule {
     @SerializedName(value = "nbt", alternate = {"nbts", "components"})
     public List<String> nbt = new ArrayList<>();
 
+    @SerializedName(value = "replace_with", alternate = {"replacement"})
+    public String replaceWith;
+
     public RemovalRule not;
 
     private transient volatile List<Pattern> compiledPatterns;

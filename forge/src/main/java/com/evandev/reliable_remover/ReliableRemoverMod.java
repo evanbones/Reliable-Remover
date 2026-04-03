@@ -1,8 +1,10 @@
 package com.evandev.reliable_remover;
 
 import com.evandev.reliable_remover.client.ClientConfigSetup;
+import com.evandev.reliable_remover.client.Keybinds;
 import com.evandev.reliable_remover.command.ReliableRemoverCommands;
 import com.evandev.reliable_remover.config.ReloadListener;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -22,6 +24,7 @@ public class ReliableRemoverMod {
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.addListener(ReliableRemoverMod::onRegisterCommands);
         MinecraftForge.EVENT_BUS.addListener(this::addReloadListener);
+        MinecraftForge.EVENT_BUS.addListener(this::registerKeyBindings);
 
         if (FMLEnvironment.dist.isClient()) {
             ClientConfigSetup.register(ModLoadingContext.get().getActiveContainer());
@@ -38,5 +41,9 @@ public class ReliableRemoverMod {
 
     private void addReloadListener(final AddReloadListenerEvent event) {
         event.addListener(new ReloadListener());
+    }
+
+    private void registerKeyBindings(RegisterKeyMappingsEvent event) {
+        event.register(Keybinds.EMI_DELETE_KEY);
     }
 }

@@ -58,5 +58,8 @@
   "toast.reliable_remover.deleted": "Reliable Remover: Removed item %s",
   "toast.reliable_remover.restored_item": "Reliable Remover: Restored item %s",
   "toast.reliable_remover.restored_item_failed": "Could not restore item %s (not in cache or already exists)",
-  "config.reliable_remover.category.blacklist": "Blacklist"
+  "config.reliable_remover.category.blacklist": "Blacklist",
+
+  "category.reliable_remover": "Reliable Remover",
+  "key.reliable_remover.emi_delete": "EMI Delete"
 }

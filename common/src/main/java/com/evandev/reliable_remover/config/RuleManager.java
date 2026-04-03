@@ -153,8 +153,13 @@ public class RuleManager {
                 (rule.registry == null || rule.registry.isEmpty()) &&
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
                 rule.not == null &&
+                (rule.replaceWith == null || rule.replaceWith.isEmpty()) &&
                 rule.items != null && !rule.items.isEmpty() &&
                 rule.items.stream().noneMatch(id -> id.startsWith("#"));
+    }
+
+    public static Map<Action, List<RemovalRule>> getRulesByAction() {
+        return RULES_BY_ACTION;
     }
 
     public static boolean isHidden(ItemStack stack) {

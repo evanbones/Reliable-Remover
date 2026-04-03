@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.mixin.emi;
 
 import com.evandev.reliable_recipes.client.SharedToastOverlay;
+import com.evandev.reliable_remover.client.Keybinds;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
 import dev.emi.emi.api.EmiApi;
@@ -11,7 +12,6 @@ import dev.emi.emi.screen.EmiScreenManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,7 +24,7 @@ public class EmiScreenManagerMixin {
     private static void reliable_remover$onKeyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
         if (!ModConfig.get().enableEmiRemoval) return;
 
-        if (keyCode == GLFW.GLFW_KEY_DELETE || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+        if (Keybinds.EMI_DELETE_KEY.matches(keyCode, scanCode)) {
             EmiStackInteraction hovered = EmiApi.getHoveredStack(true);
 
             if (hovered != null && !hovered.isEmpty()) {
