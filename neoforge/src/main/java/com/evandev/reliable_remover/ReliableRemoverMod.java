@@ -1,7 +1,6 @@
 package com.evandev.reliable_remover;
 
-import com.evandev.reliable_remover.client.ClientConfigSetup;
-import com.evandev.reliable_remover.client.Keybinds;
+import com.evandev.reliable_remover.client.ClientSetup;
 import com.evandev.reliable_remover.command.ReliableRemoverCommands;
 import com.evandev.reliable_remover.config.ReloadListener;
 import net.neoforged.bus.api.IEventBus;
@@ -9,7 +8,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -24,8 +22,7 @@ public class ReliableRemoverMod {
         NeoForge.EVENT_BUS.addListener(ReliableRemoverMod::onRegisterCommands);
 
         if (FMLEnvironment.dist.isClient()) {
-            ClientConfigSetup.register(modContainer);
-            modEventBus.addListener(this::registerKeyBindings);
+            ClientSetup.init(modEventBus, modContainer);
         }
     }
 
@@ -39,9 +36,5 @@ public class ReliableRemoverMod {
 
     private void addReloadListener(final AddReloadListenerEvent event) {
         event.addListener(new ReloadListener());
-    }
-
-    private void registerKeyBindings(RegisterKeyMappingsEvent event) {
-        event.register(Keybinds.EMI_DELETE_KEY);
     }
 }
