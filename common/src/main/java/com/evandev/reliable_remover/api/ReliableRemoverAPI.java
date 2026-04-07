@@ -5,6 +5,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootParams;
 
 public class ReliableRemoverAPI {
 
@@ -37,8 +38,48 @@ public class ReliableRemoverAPI {
      * @param holder The entity holding or interacting with the item.
      * @return True if the item is removed in this context, false otherwise.
      */
-    public static boolean isItemHidden(ItemStack stack, Level level, Entity holder) {
+    public static boolean isHidden(ItemStack stack, Level level, Entity holder) {
         return RuleManager.isHidden(stack, level, holder);
+    }
+
+    public static boolean isInventoryBlocked(ItemStack stack) {
+        return RuleManager.isInventoryBlocked(stack);
+    }
+
+    public static boolean isInventoryBlocked(ItemStack stack, Level level, Entity holder) {
+        return RuleManager.isInventoryBlocked(stack, level, holder);
+    }
+
+    public static boolean isCreativeBlocked(ItemStack stack) {
+        return RuleManager.isCreativeBlocked(stack);
+    }
+
+    public static boolean isDropsBlocked(ItemStack stack, Level level, Entity entity) {
+        return RuleManager.isDropsBlocked(stack, level, entity);
+    }
+
+    public static boolean isTradeBlocked(ItemStack stack) {
+        return RuleManager.isTradeBlocked(stack);
+    }
+
+    public static boolean isLootBlocked(ItemStack stack) {
+        return RuleManager.isLootBlocked(stack);
+    }
+
+    public static boolean isLootBlocked(ItemStack stack, LootParams params) {
+        return RuleManager.isLootBlocked(stack, params);
+    }
+
+    public static boolean isEquipmentBlocked(ItemStack stack, Level level, Entity entity) {
+        return RuleManager.isEquipmentBlocked(stack, level, entity);
+    }
+
+    public static boolean isRecipeBlocked(ItemStack stack) {
+        return RuleManager.isRecipeBlocked(stack);
+    }
+
+    public static boolean isStorageBlocked(ItemStack stack, Level level) {
+        return RuleManager.isStorageBlocked(stack, level);
     }
 
     /**
@@ -53,20 +94,6 @@ public class ReliableRemoverAPI {
      */
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         return RuleManager.isInteractionBlocked(stack, level, target);
-    }
-
-    /**
-     * Checks if trades involving this item have been blocked.
-     */
-    public static boolean isTradeBlocked(ItemStack stack) {
-        return RuleManager.isTradeBlocked(stack);
-    }
-
-    /**
-     * Checks if generating this item as loot has been blocked.
-     */
-    public static boolean isLootBlocked(ItemStack stack) {
-        return RuleManager.isLootBlocked(stack);
     }
 
     /**

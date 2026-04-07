@@ -25,7 +25,7 @@ public class EmiTagsMixin {
             List<EmiStack> filtered = original.stream()
                     .filter(stack -> {
                         try {
-                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isHidden(stack.getItemStack());
+                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlocked(stack.getItemStack());
                         } catch (Exception e) {
                             return true;
                         }

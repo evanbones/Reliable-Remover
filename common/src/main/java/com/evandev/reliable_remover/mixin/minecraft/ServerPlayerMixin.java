@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.data.Action;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -27,13 +28,18 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void reliable_remover$tick(CallbackInfo ci) {
-        if (ModConfig.get().removeItemsFromInventories && this.tickCount % 20 == 0) {
+        if (this.tickCount % 20 == 0) {
             for (int i = 0; i < this.getInventory().getContainerSize(); i++) {
                 ItemStack stack = this.getInventory().getItem(i);
-                if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
-                    stack.setCount(0);
-                    if (ModConfig.get().showRemovalMessage) {
-                        this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
+                if (!stack.isEmpty()) {
+                    ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, this.level(), this, "inventory");
+                    if (replacement != null) {
+                        this.getInventory().setItem(i, replacement);
+                    } else if (RuleManager.isInventoryBlocked(stack, this.level(), this)) {
+                        this.getInventory().setItem(i, ItemStack.EMPTY);
+                        if (ModConfig.get().showRemovalMessage) {
+                            this.displayClientMessage(Component.translatable("message.reliable_remover.item_removed"), true);
+                        }
                     }
                 }
             }
@@ -67,9 +73,15 @@ public abstract class ServerPlayerMixin extends Player {
         boolean changed = false;
         for (Slot slot : menu.slots) {
             ItemStack stack = slot.getItem();
-            if (!stack.isEmpty() && RuleManager.isHidden(stack, this.level())) {
-                slot.set(ItemStack.EMPTY);
-                changed = true;
+            if (!stack.isEmpty()) {
+                ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, this.level(), this, "inventory");
+                if (replacement != null) {
+                    slot.set(replacement);
+                    changed = true;
+                } else if (RuleManager.isInventoryBlocked(stack, this.level(), this)) {
+                    slot.set(ItemStack.EMPTY);
+                    changed = true;
+                }
             }
         }
 

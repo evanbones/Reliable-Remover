@@ -35,7 +35,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
         List<ItemStack> allStacks = ingredientManager.getAllIngredients(VanillaTypes.ITEM_STACK).stream().toList();
 
         List<ItemStack> itemsToHide = allStacks.stream()
-                .filter(stack -> !stack.isEmpty() && RuleManager.isHidden(stack))
+                .filter(stack -> !stack.isEmpty() && RuleManager.isCreativeBlocked(stack))
                 .toList();
 
         if (!itemsToHide.isEmpty()) {
@@ -49,7 +49,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
                 .get()
                 .filter(recipe -> recipe.getIngredients().stream()
                         .map(typed -> typed.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY))
-                        .anyMatch(stack -> !stack.isEmpty() && ((hideGlobalInfo && RuleManager.isHidden(stack)) || RuleManager.isInfoBlocked(stack))))
+                        .anyMatch(stack -> !stack.isEmpty() && ((hideGlobalInfo && RuleManager.isCreativeBlocked(stack)) || RuleManager.isInfoBlocked(stack))))
                 .toList();
 
         if (!recipesToHide.isEmpty()) {

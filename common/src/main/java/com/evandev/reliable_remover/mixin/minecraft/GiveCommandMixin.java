@@ -33,7 +33,7 @@ public class GiveCommandMixin {
     ) throws CommandSyntaxException {
         ItemStack checkStack = item.createItemStack(1, false);
 
-        if (RuleManager.isHidden(checkStack)) {
+        if (RuleManager.isInventoryBlocked(checkStack)) {
             if (ModConfig.get().showRemovalMessage) {
                 source.sendFailure(Component.translatable("commands.reliable_remover.give.failed", checkStack.getHoverName()));
             }

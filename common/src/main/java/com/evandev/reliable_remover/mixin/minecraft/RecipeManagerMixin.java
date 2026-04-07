@@ -1,7 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.RuleManager;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -18,19 +17,17 @@ import java.util.stream.Collectors;
 public class RecipeManagerMixin {
 
     @Inject(method = "getAllRecipesFor", at = @At("RETURN"), cancellable = true)
-    private <C extends Container, T extends Recipe<C>> void reliable_remover$filterSawmillRecipes(
+    private <C extends Container, T extends Recipe<C>> void reliable_remover$filterRecipes(
             RecipeType<T> type, CallbackInfoReturnable<List<T>> cir) {
 
-        if (type.toString().contains("sawmill")) {
-            List<T> recipes = cir.getReturnValue();
-            if (recipes != null && !recipes.isEmpty()) {
+        List<T> recipes = cir.getReturnValue();
+        if (recipes != null && !recipes.isEmpty()) {
 
-                List<T> filtered = recipes.stream()
-                        .filter(recipe -> !RuleManager.isHidden(recipe.getResultItem(RegistryAccess.EMPTY)))
-                        .collect(Collectors.toList());
+            List<T> filtered = recipes.stream()
+                    .filter(recipe -> !RuleManager.isRecipeBlocked(recipe))
+                    .collect(Collectors.toList());
 
-                cir.setReturnValue(filtered);
-            }
+            cir.setReturnValue(filtered);
         }
     }
 }

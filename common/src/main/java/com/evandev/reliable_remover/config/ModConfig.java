@@ -29,6 +29,8 @@ public class ModConfig {
     public boolean removeItemsFromLootChests = true;
     public boolean removeItemsFromStorage = true;
     public boolean removeItemsFromInfoTabs = true;
+    public boolean removeItemsFromTrades = true;
+    public boolean removeRecipes = true;
     public boolean removeMobEquipment = true;
 
     public boolean enableEmiRemoval = false;

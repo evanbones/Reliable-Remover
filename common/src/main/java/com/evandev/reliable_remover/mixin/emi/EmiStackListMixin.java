@@ -24,7 +24,7 @@ public class EmiStackListMixin {
                 List<EmiStack> mutableStacks = new ArrayList<>(EmiStackList.stacks);
                 mutableStacks.removeIf(stack -> {
                     try {
-                        return RuleManager.isHidden(stack.getItemStack());
+                        return RuleManager.isCreativeBlocked(stack.getItemStack());
                     } catch (Exception e) {
                         return false;
                     }
