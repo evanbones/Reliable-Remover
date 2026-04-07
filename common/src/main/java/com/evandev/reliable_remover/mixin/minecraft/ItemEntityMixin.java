@@ -27,7 +27,15 @@ public abstract class ItemEntityMixin extends Entity {
     @ModifyVariable(method = "setItem", at = @At("HEAD"), argsOnly = true)
     private ItemStack reliable_remover$modifySetItem(ItemStack stack) {
         ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_DROPS, this.level(), this, "drops");
-        return replacement != null ? replacement : stack;
+
+        if (replacement != null) {
+            return replacement;
+        } else if (RuleManager.isDropsBlocked(stack, this.level(), this)) {
+            this.discard();
+            return ItemStack.EMPTY;
+        }
+
+        return stack;
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
