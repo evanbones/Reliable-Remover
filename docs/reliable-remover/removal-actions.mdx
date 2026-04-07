@@ -9,11 +9,102 @@ There are many actions you can apply to items.
 
 The nuclear option.
 This completely scrubs the item from the game context based on your global config.
+Using `remove` is equivalent to applying **all** of the granular removal actions below simultaneously.
 
-* Removes from Creative Tabs, EMI/JEI/REI, Loot tables, and Villager trades.
-* Deletes from player inventories and world drops.
+* Removes from Creative Tabs, EMI/JEI/REI, Loot tables, player inventories, storage, world drops, and Villager trades.
 
 [View 'Basic Removal' Examples](/project/reliable-remover/docs/reliable-remover/examples/basic-removal)
+
+### `remove_creative`
+
+Hides the specified item from Creative Mode tabs and recipe viewers like EMI, JEI, and REI.
+
+* **Use Case**: You want an item to be obtainable via commands or scripts, but not visible to players in menus.
+
+```json
+{
+  "action": "remove_creative",
+  "items": ["minecraft:command_block"]
+}
+```
+
+### `remove_inventory`
+
+Instantly removes the specified item from player inventories.
+
+* **Use Case**: Prevent players from ever holding or carrying a specific item, even if they obtain it.
+
+```json
+{
+  "action": "remove_inventory",
+  "items": ["minecraft:bedrock"]
+}
+```
+
+### `remove_drops`
+
+Discards the specified item as soon as it is dropped in the world.
+
+* **Use Case**: Useful for preventing item spam or deleting certain items that shouldn't exist on the ground.
+
+```json
+{
+  "action": "remove_drops",
+  "items": ["minecraft:cobblestone"]
+}
+```
+
+### `remove_storage`
+
+Clears the specified item from chests, barrels, shulker boxes, and other storage blocks when they are opened by a player.
+
+* **Use Case**: Scrub specific items from existing loot or player-placed storage.
+
+```json
+{
+  "action": "remove_storage",
+  "items": ["minecraft:tnt"]
+}
+```
+
+### `remove_equipment`
+
+Automatically removes the specified item from the hands or armor slots of mobs.
+
+* **Use Case**: Prevent certain mobs from spawning with or picking up overpowered equipment.
+
+```json
+{
+  "action": "remove_equipment",
+  "items": ["minecraft:netherite_sword"]
+}
+```
+
+### `remove_recipe`
+
+Hides any recipe from the Recipe Manager that results in the specified item.
+
+* **Use Case**: Disable crafting or processing recipes for an item without removing the item itself from the game.
+
+```json
+{
+  "action": "remove_recipe",
+  "items": ["minecraft:diamond_block"]
+}
+```
+
+### `remove_chest_loot`
+
+Prevents the specified item from generating as loot *only* in containers (Chests, Barrels, Shulker Boxes, etc.). This does not affect mob drops or other loot tables.
+
+* **Use Case**: Nerf modded structure loot without removing items from other sources.
+
+```json
+{
+  "action": "remove_chest_loot",
+  "items": ["minecraft:diamond"]
+}
+```
 
 ### `remove_interactions`
 
@@ -59,7 +150,7 @@ Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing th
 
 ```
 
-###`remove_hand_swing`
+### `remove_hand_swing`
 
 Prevents the player from swinging their hand while holding the specified item.
 

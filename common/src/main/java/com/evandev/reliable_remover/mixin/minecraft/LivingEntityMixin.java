@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
-import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.data.Action;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -15,15 +15,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class LivingEntityMixin {
     @Inject(method = "tick", at = @At("TAIL"))
     private void reliable_remover$removeMobEquipment(CallbackInfo ci) {
-        if (!ModConfig.get().removeMobEquipment) return;
-
         LivingEntity entity = (LivingEntity) (Object) this;
         if (entity.level().isClientSide || entity instanceof Player || entity.tickCount % 20 != 0) return;
 
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             ItemStack stack = entity.getItemBySlot(slot);
-            if (!stack.isEmpty() && RuleManager.isHidden(stack, entity.level(), entity)) {
-                entity.setItemSlot(slot, ItemStack.EMPTY);
+            if (!stack.isEmpty()) {
+                ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_EQUIPMENT, entity.level(), entity, "equipment");
+                if (replacement != null) {
+                    entity.setItemSlot(slot, replacement);
+                } else if (RuleManager.isEquipmentBlocked(stack, entity.level(), entity)) {
+                    entity.setItemSlot(slot, ItemStack.EMPTY);
+                }
             }
         }
     }

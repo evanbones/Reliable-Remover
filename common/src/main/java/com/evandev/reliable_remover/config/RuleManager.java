@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.config;
 
+import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
@@ -11,9 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,7 +80,7 @@ public class RuleManager {
                 ]""";
         try {
             Files.writeString(configDir.resolve("removal_example.json.disabled"), defaultJson);
-            Constants.LOG.info("Created example config at config/reliable_remover/example_rules.json.disabled");
+            Constants.LOG.info("Created example config at config/reliable_remover/removal_example.json.disabled");
         } catch (Exception e) {
             Constants.LOG.error("Failed to generate default rule", e);
         }
@@ -130,7 +134,6 @@ public class RuleManager {
     private static void optimizeRules(Map<Action, List<RemovalRule>> rulesByAction, Set<String> globallyBannedItems) {
         List<RemovalRule> removeRules = rulesByAction.get(Action.REMOVE);
         if (removeRules == null) return;
-
         Iterator<RemovalRule> iterator = removeRules.iterator();
         while (iterator.hasNext()) {
             RemovalRule rule = iterator.next();
@@ -183,9 +186,7 @@ public class RuleManager {
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;
-            if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) {
-                return true;
-            }
+            if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) return true;
         }
 
         if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
@@ -233,15 +234,10 @@ public class RuleManager {
         if (stack.has(DataComponents.POTION_CONTENTS)) {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null) {
-                String potionId = contents.potion()
-                        .flatMap(Holder::unwrapKey)
-                        .map(key -> key.location().toString())
-                        .orElse(null);
-
+                String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.location().toString()).orElse(null);
                 return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
             }
         }
-
         return false;
     }
 
@@ -260,17 +256,84 @@ public class RuleManager {
     }
 
     public static boolean isTradeBlocked(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return false;
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromTrades) return false;
         if (isHidden(stack)) return true;
-        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_TRADE, null, null, null, "trade");
+        if (getReplacement(stack, Action.REMOVE_TRADE, null, null, "trade") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_TRADE, null, null, null, "trade");
     }
 
     public static boolean isLootBlocked(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) return false;
+        return isLootBlocked(stack, null);
+    }
+
+    public static boolean isLootBlocked(ItemStack stack, LootParams context) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return false;
+        if (isHidden(stack)) return true;
+        if (getLootReplacement(stack, context) != null) return false;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        if (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY)) {
+            if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot")) return true;
+        }
+        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
+    }
+
+    public static boolean isInventoryBlocked(ItemStack stack) {
+        return isInventoryBlocked(stack, null, null);
+    }
+
+    public static boolean isInventoryBlocked(ItemStack stack, Level level, Entity holder) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromInventories) return false;
+        if (isHidden(stack, level, holder)) return true;
+        if (getReplacement(stack, Action.REMOVE_INVENTORY, level, holder, "inventory") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_INVENTORY, level != null ? level.dimension().location().toString() : null, holder, null, "inventory");
+    }
+
+    public static boolean isCreativeBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromCreativeTabs) return false;
+        if (isHidden(stack)) return true;
+        if (getReplacement(stack, Action.REMOVE_CREATIVE, null, null, "creative") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_CREATIVE, null, null, null, "creative");
+    }
+
+    public static boolean isDropsBlocked(ItemStack stack, Level level, Entity entity) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeDroppedItems) return false;
+        if (isHidden(stack, level, entity)) return true;
+        if (getReplacement(stack, Action.REMOVE_DROPS, level, entity, "drops") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_DROPS, level != null ? level.dimension().location().toString() : null, entity, null, "drops");
+    }
+
+    public static boolean isEquipmentBlocked(ItemStack stack, Level level, Entity entity) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeMobEquipment) return false;
+        if (isHidden(stack, level, entity)) return true;
+        if (getReplacement(stack, Action.REMOVE_EQUIPMENT, level, entity, "equipment") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_EQUIPMENT, level != null ? level.dimension().location().toString() : null, entity, null, "equipment");
+    }
+
+    public static boolean isRecipeBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeRecipes) return false;
+        if (getReplacement(stack, Action.REMOVE_RECIPE, null, null, "recipe") != null) return false;
         if (isHidden(stack)) return true;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
+        return checkRules(stack, id, Action.REMOVE_RECIPE, null, null, null, "recipe");
+    }
+
+    public static boolean isRecipeBlocked(Recipe<?> recipe) {
+        if (!ModConfig.get().removeRecipes) return false;
+        List<ItemStack> outputs = ReliableRecipesAPI.getRecipeResults(recipe);
+        if (outputs.isEmpty()) return false;
+        for (ItemStack stack : outputs) {
+            if (!stack.isEmpty() && !isRecipeBlocked(stack)) return false;
+        }
+        return true;
+    }
+
+    public static boolean isStorageBlocked(ItemStack stack, Level level) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromStorage) return false;
+        if (getReplacement(stack, Action.REMOVE_STORAGE, level, null, "storage") != null) return false;
+        if (isHidden(stack, level)) return true;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        return checkRules(stack, id, Action.REMOVE_STORAGE, dim, null, null, "storage");
     }
 
     public static boolean isHandSwingBlocked(ItemStack stack, Level level) {
@@ -293,17 +356,57 @@ public class RuleManager {
                 .orElse(false);
     }
 
-    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
-        String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
+    public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {
+        if (stack == null || stack.isEmpty()) return null;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        RemovalRule rule = getMatchingRule(stack, id, action, dim, holder, null, context);
+        if (rule == null && action != Action.REMOVE)
+            rule = getMatchingRule(stack, id, Action.REMOVE, dim, holder, null, context);
 
-        List<RemovalRule> rules = RULES_BY_ACTION.get(action);
-        if (rules == null || rules.isEmpty()) return false;
-
-        for (RemovalRule rule : rules) {
-            if (rule.action == action) {
-                if (rule.matches(stack, itemId, dimension, entityId, registryHolder, context)) return true;
+        if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
+            ResourceLocation replacementId = ResourceLocation.tryParse(rule.replaceWith);
+            if (replacementId != null && BuiltInRegistries.ITEM.containsKey(replacementId)) {
+                ItemStack replacement = new ItemStack(BuiltInRegistries.ITEM.get(replacementId), stack.getCount());
+                replacement.applyComponents(stack.getComponentsPatch());
+                return replacement;
             }
         }
-        return false;
+        return null;
+    }
+
+    public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
+        if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return null;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        RemovalRule rule = null;
+        if (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY))
+            rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, null, null, null, "item");
+
+        if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
+            ResourceLocation replacementId = ResourceLocation.tryParse(rule.replaceWith);
+            if (replacementId != null && BuiltInRegistries.ITEM.containsKey(replacementId)) {
+                ItemStack replacement = new ItemStack(BuiltInRegistries.ITEM.get(replacementId), stack.getCount());
+                replacement.applyComponents(stack.getComponentsPatch());
+                return replacement;
+            }
+        }
+        return null;
+    }
+
+    private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
+        return getMatchingRule(stack, itemId, action, dimension, target, registryHolder, context) != null;
+    }
+
+    private static RemovalRule getMatchingRule(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
+        String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
+        List<RemovalRule> rules = RULES_BY_ACTION.get(action);
+        if (rules == null || rules.isEmpty()) return null;
+        for (RemovalRule rule : rules) {
+            if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, registryHolder, context))
+                return rule;
+        }
+        return null;
     }
 }

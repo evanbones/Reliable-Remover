@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
-import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.data.Action;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -17,7 +17,6 @@ public abstract class RandomizableContainerMixin {
 
     @Inject(method = "createMenu", at = @At("RETURN"))
     private void reliable_remover$filterItemsOnOpen(int containerId, Inventory playerInventory, Player player, CallbackInfoReturnable<AbstractContainerMenu> cir) {
-        if (!ModConfig.get().removeItemsFromStorage) return;
         if (cir.getReturnValue() == null) return;
 
         RandomizableContainerBlockEntity container = (RandomizableContainerBlockEntity) (Object) this;
@@ -29,9 +28,15 @@ public abstract class RandomizableContainerMixin {
         for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack stack = container.getItem(i);
 
-            if (!stack.isEmpty() && RuleManager.isHidden(stack, container.getLevel())) {
-                container.setItem(i, ItemStack.EMPTY);
-                changed = true;
+            if (!stack.isEmpty()) {
+                ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_STORAGE, container.getLevel(), null, "storage");
+                if (replacement != null) {
+                    container.setItem(i, replacement);
+                    changed = true;
+                } else if (RuleManager.isStorageBlocked(stack, container.getLevel())) {
+                    container.setItem(i, ItemStack.EMPTY);
+                    changed = true;
+                }
             }
         }
 

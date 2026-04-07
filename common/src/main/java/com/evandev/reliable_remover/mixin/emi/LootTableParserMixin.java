@@ -8,6 +8,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
@@ -15,6 +16,17 @@ import java.util.List;
 
 @Mixin(LootTableParser.class)
 public class LootTableParserMixin {
+
+    @ModifyVariable(
+            method = "parseItemEntry(ILnet/minecraft/world/item/ItemStack;Ljava/util/List;Ljava/util/List;Z)Ljava/util/List;",
+            at = @At("HEAD"),
+            argsOnly = true,
+            ordinal = 0
+    )
+    private static ItemStack reliable_remover$replaceEmiLootItem(ItemStack item) {
+        ItemStack replacement = RuleManager.getLootReplacement(item, null);
+        return replacement != null ? replacement : item;
+    }
 
     @Inject(
             method = "parseItemEntry(ILnet/minecraft/world/item/ItemStack;Ljava/util/List;Ljava/util/List;Z)Ljava/util/List;",
@@ -36,7 +48,7 @@ public class LootTableParserMixin {
         boolean changed = false;
 
         for (LootTableParser.ItemEntryResult result : original) {
-            if (RuleManager.isLootBlocked(result.item())) {
+            if (RuleManager.isLootBlocked(result.item(), null)) {
                 changed = true;
             } else {
                 filtered.add(result);
