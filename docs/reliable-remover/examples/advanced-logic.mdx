@@ -105,6 +105,21 @@ Prevents using Shears on Sheep, but allows using them on other things (like leav
 
 ```
 
+### Disable Hand Swinging for Multiple Tools
+
+This rule uses the `patterns` list to block the swing animation for all shovels and pickaxes.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "patterns": [
+    "/.*_shovel/",
+    "/.*_pickaxe/"
+  ]
+}
+
+```
+
 ## NBT & Data
 
 ### Remove Potions by Effect
@@ -121,12 +136,15 @@ Removes any potion (Splash, Lingering, or Drinkable) that contains the `minecraf
 
 ### Remove Items with Specific NBT
 
-Removes any item containing the text `"CustomModelData":1` in its NBT tag.
+Removes any item containing the text `"CustomModelData":1` or `"CustomModelData":2` in its NBT tag.
 
 ```json
 {
   "action": "remove",
-  "nbt": ".*\"CustomModelData\":1.*"
+  "nbt": [
+    ".*\"CustomModelData\":1.*",
+    ".*\"CustomModelData\":2.*"
+  ]
 }
 
 ```
@@ -139,7 +157,94 @@ This uses a Regex match against the item's NBT string.
 {
   "action": "remove",
   "items": ["minecraft:enchanted_book"],
-  "nbt": "{.*StoredEnchantments.*}"
+  "nbt": ["/{.*StoredEnchantments.*}/"]
 }
+
+```
+
+## Entity Equipment
+
+### Strip Specific Weapons from Mobs
+Because the `entities` filter can be tied to the `remove` action, you can selectively strip equipment from specific mobs without banning the item for players.
+
+This rule will actively delete Diamond Swords from Zombies, but players and other entities will still be able to use them:
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond_sword"],
+  "entities": ["minecraft:zombie"]
+}
+
+```
+
+### Strip All Armor from Skeletons
+Using regex patterns, you can completely prevent Skeletons from wearing any helmet.
+
+```json
+{
+  "action": "remove",
+  "patterns": ["/.*_helmet/"],
+  "entities": ["minecraft:skeleton"]
+}
+
+```
+
+## Registry & Tag Isolation
+
+### Tag-Type Isolation
+
+Tells Reliable Remover to hide the item from **item tags**, but completely ignore **block tags**. For example, removing `minecraft:oak_log` will strip it from `#minecraft:logs` for crafting, but the placed block will still behave normally when mined with an axe.
+
+```json
+[
+  {
+    "action": "remove",
+    "items": [
+      "minecraft:oak_log"
+    ],
+    "tag_type": [
+      "item"
+    ]
+  }
+]
+
+```
+
+### Registry Context
+
+Removes the item from the game as a dropped entity and hides it from standard item contexts, but leaves its placed block form alone. If a player mines a Diamond Ore with this rule active, the dropped diamond entity will immediately vanish.
+
+```json
+[
+  {
+    "action": "remove",
+    "items": [
+      "minecraft:diamond"
+    ],
+    "registry": [
+      "item",
+      "entity"
+    ]
+  }
+]
+
+```
+
+### Mod-Wide Removal
+
+Wipes a specific tag type for an entire mod without breaking the physical blocks of that mod. All item-form tags (e.g., `#forge:ingots/copper` for items) will have that mod's items stripped out, but the blocks will behave normally in the world.
+
+```json
+[
+  {
+    "action": "remove",
+    "mod": [
+      "examplemod"
+    ],
+    "tag_type": [
+      "item"
+    ]
+  }
+]
 
 ```
