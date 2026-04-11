@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.data;
 
+import com.evandev.reliable_remover.Constants;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class RemovalRule {
     public Action action;
@@ -51,7 +53,7 @@ public class RemovalRule {
     public RemovalRule not;
 
     private transient volatile List<Pattern> compiledPatterns;
-    private transient volatile List<Pattern> compiledNbtPatterns;
+    private transient volatile List<Pattern> compiledComponentRegex;
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
         if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
@@ -59,22 +61,27 @@ public class RemovalRule {
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty()) return false;
 
-            if (compiledNbtPatterns == null) {
+            if (compiledComponentRegex == null) {
                 synchronized (this) {
-                    if (compiledNbtPatterns == null) {
+                    if (compiledComponentRegex == null) {
                         List<Pattern> list = new ArrayList<>();
-                        for (String p : nbt) list.add(compile(p));
-                        compiledNbtPatterns = list;
+                        for (String p : nbt) {
+                            Pattern compiled = compile(p);
+                            if (compiled != null) list.add(compiled);
+                        }
+                        compiledComponentRegex = list;
                     }
                 }
             }
+
+            if (compiledComponentRegex.isEmpty()) return false;
 
             String componentsStr = stack.getComponents().toString();
             String customDataStr = stack.has(DataComponents.CUSTOM_DATA)
                     ? stack.get(DataComponents.CUSTOM_DATA).getUnsafe().toString()
                     : "";
 
-            for (Pattern p : compiledNbtPatterns) {
+            for (Pattern p : compiledComponentRegex) {
                 if (p.matcher(componentsStr).matches() || (!customDataStr.isEmpty() && p.matcher(customDataStr).matches())) {
                     return true;
                 }
@@ -217,6 +224,11 @@ public class RemovalRule {
         String p = regex.startsWith("/") && regex.endsWith("/")
                 ? regex.substring(1, regex.length() - 1)
                 : regex;
-        return Pattern.compile(p);
+        try {
+            return Pattern.compile(p);
+        } catch (PatternSyntaxException e) {
+            Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
+            return null;
+        }
     }
 }
