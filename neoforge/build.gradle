@@ -40,8 +40,8 @@ dependencies {
     implementation("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${rrv_version}")
 
     // Reliable Recipes
-//    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
-//    implementation "maven.modrinth:reliable-recipes:${reliable_recipes_neoforge_version}"
+    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
+    implementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
 
     // JEI
     compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"

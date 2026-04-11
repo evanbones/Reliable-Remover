@@ -1,17 +1,22 @@
 package com.evandev.reliable_remover.command;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,13 +27,21 @@ import java.util.stream.Collectors;
 public class ReliableRemoverCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("reliable_remover")
+        dispatcher.register(Commands.literal("rremover")
                 .then(Commands.literal("hand")
                         .executes(ReliableRemoverCommands::dumpHand))
                 .then(Commands.literal("hotbar")
                         .executes(ReliableRemoverCommands::dumpHotbar))
                 .then(Commands.literal("inventory")
                         .executes(ReliableRemoverCommands::dumpInventory))
+                .then(Commands.literal("remove")
+                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                        .then(Commands.argument("id", IdentifierArgument.id())
+                                .executes(ReliableRemoverCommands::executeRemove)))
+                .then(Commands.literal("undo")
+                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                        .then(Commands.argument("id", IdentifierArgument.id())
+                                .executes(ReliableRemoverCommands::executeUndo)))
         );
     }
 
@@ -64,7 +77,7 @@ public class ReliableRemoverCommands {
                 }
             }
 
-            ItemStack offhand = inventory.player.getOffhandItem();;
+            ItemStack offhand = inventory.player.getOffhandItem();
             if (!offhand.isEmpty()) {
                 items.add(getItemId(offhand));
             }
@@ -128,5 +141,36 @@ public class ReliableRemoverCommands {
 
         source.sendSuccess(() -> Component.translatable(titleKey).withStyle(ChatFormatting.GOLD).append(":"), false);
         source.sendSuccess(() -> message, false);
+    }
+
+    private static int executeRemove(CommandContext<CommandSourceStack> context) {
+        Identifier id = IdentifierArgument.getId(context, "id");
+        String itemId = id.toString();
+
+        if (RuleConfigIO.addRemovalRule(itemId)) {
+            if (ModConfig.get().reloadAfterRemoval) {
+                context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int executeUndo(CommandContext<CommandSourceStack> context) {
+        Identifier id = IdentifierArgument.getId(context, "id");
+        String itemId = id.toString();
+
+        if (RuleConfigIO.removeRemovalRule(itemId)) {
+            context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
+
+            if (ModConfig.get().reloadAfterRemoval) {
+                context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
+            }
+
+            return 1;
+        } else {
+            context.getSource().sendFailure(Component.translatable("toast.reliable_remover.restored_item_failed", itemId));
+            return 0;
+        }
     }
 }

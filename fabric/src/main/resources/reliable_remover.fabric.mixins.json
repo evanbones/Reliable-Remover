@@ -4,7 +4,6 @@
     "package": "com.evandev.reliable_remover.mixin",
     "compatibilityLevel": "JAVA_25",
     "mixins": [
-        "minecraft.ReloadableServerResourcesMixin"
     ],
     "client": [
     ],

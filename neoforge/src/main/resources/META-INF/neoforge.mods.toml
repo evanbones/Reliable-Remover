@@ -11,6 +11,7 @@ logoFile="${mod_id}.png"
 credits="${credits}"
 authors = "${mod_author}"
 description = '''${description}'''
+rrv = "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
 
 [[mixins]]
 config = "${mod_id}.mixins.json"
@@ -32,9 +33,9 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${mod_id}]]
-modId = "emi"
-type="optional"
-versionRange = "[1.0.4,)"
+[[dependencies.${ mod_id }]]
+modId = "rrv"
+type = "optional"
+versionRange = "[7.0.0,)"
 ordering = "AFTER"
 side = "BOTH"

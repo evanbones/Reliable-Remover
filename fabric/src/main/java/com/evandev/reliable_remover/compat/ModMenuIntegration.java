@@ -11,7 +11,6 @@ public class ModMenuIntegration implements ModMenuApi {
         if (Services.PLATFORM.isModLoaded("cloth-config")) {
             return ClothConfigIntegration::createScreen;
         }
-
-        return ModMenuApi.super.getModConfigScreenFactory();
+        return null;
     }
 }

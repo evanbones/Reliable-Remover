@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ModConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -16,12 +18,26 @@ public class ModConfig {
 
     private static ModConfig INSTANCE;
 
+    public boolean showAttackMessage = true;
+    public boolean showHandSwingMessage = true;
     public boolean showRemovalMessage = true;
     public boolean removeItemsFromCreativeTabs = true;
-    public boolean removeItemsFromEmi = true;
+    public boolean removeItemsFromRrv = true;
     public boolean removeItemsFromInventories = true;
+    public boolean removeItemsOnInventoryOpen = true;
     public boolean removeDroppedItems = true;
     public boolean removeItemsFromLootChests = true;
+    public boolean removeItemsFromStorage = true;
+    public boolean removeItemsFromInfoTabs = true;
+    public boolean removeItemsFromTrades = true;
+    public boolean removeRecipes = true;
+    public boolean removeMobEquipment = true;
+
+    public boolean enableRrvRemoval = false;
+    public boolean showRrvToast = true;
+    public boolean showRrvChatMessages = true;
+    public boolean reloadAfterRemoval = false;
+    public List<String> blacklistedItems = new ArrayList<>();
 
     public static ModConfig get() {
         if (INSTANCE == null) {

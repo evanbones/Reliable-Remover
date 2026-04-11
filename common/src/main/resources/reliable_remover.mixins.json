@@ -5,15 +5,24 @@
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
+    "minecraft.AnvilMenuMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
+    "minecraft.GiveCommandMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
+    "minecraft.LivingEntityMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.PlayerMixin",
+    "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
-    "minecraft.ServerPlayerMixin"
+    "minecraft.ServerPlayerMixin",
+    "rrv.RrvOverlaysMixin"
+  ],
+  "client": [
+    "client.ScreenMixin",
+    "minecraft.MinecraftMixin"
   ],
   "server": [],
   "injectors": {

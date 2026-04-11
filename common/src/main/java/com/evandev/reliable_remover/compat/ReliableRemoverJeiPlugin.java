@@ -5,14 +5,15 @@ import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.recipe.IRecipeManager;
+import mezz.jei.api.recipe.vanilla.IJeiIngredientInfoRecipe;
 import mezz.jei.api.runtime.IJeiRuntime;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @JeiPlugin
@@ -28,19 +29,31 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
         ModConfig.get();
         RuleManager.load();
 
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRrv) return;
 
-        List<ItemStack> itemsToRemove = new ArrayList<>();
+        var ingredientManager = jeiRuntime.getIngredientManager();
+        List<ItemStack> allStacks = ingredientManager.getAllIngredients(VanillaTypes.ITEM_STACK).stream().toList();
 
-        BuiltInRegistries.ITEM.forEach(item -> {
-            ItemStack stack = new ItemStack(item);
-            if (RuleManager.isHidden(stack)) {
-                itemsToRemove.add(stack);
-            }
-        });
+        List<ItemStack> itemsToHide = allStacks.stream()
+                .filter(stack -> !stack.isEmpty() && RuleManager.isCreativeBlocked(stack))
+                .toList();
 
-        if (!itemsToRemove.isEmpty()) {
-            jeiRuntime.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, itemsToRemove);
+        if (!itemsToHide.isEmpty()) {
+            ingredientManager.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, itemsToHide);
+        }
+
+        IRecipeManager recipeManager = jeiRuntime.getRecipeManager();
+        boolean hideGlobalInfo = ModConfig.get().removeItemsFromInfoTabs;
+
+        List<IJeiIngredientInfoRecipe> recipesToHide = recipeManager.createRecipeLookup(RecipeTypes.INFORMATION)
+                .get()
+                .filter(recipe -> recipe.getIngredients().stream()
+                        .map(typed -> typed.getIngredient(VanillaTypes.ITEM_STACK).orElse(ItemStack.EMPTY))
+                        .anyMatch(stack -> !stack.isEmpty() && ((hideGlobalInfo && RuleManager.isCreativeBlocked(stack)) || RuleManager.isInfoBlocked(stack))))
+                .toList();
+
+        if (!recipesToHide.isEmpty()) {
+            recipeManager.hideRecipes(RecipeTypes.INFORMATION, recipesToHide);
         }
     }
 }

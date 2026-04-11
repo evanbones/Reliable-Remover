@@ -46,7 +46,7 @@ tasks.named('sourcesJar', Jar) {
 
 publishMods {
     changelog = rootProject.file("CHANGELOG-LATEST.md").text
-    type = STABLE
+    type = BETA
     version = "${project.version}-${minecraft_version}-${project.name}"
     displayName = "${mod_name} ${project.name.capitalize()} ${minecraft_version} - ${project.version}"
     modLoaders.add(project.name)
@@ -57,7 +57,6 @@ publishMods {
         minecraftVersions.add("${minecraft_version}")
 
         optional { slug = "rrv" }
-        optional { slug = "jei" }
         optional { slug = "cloth-config" }
     }
 
@@ -67,7 +66,6 @@ publishMods {
         minecraftVersions.add("${minecraft_version}")
 
         optional { slug = "rrv" }
-        optional { slug = "jei" }
         optional { slug = "cloth-config" }
     }
 }

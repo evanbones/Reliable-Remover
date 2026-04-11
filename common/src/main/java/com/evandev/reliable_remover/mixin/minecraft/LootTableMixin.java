@@ -1,32 +1,31 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
-import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
+
+import java.util.function.Consumer;
 
 @Mixin(LootTable.class)
 public class LootTableMixin {
 
-    @Inject(
-            method = "getRandomItems(Lnet/minecraft/world/level/storage/loot/LootContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;",
-            at = @At("RETURN")
+    @ModifyVariable(
+            method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V",
+            at = @At("HEAD"),
+            argsOnly = true,
+            ordinal = 0
     )
-    private void reliable_remover$filterLootList(LootContext context, CallbackInfoReturnable<ObjectArrayList<ItemStack>> cir) {
-        if (!ModConfig.get().removeItemsFromLootChests) {
-            return;
-        }
-
-        ObjectArrayList<ItemStack> generatedLoot = cir.getReturnValue();
-
-        if (generatedLoot != null) {
-            generatedLoot.removeIf(RuleManager::isHidden);
-        }
+    private Consumer<ItemStack> reliable_remover$wrapConsumer(Consumer<ItemStack> original) {
+        return stack -> {
+            ItemStack replacement = RuleManager.getLootReplacement(stack, null);
+            if (replacement != null) {
+                original.accept(replacement);
+            } else if (!RuleManager.isLootBlocked(stack, null)) {
+                original.accept(stack);
+            }
+        };
     }
 }

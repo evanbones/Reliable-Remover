@@ -19,9 +19,9 @@ public class EnchantmentHelperMixin {
 
     @Inject(method = "getAvailableEnchantmentResults", at = @At("RETURN"))
     private static void reliable_remover$filterEnchantments(
-            int level,
-            ItemStack stack,
-            Stream<Holder<Enchantment>> possibleEnchantments,
+            int value,
+            ItemStack itemStack,
+            Stream<Holder<Enchantment>> source,
             CallbackInfoReturnable<List<EnchantmentInstance>> cir
     ) {
         List<EnchantmentInstance> list = cir.getReturnValue();

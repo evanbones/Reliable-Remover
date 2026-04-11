@@ -1,3 +1,3 @@
 ### Changed
 
-- Updated 26.1 port to work with the release version.
+- Updated 26.1 port to parity with 1.21/1.20 versions.

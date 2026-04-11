@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ServerPlayerGameModeMixin {
 
     @Inject(method = "useItem", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$cancelUseItem(ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
-        if (RuleManager.isInteractionBlocked(stack, level, null)) {
+    private void reliable_remover$cancelUseItem(ServerPlayer player, Level level, ItemStack itemStack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        if (RuleManager.isInteractionBlocked(itemStack, level, null)) {
             if (ModConfig.get().showRemovalMessage) {
                 player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
