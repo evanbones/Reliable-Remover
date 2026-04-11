@@ -178,3 +178,29 @@ Items hidden using the standard `remove` action are also removed from info tabs 
 }
 
 ```
+
+### `remove_trade`
+
+Prevents the specified item from appearing in any Villager or Merchant trade (either as a cost or a result).
+* **Use Case**: Stop villagers from buying or selling specific overpowered items.
+
+```json
+{
+  "action": "remove_trade",
+  "items": ["minecraft:emerald"]
+}
+
+```
+
+### `remove_loot`
+
+Removes the specified item from *all* loot tables, including mob drops, chest loot, and gameplay loot (like fishing or archaeology).
+* **Use Case**: Completely wipe an item from the game's reward pools.
+
+```json
+{
+  "action": "remove_loot",
+  "items": ["minecraft:enchanted_golden_apple"]
+}
+
+```

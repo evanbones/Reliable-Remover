@@ -10,6 +10,7 @@ Reliable Remover includes a set of utility commands to help you quickly identify
 The output of these commands is formatted as a JSON Array (e.g., `["minecraft:apple", "minecraft:stick"]`). You can click the output in the chat to **automatically copy it to your clipboard**.
 
 ### `... hand`
+
 Dumps the ID of the item currently held in your main hand.
 
 **Usage:**
@@ -38,6 +39,26 @@ Dumps the IDs of every item in your player inventory, including the hotbar and a
 ```text
 /rremover inventory
 
+```
+
+### `... remove <id>`
+
+Adds the specified item ID to the global blacklist and saves it to your config without needing to manually edit JSON files.
+
+**Usage:**
+
+```text
+/rremover remove minecraft:apple
+```
+
+### `... undo <id>`
+
+Removes the specified item ID from the global blacklist and restores it to the game.
+
+**Usage:**
+
+```text
+/rremover undo minecraft:apple
 ```
 
 ---
