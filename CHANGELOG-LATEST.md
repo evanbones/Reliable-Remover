@@ -1,3 +1,4 @@
 ### Changed
 
-- Bump Reliable Recipes version.
+- Massively improve Regex matching.
+- Improved logging for invalid Regex rules.

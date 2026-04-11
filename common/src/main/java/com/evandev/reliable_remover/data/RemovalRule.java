@@ -1,9 +1,14 @@
 package com.evandev.reliable_remover.data;
 
+import com.evandev.reliable_remover.Constants;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -12,11 +17,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class RemovalRule {
     public Action action;
@@ -50,7 +53,8 @@ public class RemovalRule {
     public RemovalRule not;
 
     private transient volatile List<Pattern> compiledPatterns;
-    private transient volatile List<Pattern> compiledNbtPatterns;
+    private transient volatile List<Pattern> compiledNbtRegex;
+    private transient volatile List<CompoundTag> parsedNbtTags;
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
         if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
@@ -58,20 +62,47 @@ public class RemovalRule {
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty() || !stack.hasTag()) return false;
 
-            if (compiledNbtPatterns == null) {
+            if (compiledNbtRegex == null || parsedNbtTags == null) {
                 synchronized (this) {
-                    if (compiledNbtPatterns == null) {
-                        List<Pattern> list = new ArrayList<>();
-                        for (String p : nbt) list.add(compile(p));
-                        compiledNbtPatterns = list;
+                    if (compiledNbtRegex == null || parsedNbtTags == null) {
+                        List<Pattern> regexList = new ArrayList<>();
+                        List<CompoundTag> tagList = new ArrayList<>();
+
+                        for (String ruleNbtStr : nbt) {
+                            if (ruleNbtStr.startsWith("/") && ruleNbtStr.endsWith("/")) {
+                                Pattern p = compile(ruleNbtStr);
+                                if (p != null) regexList.add(p);
+                            } else {
+                                try {
+                                    tagList.add(TagParser.parseTag(ruleNbtStr));
+                                } catch (CommandSyntaxException e) {
+                                    Constants.LOG.error("Reliable Remover: Invalid SNBT format in config: '{}'", ruleNbtStr);
+                                }
+                            }
+                        }
+                        compiledNbtRegex = regexList;
+                        parsedNbtTags = tagList;
                     }
                 }
             }
 
-            String dataStr = stack.getTag().toString();
-            for (Pattern p : compiledNbtPatterns) {
-                if (p.matcher(dataStr).matches()) return true;
+            CompoundTag itemTag = stack.getTag();
+
+            for (CompoundTag requiredTag : parsedNbtTags) {
+                if (NbtUtils.compareNbt(requiredTag, itemTag, true)) {
+                    return true;
+                }
             }
+
+            if (!compiledNbtRegex.isEmpty()) {
+                String dataStr = Objects.requireNonNull(itemTag).toString();
+                for (Pattern p : compiledNbtRegex) {
+                    if (p.matcher(dataStr).matches()) {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -210,6 +241,11 @@ public class RemovalRule {
         String p = regex.startsWith("/") && regex.endsWith("/")
                 ? regex.substring(1, regex.length() - 1)
                 : regex;
-        return Pattern.compile(p);
+        try {
+            return Pattern.compile(p);
+        } catch (PatternSyntaxException e) {
+            Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
+            return null;
+        }
     }
 }
