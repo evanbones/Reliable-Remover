@@ -1,6 +1,5 @@
 package com.evandev.reliable_remover.config;
 
-import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
@@ -13,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -307,24 +305,6 @@ public class RuleManager {
         if (isHidden(stack, level, entity)) return true;
         if (getReplacement(stack, Action.REMOVE_EQUIPMENT, level, entity, "equipment") != null) return false;
         return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_EQUIPMENT, level != null ? level.dimension().location().toString() : null, entity, null, "equipment");
-    }
-
-    public static boolean isRecipeBlocked(ItemStack stack) {
-        if (stack == null || stack.isEmpty() || !ModConfig.get().removeRecipes) return false;
-        if (getReplacement(stack, Action.REMOVE_RECIPE, null, null, "recipe") != null) return false;
-        if (isHidden(stack)) return true;
-        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_RECIPE, null, null, null, "recipe");
-    }
-
-    public static boolean isRecipeBlocked(Recipe<?> recipe) {
-        if (!ModConfig.get().removeRecipes) return false;
-        List<ItemStack> outputs = ReliableRecipesAPI.getRecipeResults(recipe);
-        if (outputs.isEmpty()) return false;
-        for (ItemStack stack : outputs) {
-            if (!stack.isEmpty() && !isRecipeBlocked(stack)) return false;
-        }
-        return true;
     }
 
     public static boolean isStorageBlocked(ItemStack stack, Level level) {
