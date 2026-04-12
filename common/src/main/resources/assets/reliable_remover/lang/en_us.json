@@ -21,8 +21,6 @@
   "config.reliable_remover.option.remove_storage_items.tooltip": "If enabled, banned items will be removed from Chests, Barrels, Shulker Boxes, etc. when the block inventory is opened.",
   "config.reliable_remover.option.remove_trades": "Remove from Trades",
   "config.reliable_remover.option.remove_trades.tooltip": "Prevents restricted items from appearing in villager or wandering trader offers.",
-  "config.reliable_remover.option.remove_recipes": "Remove Recipes",
-  "config.reliable_remover.option.remove_recipes.tooltip": "Hides recipes that result in restricted items.",
   "config.reliable_remover.option.blacklisted_items": "Globally Blacklisted Items",
   "config.reliable_remover.option.blacklisted_items.tooltip": "A list of item IDs that are completely removed from the game (e.g., minecraft:dirt). Syncs with EMI deletions.",
   "config.reliable_remover.option.remove_on_inventory_open": "Remove Items on Inventory Open",

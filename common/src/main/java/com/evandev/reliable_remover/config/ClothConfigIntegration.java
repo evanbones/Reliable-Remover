@@ -88,12 +88,6 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeItemsFromTrades = newValue)
                 .build());
 
-        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_recipes"), config.removeRecipes)
-                .setDefaultValue(true)
-                .setTooltip(Component.translatable("config.reliable_remover.option.remove_recipes.tooltip"))
-                .setSaveConsumer(newValue -> config.removeRecipes = newValue)
-                .build());
-
         general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_info_tabs"), config.removeItemsFromInfoTabs)
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("config.reliable_remover.option.remove_info_tabs.tooltip"))

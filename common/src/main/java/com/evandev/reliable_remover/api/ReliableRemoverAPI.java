@@ -74,10 +74,6 @@ public class ReliableRemoverAPI {
         return RuleManager.isEquipmentBlocked(stack, level, entity);
     }
 
-    public static boolean isRecipeBlocked(ItemStack stack) {
-        return RuleManager.isRecipeBlocked(stack);
-    }
-
     public static boolean isStorageBlocked(ItemStack stack, Level level) {
         return RuleManager.isStorageBlocked(stack, level);
     }
