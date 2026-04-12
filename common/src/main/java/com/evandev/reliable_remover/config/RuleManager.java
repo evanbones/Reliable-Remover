@@ -193,24 +193,17 @@ public class RuleManager {
             }
         }
 
-        if (stack.isEnchanted() || id.equals("minecraft:enchanted_book")) {
+        if (id.equals("minecraft:enchanted_book")) {
             Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
             if (!enchantments.isEmpty()) {
-                boolean changed = false;
-                Map<Enchantment, Integer> validEnchantments = new LinkedHashMap<>();
-
+                boolean allBlocked = true;
                 for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
-                    if (isEnchantmentBlocked(entry.getKey())) {
-                        changed = true;
-                    } else {
-                        validEnchantments.put(entry.getKey(), entry.getValue());
+                    if (!isEnchantmentBlocked(entry.getKey())) {
+                        allBlocked = false;
+                        break;
                     }
                 }
-
-                if (changed) {
-                    if (id.equals("minecraft:enchanted_book")) return true;
-                    EnchantmentHelper.setEnchantments(validEnchantments, stack);
-                }
+                if (allBlocked) return true;
             }
         }
 
@@ -221,6 +214,31 @@ public class RuleManager {
         }
 
         return false;
+    }
+
+    /**
+     * Strips blocked enchantments from an item stack.
+     */
+    public static void stripBlockedEnchantments(ItemStack stack) {
+        if (stack == null || stack.isEmpty() || !stack.isEnchanted()) return;
+
+        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
+        if (enchantments.isEmpty()) return;
+
+        boolean changed = false;
+        Map<Enchantment, Integer> validEnchantments = new LinkedHashMap<>();
+
+        for (Map.Entry<Enchantment, Integer> entry : enchantments.entrySet()) {
+            if (isEnchantmentBlocked(entry.getKey())) {
+                changed = true;
+            } else {
+                validEnchantments.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (changed) {
+            EnchantmentHelper.setEnchantments(validEnchantments, stack);
+        }
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {

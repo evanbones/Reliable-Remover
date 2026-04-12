@@ -1,4 +1,3 @@
-### Changed
+### Fixed
 
-- Massively improve Regex matching.
-- Improved logging for invalid Regex rules.
+- Performance improvements.

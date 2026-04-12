@@ -18,7 +18,7 @@ public class RecipeManagerMixin {
 
     @Inject(method = "getAllRecipesFor", at = @At("RETURN"), cancellable = true)
     private <C extends Container, T extends Recipe<C>> void reliable_remover$filterRecipes(
-            RecipeType<T> type, CallbackInfoReturnable<List<T>> cir) {
+            RecipeType<T> recipeType, CallbackInfoReturnable<List<T>> cir) {
 
         List<T> recipes = cir.getReturnValue();
         if (recipes != null && !recipes.isEmpty()) {

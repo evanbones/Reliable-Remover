@@ -8,7 +8,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
@@ -23,13 +22,6 @@ import java.util.List;
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
 
-    @Inject(method = "isItemEnabled", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$disableVanillaFeatures(FeatureFlagSet enabledFlags, CallbackInfoReturnable<Boolean> cir) {
-        if (RuleManager.isHidden((ItemStack) (Object) this)) {
-            cir.setReturnValue(false);
-        }
-    }
-
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$blockUseOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel(), null)) {
@@ -42,7 +34,7 @@ public class ItemStackMixin {
     }
 
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$blockUse(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
+    private void reliable_remover$blockUse(Level level, Player player, InteractionHand usedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, level, player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
@@ -52,7 +44,7 @@ public class ItemStackMixin {
     }
 
     @Inject(method = "interactLivingEntity", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$entityInteraction(Player player, LivingEntity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+    private void reliable_remover$entityInteraction(Player player, LivingEntity entity, InteractionHand usedHand, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, player.level(), entity)) {
             if (ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
