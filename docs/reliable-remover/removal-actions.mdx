@@ -3,18 +3,98 @@ title: Removal Actions
 hide_meta: true
 ---
 
-There are five primary actions you can apply.
+There are many actions you can apply to items.
 
 ### `remove`
+
 The nuclear option.
 This completely scrubs the item from the game context based on your global config.
+Using `remove` is equivalent to applying **all** of the granular removal actions below simultaneously.
 
-* Removes from Creative Tabs, EMI/JEI/REI, Loot tables, and Villager trades.
-* Deletes from player inventories and world drops.
+* Removes from Creative Tabs, EMI/JEI/REI, Loot tables, player inventories, storage, world drops, and Villager trades.
 
 [View 'Basic Removal' Examples](/project/reliable-remover/docs/reliable-remover/examples/basic-removal)
 
+### `remove_creative`
+
+Hides the specified item from Creative Mode tabs and recipe viewers like EMI, JEI, and REI.
+
+* **Use Case**: You want an item to be obtainable via commands or scripts, but not visible to players in menus.
+
+```json
+{
+  "action": "remove_creative",
+  "items": ["minecraft:command_block"]
+}
+```
+
+### `remove_inventory`
+
+Instantly removes the specified item from player inventories.
+
+* **Use Case**: Prevent players from ever holding or carrying a specific item, even if they obtain it.
+
+```json
+{
+  "action": "remove_inventory",
+  "items": ["minecraft:bedrock"]
+}
+```
+
+### `remove_drops`
+
+Discards the specified item as soon as it is dropped in the world.
+
+* **Use Case**: Useful for preventing item spam or deleting certain items that shouldn't exist on the ground.
+
+```json
+{
+  "action": "remove_drops",
+  "items": ["minecraft:cobblestone"]
+}
+```
+
+### `remove_storage`
+
+Clears the specified item from chests, barrels, shulker boxes, and other storage blocks when they are opened by a player.
+
+* **Use Case**: Scrub specific items from existing loot or player-placed storage.
+
+```json
+{
+  "action": "remove_storage",
+  "items": ["minecraft:tnt"]
+}
+```
+
+### `remove_equipment`
+
+Automatically removes the specified item from the hands or armor slots of mobs.
+
+* **Use Case**: Prevent certain mobs from spawning with or picking up overpowered equipment.
+
+```json
+{
+  "action": "remove_equipment",
+  "items": ["minecraft:netherite_sword"]
+}
+```
+
+### `remove_chest_loot`
+
+Prevents the specified item from generating as loot *only* in containers (Chests, Barrels, Shulker Boxes, etc.). This does not affect mob drops or other loot tables.
+
+* **Use Case**: Nerf modded structure loot without removing items from other sources.
+
+```json
+{
+  "action": "remove_chest_loot",
+  "items": ["minecraft:diamond"]
+}
+```
+
 ### `remove_interactions`
+
 Prevents the player from "using" the item (Right-Click).
 
 * **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket).
@@ -22,13 +102,15 @@ Prevents the player from "using" the item (Right-Click).
 [View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
 
 ### `remove_attacks`
+
 Prevents the player from attacking entities while holding the specified item.
 
-* **Use Case**: Disable specific weapons or protect specific entities (like Villagers) from being hurt.
+* **Use Case**: Disable specific weapons or protect specific entities from being hurt.
 
 [View 'Combat Restrictions' Examples](/project/reliable-remover/docs/reliable-remover/examples/combat-restrictions)
 
 ### `remove_enchantment`
+
 Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchantment.
 
 * **Use Case**: Remove "Protection" or specific curses from the game entirely.
@@ -51,6 +133,61 @@ Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing th
 {
   "action": "remove_potion",
   "items": ["minecraft:poison", "minecraft:strong_poison"]
+}
+
+```
+
+### `remove_hand_swing`
+
+Prevents the player from swinging their hand while holding the specified item.
+
+* **Use Case**: Useful for disabling the "swing" animation for items that shouldn't appear to be used as tools or weapons.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "items": ["minecraft:stick"]
+}
+
+```
+
+### `remove_info`
+
+Hides the specified item's Information tab/recipe from EMI and JEI.
+Items hidden using the standard `remove` action are also removed from info tabs by default (configurable via `removeItemsFromInfoTabs`).
+
+* **Use Case**: You want an item to be visible and craftable, but you want to hide its specific tutorial, lore, or information page from recipe viewers.
+
+```json
+{
+  "action": "remove_info",
+  "items": ["quark:trowel"]
+}
+
+```
+
+### `remove_trade`
+
+Prevents the specified item from appearing in any Villager or Merchant trade (either as a cost or a result).
+* **Use Case**: Stop villagers from buying or selling specific overpowered items.
+
+```json
+{
+  "action": "remove_trade",
+  "items": ["minecraft:emerald"]
+}
+
+```
+
+### `remove_loot`
+
+Removes the specified item from *all* loot tables, including mob drops, chest loot, and gameplay loot (like fishing or archaeology).
+* **Use Case**: Completely wipe an item from the game's reward pools.
+
+```json
+{
+  "action": "remove_loot",
+  "items": ["minecraft:enchanted_golden_apple"]
 }
 
 ```

@@ -189,6 +189,38 @@ public class RuleManager {
             if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) return true;
         }
 
+        if (id.equals("minecraft:enchanted_book")) {
+            if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
+                ItemEnchantments enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
+                if (enchantments != null && !enchantments.isEmpty()) {
+                    boolean allBlocked = true;
+                    for (var entry : enchantments.entrySet()) {
+                        if (!isEnchantmentBlocked(entry.getKey())) {
+                            allBlocked = false;
+                            break;
+                        }
+                    }
+                    if (allBlocked) return true;
+                }
+            }
+        }
+
+        if (stack.has(DataComponents.POTION_CONTENTS)) {
+            PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
+            if (contents != null) {
+                String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null);
+                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Safely strips blocked enchantments from an item stack using Data Components.
+     */
+    public static void stripBlockedEnchantments(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return;
+
         if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
             ItemEnchantments enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
             if (enchantments != null) {
@@ -204,7 +236,6 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    if (id.equals("minecraft:enchanted_book")) return true;
                     stack.set(DataComponents.STORED_ENCHANTMENTS, validEnchantments.toImmutable());
                 }
             }
@@ -225,20 +256,10 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    if (id.equals("minecraft:enchanted_book")) return true;
                     stack.set(DataComponents.ENCHANTMENTS, validEnchantments.toImmutable());
                 }
             }
         }
-
-        if (stack.has(DataComponents.POTION_CONTENTS)) {
-            PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
-            if (contents != null) {
-                String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null);
-                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
-            }
-        }
-        return false;
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {

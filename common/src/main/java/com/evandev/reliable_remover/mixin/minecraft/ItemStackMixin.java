@@ -7,7 +7,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -22,13 +21,6 @@ import java.util.List;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
-
-    @Inject(method = "isItemEnabled", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$disableVanillaFeatures(FeatureFlagSet enabledFeatures, CallbackInfoReturnable<Boolean> cir) {
-        if (RuleManager.isHidden((ItemStack) (Object) this)) {
-            cir.setReturnValue(false);
-        }
-    }
 
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$blockUseOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
