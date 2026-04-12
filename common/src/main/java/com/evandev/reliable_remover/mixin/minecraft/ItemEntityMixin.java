@@ -43,6 +43,8 @@ public abstract class ItemEntityMixin extends Entity {
         if (!this.level().isClientSide && this.tickCount % 20 == 0) {
             ItemStack stack = this.getItem();
             if (!stack.isEmpty()) {
+                RuleManager.stripBlockedEnchantments(stack);
+
                 ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_DROPS, this.level(), this, "drops");
                 if (replacement != null) {
                     ((ItemEntity) (Object) this).setItem(replacement);

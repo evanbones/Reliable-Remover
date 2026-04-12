@@ -14,10 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -54,6 +51,9 @@ public class RemovalRule {
 
     private transient volatile List<Pattern> compiledPatterns;
     private transient volatile List<Pattern> compiledComponentRegex;
+    private transient volatile Map<String, TagKey<Item>> compiledItemTags;
+    private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
+    private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
         if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
@@ -190,13 +190,24 @@ public class RemovalRule {
 
         if (tagLocation != null && itemLocation != null) {
             if (currentAction == Action.REMOVE_POTION) {
-                TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
+                if (compiledPotionTags == null) {
+                    synchronized (this) {
+                        if (compiledPotionTags == null) compiledPotionTags = new java.util.HashMap<>();
+                    }
+                }
+                TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
                 return BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
                         .map(holder -> holder.is(tagKey))
                         .orElse(false);
+
             } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
                 if (registryHolder != null) {
-                    TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                    if (compiledEnchTags == null) {
+                        synchronized (this) {
+                            if (compiledEnchTags == null) compiledEnchTags = new java.util.HashMap<>();
+                        }
+                    }
+                    TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
                     try {
                         @SuppressWarnings("unchecked")
                         Holder<Enchantment> enchHolder = (Holder<Enchantment>) registryHolder;
@@ -206,8 +217,14 @@ public class RemovalRule {
                     }
                 }
                 return false;
+
             } else {
-                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                if (compiledItemTags == null) {
+                    synchronized (this) {
+                        if (compiledItemTags == null) compiledItemTags = new java.util.HashMap<>();
+                    }
+                }
+                TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
                 if (stack != null && !stack.isEmpty()) {
                     return stack.is(tagKey);
                 } else {
