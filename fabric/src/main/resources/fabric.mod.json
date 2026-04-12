@@ -36,12 +36,13 @@
         "${mod_id}.fabric.mixins.json"
     ],
     "depends": {
-        "fabricloader": ">=0.14",
+        "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",
         "minecraft": ">26 <27",
-        "java": ">=25"
+        "java": ">=${java_version}"
     },
     "suggests": {
-        "rrv": "*"
+        "rrv": "*",
+        "cloth-config": "*"
     }
 }

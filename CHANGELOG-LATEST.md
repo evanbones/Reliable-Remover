@@ -1,4 +1,3 @@
 ### Changed
 
-- Massively improve Regex matching.
-- Improved logging for invalid Regex rules.
+- Adjust dependencies on 26.1.
