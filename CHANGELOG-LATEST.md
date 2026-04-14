@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Performance improvements.
+- Bump Reliable Recipes version.
