@@ -15,6 +15,7 @@ import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -192,7 +193,7 @@ public class RemovalRule {
             if (currentAction == Action.REMOVE_POTION) {
                 if (compiledPotionTags == null) {
                     synchronized (this) {
-                        if (compiledPotionTags == null) compiledPotionTags = new java.util.HashMap<>();
+                        if (compiledPotionTags == null) compiledPotionTags = new ConcurrentHashMap<>();
                     }
                 }
                 TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
@@ -204,7 +205,7 @@ public class RemovalRule {
                 if (registryHolder != null) {
                     if (compiledEnchTags == null) {
                         synchronized (this) {
-                            if (compiledEnchTags == null) compiledEnchTags = new java.util.HashMap<>();
+                            if (compiledEnchTags == null) compiledEnchTags = new ConcurrentHashMap<>();
                         }
                     }
                     TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
@@ -221,7 +222,7 @@ public class RemovalRule {
             } else {
                 if (compiledItemTags == null) {
                     synchronized (this) {
-                        if (compiledItemTags == null) compiledItemTags = new java.util.HashMap<>();
+                        if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
                     }
                 }
                 TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
