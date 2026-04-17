@@ -1,3 +1,3 @@
-### Changed
+### Fixed
 
-- Bump Reliable Recipes version.
+- Hopefully fixed issues with EMI on dedicated servers.
