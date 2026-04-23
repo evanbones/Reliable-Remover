@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Performance improvements.
+- Update Reliable Recipes version.
