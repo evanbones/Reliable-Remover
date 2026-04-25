@@ -17,8 +17,7 @@
     "minecraft.PlayerMixin",
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
-    "minecraft.ServerPlayerMixin",
-    "rrv.RrvOverlaysMixin"
+    "minecraft.ServerPlayerMixin"
   ],
   "client": [
     "client.ScreenMixin",

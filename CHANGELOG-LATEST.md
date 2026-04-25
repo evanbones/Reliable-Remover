@@ -1,3 +1,3 @@
 ### Changed
 
-- Update Reliable Recipes version.
+- Now requires latest version of RRV for the item viewer integration.
