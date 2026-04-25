@@ -65,5 +65,6 @@
   "config.reliable_remover.category.blacklist": "Blacklist",
 
   "category.reliable_remover": "Reliable Remover",
+  "key.category.reliable_remover.main": "Reliable Remover",
   "key.reliable_remover.rrv_delete": "RRV Delete"
 }

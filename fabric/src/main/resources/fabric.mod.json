@@ -27,7 +27,7 @@
         "jei_mod_plugin": [
             "com.evandev.reliable_remover.compat.ReliableRemoverJeiPlugin"
         ],
-        "rrv": [
+        "rrv_client": [
             "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
         ]
     },

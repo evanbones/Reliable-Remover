@@ -1,3 +1,3 @@
-### Changed
+### Fix
 
-- Now requires latest version of RRV for the item viewer integration.
+- Hotfix for RRV plugin not loading on 26.1.

@@ -11,7 +11,7 @@ logoFile="${mod_id}.png"
 credits="${credits}"
 authors = "${mod_author}"
 description = '''${description}'''
-rrv = "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
+rrv_client = "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
 
 [[mixins]]
 config = "${mod_id}.mixins.json"
