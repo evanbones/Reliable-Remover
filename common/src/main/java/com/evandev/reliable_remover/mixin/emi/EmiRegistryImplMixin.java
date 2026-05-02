@@ -23,17 +23,17 @@ public class EmiRegistryImplMixin {
         ResourceLocation categoryId = recipe.getCategory().getId();
         boolean isInfoTab = categoryId != null && categoryId.getNamespace().equals("emi") && categoryId.getPath().equals("info");
 
-        if (isInfoTab) {
-            for (EmiStack emiStack : recipe.getOutputs()) {
-                if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
-                    ItemStack stack = emiStack.getItemStack();
-                    if (RuleManager.isCreativeBlocked(stack) || RuleManager.isInfoBlocked(stack)) {
-                        ci.cancel();
-                        return;
-                    }
+        for (EmiStack emiStack : recipe.getOutputs()) {
+            if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
+                ItemStack stack = emiStack.getItemStack();
+                if (RuleManager.isCreativeBlocked(stack) || (isInfoTab && RuleManager.isInfoBlocked(stack))) {
+                    ci.cancel();
+                    return;
                 }
             }
+        }
 
+        if (isInfoTab) {
             for (EmiIngredient ingredient : recipe.getInputs()) {
                 for (EmiStack emiStack : ingredient.getEmiStacks()) {
                     if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {

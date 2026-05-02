@@ -26,23 +26,22 @@ public class EmiScreenManagerMixin {
 
         if (Keybinds.EMI_DELETE_KEY.matches(keyCode, scanCode)) {
             EmiStackInteraction hovered = EmiApi.getHoveredStack(true);
-
             if (hovered != null && !hovered.isEmpty()) {
                 EmiIngredient ingredient = hovered.getStack();
-
                 if (ingredient != null && !ingredient.getEmiStacks().isEmpty()) {
                     EmiStack emiStack = ingredient.getEmiStacks().get(0);
                     ResourceLocation id = emiStack.getId();
-
                     if (id != null) {
                         Minecraft mc = Minecraft.getInstance();
-
                         if (mc.player != null) {
                             if (!mc.player.hasPermissions(2)) {
                                 mc.player.displayClientMessage(Component.translatable("toast.reliable_remover.permission_denied"), true);
                             } else {
                                 mc.player.connection.sendCommand("rremover remove " + id);
-                                RuleConfigIO.addRemovalRule(id.toString());
+
+                                if (!mc.hasSingleplayerServer()) {
+                                    RuleConfigIO.addRemovalRule(id.toString());
+                                }
 
                                 if (ModConfig.get().showEmiToast) {
                                     SharedToastOverlay.show(
