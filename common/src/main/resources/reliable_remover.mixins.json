@@ -20,6 +20,7 @@
     "minecraft.LivingEntityMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
+    "minecraft.PotionBrewingMixin",
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"

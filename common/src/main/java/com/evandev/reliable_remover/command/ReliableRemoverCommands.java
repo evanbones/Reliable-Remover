@@ -3,9 +3,11 @@ package com.evandev.reliable_remover.command;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
+import com.evandev.reliable_remover.platform.Services;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
@@ -19,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +44,9 @@ public class ReliableRemoverCommands {
                         .requires(s -> s.hasPermission(2))
                         .then(Commands.argument("id", ResourceLocationArgument.id())
                                 .executes(ReliableRemoverCommands::executeUndo)))
+                .then(Commands.literal("folder")
+                        .requires(s -> s.hasPermission(2))
+                        .executes(ReliableRemoverCommands::executeFolder))
         );
     }
 
@@ -118,6 +124,27 @@ public class ReliableRemoverCommands {
             return uniqueItems.size();
         } catch (Exception e) {
             Constants.LOG.error("Failed to dump inventory items", e);
+            return 0;
+        }
+    }
+
+    private static int executeFolder(CommandContext<CommandSourceStack> context) {
+        try {
+            File folder = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover").toFile();
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            Util.getPlatform().openUri(folder.toURI());
+
+            context.getSource().sendSuccess(() ->
+                    Component.literal("Opened Reliable Remover config folder.").withStyle(ChatFormatting.GREEN), false);
+            return 1;
+        } catch (Exception e) {
+            Constants.LOG.error("Failed to open reliable remover folder", e);
+            context.getSource().sendFailure(
+                    Component.literal("Failed to open config folder. Check server logs."));
             return 0;
         }
     }
