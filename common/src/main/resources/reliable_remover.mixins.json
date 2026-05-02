@@ -15,6 +15,7 @@
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
     "minecraft.PlayerMixin",
+    "minecraft.PotionBrewingMixin",
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin"

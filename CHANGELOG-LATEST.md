@@ -1,3 +1,7 @@
-### Fix
+### Added
 
-- Hotfix for RRV plugin not loading on 26.1.
+- Added `/rremover folder` command to open the config folder.
+
+### Fixed
+
+- Fixed removed potions still being brewable.
