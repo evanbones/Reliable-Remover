@@ -16,21 +16,20 @@ public abstract class PotionBrewingMixin {
     public abstract ItemStack mix(ItemStack potion, ItemStack potionItem);
 
     @Inject(method = "hasMix", at = @At("RETURN"), cancellable = true)
-    private void reliable_remover$preventHiddenBrewing(ItemStack reagent, ItemStack potionItem, CallbackInfoReturnable<Boolean> cir) {
+    private void reliable_remover$preventHiddenBrewing(ItemStack potion, ItemStack ingredient, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
-            ItemStack result = this.mix(reagent, potionItem);
-
-            if (result.isEmpty() || result == potionItem || RuleManager.isHidden(result)) {
+            ItemStack result = this.mix(potion, ingredient);
+            if (result.isEmpty() || result == potion || RuleManager.isHidden(result)) {
                 cir.setReturnValue(false);
             }
         }
     }
 
     @Inject(method = "mix", at = @At("RETURN"), cancellable = true)
-    private void reliable_remover$filterMixedPotion(ItemStack potion, ItemStack potionItem, CallbackInfoReturnable<ItemStack> cir) {
+    private void reliable_remover$filterMixedPotion(ItemStack potion, ItemStack ingredient, CallbackInfoReturnable<ItemStack> cir) {
         ItemStack result = cir.getReturnValue();
         if (!result.isEmpty() && RuleManager.isHidden(result)) {
-            cir.setReturnValue(potionItem);
+            cir.setReturnValue(potion);
         }
     }
 }
