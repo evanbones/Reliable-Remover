@@ -18,9 +18,9 @@ public abstract class PotionBrewingMixin {
     @Inject(method = "hasMix", at = @At("RETURN"), cancellable = true)
     private void reliable_remover$preventHiddenBrewing(ItemStack source, ItemStack ingredient, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
-            ItemStack result = this.mix(source, ingredient);
+            ItemStack result = this.mix(ingredient, source);
 
-            if (result.isEmpty() || result == ingredient || RuleManager.isHidden(result)) {
+            if (result.isEmpty() || result == source || RuleManager.isHidden(result)) {
                 cir.setReturnValue(false);
             }
         }
@@ -29,6 +29,7 @@ public abstract class PotionBrewingMixin {
     @Inject(method = "mix", at = @At("RETURN"), cancellable = true)
     private void reliable_remover$filterMixedPotion(ItemStack ingredient, ItemStack source, CallbackInfoReturnable<ItemStack> cir) {
         ItemStack result = cir.getReturnValue();
+
         if (!result.isEmpty() && RuleManager.isHidden(result)) {
             cir.setReturnValue(source);
         }
