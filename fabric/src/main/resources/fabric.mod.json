@@ -36,7 +36,8 @@
         "fabricloader": ">=0.14",
         "fabric": "*",
         "minecraft": "${minecraft_version}",
-        "java": ">=17"
+        "java": ">=17",
+        "reliable_recipes": ">=1.13.0"
     },
     "suggests": {
         "emi": "*"

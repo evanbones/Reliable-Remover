@@ -44,9 +44,9 @@ publishMods {
         projectId = "1420447"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "emi" }
-        optional { slug = "jei" }
-        optional { slug = "cloth-config" }
+        requires("reliable-recipes")
+        optional("emi")
+        optional("cloth-config")
     }
 
     modrinth {
@@ -54,8 +54,8 @@ publishMods {
         projectId = "pLxsKvNt"
         minecraftVersions.add("${minecraft_version}")
 
-        optional { slug = "emi" }
-        optional { slug = "jei" }
-        optional { slug = "cloth-config" }
+        requires("reliable-recipes")
+        optional("emi")
+        optional("cloth-config")
     }
 }

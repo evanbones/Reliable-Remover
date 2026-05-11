@@ -21,7 +21,6 @@ dependencies {
 
     // Reliable Recipes
     modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-fabric"
-    include "maven.modrinth:reliable-recipes:${reliable_recipes_version}-fabric"
 
     // Cloth Config
     modImplementation "me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}"

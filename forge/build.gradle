@@ -51,7 +51,6 @@ dependencies {
     modCompileOnly "mezz.jei:jei-${minecraft_version}-forge:${jei_version}"
 
     // Reliable Recipes
-    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_version}-forge"
     modImplementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-forge"
 
     // Cloth Config

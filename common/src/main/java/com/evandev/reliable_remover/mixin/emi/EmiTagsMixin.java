@@ -4,7 +4,7 @@ import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.registry.EmiTags;
-import net.minecraft.tags.TagKey;
+import dev.emi.emi.runtime.EmiTagKey;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class EmiTagsMixin {
 
     @Inject(method = "getValues", at = @At("RETURN"), cancellable = true)
-    private static void reliable_remover$filterEmiTags(TagKey<?> key, CallbackInfoReturnable<List<EmiStack>> cir) {
+    private static void reliable_remover$filterEmiTags(EmiTagKey<?> key, CallbackInfoReturnable<List<EmiStack>> cir) {
         if (!ModConfig.get().removeItemsFromEmi) return;
 
         List<EmiStack> original = cir.getReturnValue();
