@@ -1,3 +1,8 @@
+### Changed
+
+- Reliable Recipes is **no longer bundled with Reliable Remover**. Instead, it's marked as a required dependency and
+  will be automatically downloaded.
+
 ### Fixed
 
-- Fixed early loading crash.
+- Fixed incompatibility with latest EMI.

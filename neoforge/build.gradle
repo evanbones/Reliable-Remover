@@ -43,7 +43,6 @@ dependencies {
     compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
 
     // Reliable Recipes
-    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
     implementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
 
     // JEI
