@@ -18,12 +18,8 @@ public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
     }
 
     private boolean checkClass(String className) {
-        try {
-            Class.forName(className, false, this.getClass().getClassLoader());
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        String path = className.replace('.', '/') + ".class";
+        return this.getClass().getClassLoader().getResource(path) != null;
     }
 
     @Override
