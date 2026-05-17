@@ -18,13 +18,5 @@ public class ReliableRemoverMod implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             ReliableRemoverCommands.register(dispatcher);
         });
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(new FabricReloadListener());
-    }
-
-    private static class FabricReloadListener extends ReloadListener implements IdentifiableResourceReloadListener {
-        @Override
-        public ResourceLocation getFabricId() {
-            return ResourceLocation.fromNamespaceAndPath("reliable_remover", "reload_listener");
-        }
     }
 }
