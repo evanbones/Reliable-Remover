@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.config;
 
+import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
@@ -63,6 +64,19 @@ public class RuleManager {
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
+        ReliableRecipesAPI.clearItemReplacements();
+
+        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+            for (RemovalRule rule : rules) {
+                if (rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
+                    if (rule.items != null) {
+                        for (String item : rule.items) {
+                            ReliableRecipesAPI.registerItemReplacement(item, rule.replaceWith);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void generateDefaultConfig(Path configDir) {
@@ -107,7 +121,6 @@ public class RuleManager {
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)) {
                                 Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
-                                return true;
                             }
                         }
                         return false;
