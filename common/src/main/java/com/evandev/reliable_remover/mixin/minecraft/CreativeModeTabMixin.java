@@ -19,10 +19,10 @@ import java.util.Set;
 public abstract class CreativeModeTabMixin {
 
     @Shadow
-    private Collection<ItemStack> displayItems = ItemStackLinkedSet.createTypeAndComponentsSet();
+    private Collection<ItemStack> displayItems;
 
     @Shadow
-    private Set<ItemStack> displayItemsSearchTab = ItemStackLinkedSet.createTypeAndComponentsSet();
+    private Set<ItemStack> displayItemsSearchTab;
 
     @Inject(method = "buildContents", at = @At(value = "RETURN"))
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
@@ -30,11 +30,25 @@ public abstract class CreativeModeTabMixin {
 
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
+        // Rebuild safely instead of relying on modifying potentially unmodifiable collections
         if (this.displayItems != null) {
-            this.displayItems.removeIf(RuleManager::isCreativeBlocked);
+            Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndComponentsSet();
+            for (ItemStack stack : this.displayItems) {
+                if (!RuleManager.isCreativeBlocked(stack)) {
+                    filtered.add(stack);
+                }
+            }
+            this.displayItems = filtered;
         }
+
         if (this.displayItemsSearchTab != null) {
-            this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlocked);
+            Set<ItemStack> filteredSearch = ItemStackLinkedSet.createTypeAndComponentsSet();
+            for (ItemStack stack : this.displayItemsSearchTab) {
+                if (!RuleManager.isCreativeBlocked(stack)) {
+                    filteredSearch.add(stack);
+                }
+            }
+            this.displayItemsSearchTab = filteredSearch;
         }
     }
 }

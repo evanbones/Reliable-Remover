@@ -1,3 +1,5 @@
 ### Fixed
 
-- Fixed potion brewing on 1.21.1+.
+- Fixed potions not being removed from RRV.
+- Fixed `remove_creative` issues.
+- Fixed delete key not working when creative search is open.

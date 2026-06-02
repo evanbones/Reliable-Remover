@@ -18,11 +18,13 @@
     "minecraft.PotionBrewingMixin",
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
-    "minecraft.ServerPlayerMixin"
+    "minecraft.ServerPlayerMixin",
+    "rrv.AbstractRrvItemListOverlayMixin"
   ],
   "client": [
     "client.ScreenMixin",
-    "minecraft.MinecraftMixin"
+    "minecraft.MinecraftMixin",
+    "rrv.ScreenRrvMixin"
   ],
   "server": [],
   "injectors": {
