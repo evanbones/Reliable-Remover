@@ -1,7 +1,3 @@
-### Changed
-
-- Update Reliable Recipes dependency.
-
 ### Fixed
 
-- Improved `replace_with` to properly catch all item contexts.
+- Fixed issues with certain items in tags still showing up in EMI.

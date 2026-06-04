@@ -33,8 +33,13 @@ public class EmiRegistryImplMixin {
             }
         }
 
-        if (isInfoTab) {
-            for (EmiIngredient ingredient : recipe.getInputs()) {
+        for (EmiIngredient ingredient : recipe.getInputs()) {
+            if (ingredient != EmiStack.EMPTY && ingredient.isEmpty()) {
+                ci.cancel();
+                return;
+            }
+
+            if (isInfoTab) {
                 for (EmiStack emiStack : ingredient.getEmiStacks()) {
                     if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
                         ItemStack stack = emiStack.getItemStack();
