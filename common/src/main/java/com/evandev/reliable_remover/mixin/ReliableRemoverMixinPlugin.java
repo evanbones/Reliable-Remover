@@ -10,11 +10,13 @@ import java.util.Set;
 public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
     private boolean isEmiLoaded;
     private boolean isEmiLootLoaded;
+    private boolean isCnmLoaded;
 
     @Override
     public void onLoad(String mixinPackage) {
         isEmiLoaded = checkClass("dev.emi.emi.api.recipe.EmiRecipe");
         isEmiLootLoaded = checkClass("fzzyhmstrs.emi_loot.EMILoot");
+        isCnmLoaded = checkClass("dev.tazer.clutternomore.common.shape_map.ShapeMap");
     }
 
     private boolean checkClass(String className) {
@@ -30,10 +32,14 @@ public class ReliableRemoverMixinPlugin implements IMixinConfigPlugin {
             }
             return isEmiLoaded;
         }
+
+        if (mixinClassName.contains(".clutternomore.")) {
+            return isCnmLoaded;
+        }
+
         return true;
     }
 
-    // Boilerplate methods
     @Override
     public String getRefMapperConfig() {
         return null;

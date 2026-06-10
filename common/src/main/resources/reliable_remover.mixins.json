@@ -6,6 +6,7 @@
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_18",
   "mixins": [
+    "clutternomore.ShapeMapMixin",
     "emi.EmiRegistryImplMixin",
     "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",

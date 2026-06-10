@@ -1,3 +1,4 @@
-### Fixed
+### Added
 
-- Fixed issues with certain items in tags still showing up in EMI.
+- Added optional Clutter No More integration for item removals.
+    - Removed items will be removed from shape maps.
