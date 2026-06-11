@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
+    private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
     static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
 
@@ -63,6 +64,7 @@ public class RuleManager {
         RULES_BY_ACTION = newRules;
         GLOBALLY_BANNED_ITEMS = newBanned;
         GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
+        CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
         HAS_ADVANCEMENT_RULES = newRules.values().stream().flatMap(List::stream)
                 .anyMatch(r -> r.advancements != null && !r.advancements.isEmpty());
 
@@ -207,6 +209,10 @@ public class RuleManager {
         return RULES_BY_ACTION;
     }
 
+    public static void setCnmCascadeRemoved(Set<String> items) {
+        CNM_CASCADE_REMOVED = items;
+    }
+
     public static boolean isSkippingAdvancementCheck() {
         return SKIP_ADVANCEMENT_CHECK.get();
     }
@@ -234,6 +240,7 @@ public class RuleManager {
         String id = itemId.toString();
 
         if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().location().toString() : null;

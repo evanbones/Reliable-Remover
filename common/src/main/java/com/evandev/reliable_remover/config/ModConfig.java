@@ -31,6 +31,7 @@ public class ModConfig {
     public boolean removeItemsFromInfoTabs = true;
     public boolean removeItemsFromTrades = true;
     public boolean removeMobEquipment = true;
+    public boolean removeCnmChildren = true;
 
     public boolean enableEmiRemoval = false;
     public boolean showEmiToast = true;

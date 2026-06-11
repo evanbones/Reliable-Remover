@@ -54,6 +54,8 @@
   "config.reliable_remover.option.remove_info_tabs.tooltip": "Hides Information in JEI/EMI that feature restricted items.",
   "config.reliable_remover.option.remove_mob_equipment": "Remove from Mob Equipment",
   "config.reliable_remover.option.remove_mob_equipment.tooltip": "Automatically removes restricted items from the hands or armor slots of mobs.",
+  "config.reliable_remover.option.remove_cnm_children": "Remove CNM Children",
+  "config.reliable_remover.option.remove_cnm_children.tooltip": "When a Clutter No More parent block is removed, also removes its child shapes (typically Slabs, Stairs, Walls, etc).",
 
   "toast.reliable_remover.permission_denied": "Reliable Remover: You need OP to delete items.",
   "toast.reliable_remover.undo": "[UNDO]",
