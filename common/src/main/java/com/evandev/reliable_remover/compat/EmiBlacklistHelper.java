@@ -1,0 +1,42 @@
+package com.evandev.reliable_remover.compat;
+
+import com.evandev.reliable_remover.config.ModConfig;
+import dev.emi.emi.api.stack.EmiStack;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+
+public class EmiBlacklistHelper {
+
+    public static boolean isEmiStackBlacklisted(EmiStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+
+        ResourceLocation id = stack.getId();
+        if (id != null) {
+            if (ModConfig.get().blacklistedItems.contains(id.toString())) {
+                return true;
+            }
+
+            if (id.getNamespace().equals("jeed")) {
+                for (String blacklisted : ModConfig.get().blacklistedItems) {
+                    ResourceLocation blId = ResourceLocation.tryParse(blacklisted);
+                    if (blId != null && id.getPath().contains(blId.getPath())) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        Object key = stack.getKey();
+        if (key instanceof Holder<?> holder && holder.value() instanceof MobEffect effect) {
+            ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+            return effectId != null && ModConfig.get().blacklistedItems.contains(effectId.toString());
+        } else if (key instanceof MobEffect effect) {
+            ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+            return effectId != null && ModConfig.get().blacklistedItems.contains(effectId.toString());
+        }
+
+        return false;
+    }
+}

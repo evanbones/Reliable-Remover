@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.emi;
 
+import com.evandev.reliable_remover.compat.EmiBlacklistHelper;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiIngredient;
@@ -29,6 +30,7 @@ public class EmiTagsMixin {
         if (original != null && !original.isEmpty()) {
             List<EmiStack> filtered = original.stream()
                     .filter(stack -> {
+                        if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) return false;
                         try {
                             return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlockedIgnoringAdvancements(stack.getItemStack());
                         } catch (Exception e) {
@@ -50,6 +52,7 @@ public class EmiTagsMixin {
 
         List<EmiStack> filtered = stacks.stream()
                 .filter(stack -> {
+                    if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) return false;
                     try {
                         return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlockedIgnoringAdvancements(stack.getItemStack());
                     } catch (Exception e) {

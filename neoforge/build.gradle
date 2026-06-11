@@ -41,6 +41,7 @@ dependencies {
     // EMI
     implementation "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
+    implementation "maven.modrinth:just-enough-effect-descriptions-jeed:${jeed_version_neoforge}"
 
     // Reliable Recipes
     implementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"

@@ -13,6 +13,7 @@ dependencies {
     // EMI
     modImplementation "dev.emi:emi-fabric:${emi_version}"
     modCompileOnly "maven.modrinth:emi-loot:${emi_loot_version}+fabric"
+    modCompileOnly "maven.modrinth:just-enough-effect-descriptions-jeed:${jeed_version_fabric}"
 
     // JEI
     modCompileOnly "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
