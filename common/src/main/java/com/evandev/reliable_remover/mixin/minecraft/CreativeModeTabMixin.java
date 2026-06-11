@@ -31,10 +31,10 @@ public abstract class CreativeModeTabMixin {
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
         if (this.displayItems != null) {
-            this.displayItems.removeIf(RuleManager::isCreativeBlocked);
+            this.displayItems.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
         }
         if (this.displayItemsSearchTab != null) {
-            this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlocked);
+            this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
         }
     }
 }

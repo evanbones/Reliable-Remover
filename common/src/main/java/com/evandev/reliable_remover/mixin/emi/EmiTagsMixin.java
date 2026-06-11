@@ -30,7 +30,7 @@ public class EmiTagsMixin {
             List<EmiStack> filtered = original.stream()
                     .filter(stack -> {
                         try {
-                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlocked(stack.getItemStack());
+                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlockedIgnoringAdvancements(stack.getItemStack());
                         } catch (Exception e) {
                             return true;
                         }
@@ -51,7 +51,7 @@ public class EmiTagsMixin {
         List<EmiStack> filtered = stacks.stream()
                 .filter(stack -> {
                     try {
-                        return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlocked(stack.getItemStack());
+                        return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlockedIgnoringAdvancements(stack.getItemStack());
                     } catch (Exception e) {
                         return true;
                     }

@@ -1,14 +1,21 @@
 package com.evandev.reliable_remover.data;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.config.AdvancementCache;
+import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -38,6 +45,9 @@ public class RemovalRule {
     @SerializedName(value = "tag_type", alternate = {"tag_types"})
     public Set<String> tagType = new HashSet<>();
 
+    @SerializedName(value = "advancements", alternate = {"advancement"})
+    public Set<String> advancements = new HashSet<>();
+
     public String pattern;
     @SerializedName(value = "patterns", alternate = {"regex"})
     public List<String> patterns = new ArrayList<>();
@@ -56,8 +66,31 @@ public class RemovalRule {
     private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
+    /**
+     * Returns true when the player has earned all listed advancements.
+     */
+    private static boolean checkAllAdvancements(Entity entity, Set<String> advancements) {
+        for (String advId : advancements) {
+            ResourceLocation loc = ResourceLocation.tryParse(advId);
+            if (loc == null) continue;
+
+            if (entity instanceof ServerPlayer serverPlayer) {
+                MinecraftServer server = serverPlayer.getServer();
+                if (server == null) return false;
+                AdvancementHolder holder = server.getAdvancements().get(loc);
+                if (holder == null) return false;
+                AdvancementProgress progress = serverPlayer.getAdvancements().getOrStartProgress(holder);
+                if (!progress.isDone()) return false;
+            } else {
+                if (!AdvancementCache.isDone(loc)) return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity entity, Holder<?> registryHolder, String context) {
+        if (!matchesLogic(stack, itemId, dimension, entityId, entity, this.action, registryHolder, context))
+            return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty()) return false;
@@ -93,10 +126,10 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder, String context) {
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Entity entity, Action currentAction, Holder<?> registryHolder, String context) {
         if (currentAction == null) currentAction = Action.REMOVE;
 
-        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder, context))
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, entity, currentAction, registryHolder, context))
             return false;
 
         if (context != null) {
@@ -127,6 +160,10 @@ public class RemovalRule {
             if (entityId == null || !entities.contains(entityId)) return false;
         }
 
+        if (advancements != null && !advancements.isEmpty()) {
+            if (RuleManager.isSkippingAdvancementCheck() || checkAllAdvancements(entity, advancements)) return false;
+        }
+
         boolean hasPattern = pattern != null && !pattern.isEmpty();
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
@@ -137,7 +174,8 @@ public class RemovalRule {
         if (!hasItemFilter && !hasModFilter) {
             return (dimensions != null && !dimensions.isEmpty()) ||
                     (entities != null && !entities.isEmpty()) ||
-                    hasNbtFilter;
+                    hasNbtFilter ||
+                    (advancements != null && !advancements.isEmpty());
         }
 
         if (hasModFilter) {

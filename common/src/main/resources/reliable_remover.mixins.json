@@ -28,6 +28,7 @@
     "minecraft.ServerPlayerMixin"
   ],
   "client": [
+    "client.ClientAdvancementsMixin",
     "client.ScreenMixin",
     "minecraft.MinecraftMixin"
   ],

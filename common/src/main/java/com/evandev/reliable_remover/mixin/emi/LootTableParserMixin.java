@@ -24,7 +24,7 @@ public class LootTableParserMixin {
             ordinal = 0
     )
     private static ItemStack reliable_remover$replaceEmiLootItem(ItemStack item) {
-        ItemStack replacement = RuleManager.getLootReplacement(item, null);
+        ItemStack replacement = RuleManager.getLootReplacementIgnoringAdvancements(item, null);
         return replacement != null ? replacement : item;
     }
 
@@ -48,7 +48,7 @@ public class LootTableParserMixin {
         boolean changed = false;
 
         for (LootTableParser.ItemEntryResult result : original) {
-            if (RuleManager.isLootBlocked(result.item(), null)) {
+            if (RuleManager.isLootBlockedIgnoringAdvancements(result.item(), null)) {
                 changed = true;
             } else {
                 filtered.add(result);

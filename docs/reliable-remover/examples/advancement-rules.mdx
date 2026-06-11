@@ -1,0 +1,106 @@
+---
+title: Advancement-Gated Rules
+hide_meta: true
+---
+
+You can use the `advancements` filter to hide or restrict items until a player has earned a specific advancement.
+This can be useful for keeping EMI clean during early-game progression: for example, hiding Nether-gated items until the player has actually visited the Nether.
+
+The rule is active (items are hidden/blocked) while the player has **not yet** earned the advancement.
+Once the advancement is obtained, the rule automatically deactivates and the items become visible and usable.
+
+---
+
+### Hide Nether Items Until Visiting the Nether
+
+Hides all items from a Nether-content mod in EMI until the player has the `minecraft:nether/root` advancement (awarded when they first enter the Nether).
+
+```json
+{
+  "action": "remove",
+  "mod": ["nethermod"],
+  "advancements": ["minecraft:nether/root"]
+}
+
+```
+
+---
+
+### Hide End Items Until the Player Reaches the End
+
+```json
+{
+  "action": "remove",
+  "mod": ["endmod"],
+  "advancements": ["minecraft:end/root"]
+}
+
+```
+
+---
+
+### Gate a Single Item Behind an Advancement
+
+Hides the Elytra from EMI and removes it from inventories until the player has killed the Ender Dragon.
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:elytra"],
+  "advancements": ["minecraft:end/kill_dragon"]
+}
+
+```
+
+---
+
+### Require Multiple Advancements
+
+When multiple advancement IDs are listed, the rule deactivates only after the player has earned **all** of them.
+This example hides an end-tier item until the player has both entered the Nether and entered the End.
+
+```json
+{
+  "action": "remove",
+  "items": ["examplemod:endgame_item"],
+  "advancements": [
+    "minecraft:nether/root",
+    "minecraft:end/root"
+  ]
+}
+
+```
+
+---
+
+### Combine With Dimension Filters
+
+You can stack `advancements` with `dimensions` and other filters for fine-grained control.
+This example removes a specific item from player inventories while they are in the Overworld AND before they have reached the Nether.
+
+```json
+{
+  "action": "remove_inventory",
+  "items": ["examplemod:nether_key"],
+  "dimensions": ["minecraft:overworld"],
+  "advancements": ["minecraft:nether/root"]
+}
+
+```
+
+---
+
+### Keep an Item Hidden from EMI After an Advancement
+
+Use `not` to invert the logic: the rule applies only **after** the player has earned an advancement, hiding starter items that are no longer relevant.
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:wooden_sword"],
+  "not": {
+    "advancements": ["minecraft:story/obtain_armor"]
+  }
+}
+
+```

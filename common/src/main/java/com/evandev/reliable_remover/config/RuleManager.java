@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
+    private static volatile boolean HAS_ADVANCEMENT_RULES = false;
+    static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -61,6 +63,8 @@ public class RuleManager {
         RULES_BY_ACTION = newRules;
         GLOBALLY_BANNED_ITEMS = newBanned;
         GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
+        HAS_ADVANCEMENT_RULES = newRules.values().stream().flatMap(List::stream)
+                .anyMatch(r -> r.advancements != null && !r.advancements.isEmpty());
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -95,6 +99,33 @@ public class RuleManager {
             Constants.LOG.info("Created example config at config/reliable_remover/removal_example.json.disabled");
         } catch (Exception e) {
             Constants.LOG.error("Failed to generate default rule", e);
+        }
+    }
+
+    public static boolean isLootBlockedIgnoringAdvancements(ItemStack stack, LootParams context) {
+        SKIP_ADVANCEMENT_CHECK.set(true);
+        try {
+            return isLootBlocked(stack, context);
+        } finally {
+            SKIP_ADVANCEMENT_CHECK.set(false);
+        }
+    }
+
+    public static ItemStack getLootReplacementIgnoringAdvancements(ItemStack stack, LootParams context) {
+        SKIP_ADVANCEMENT_CHECK.set(true);
+        try {
+            return getLootReplacement(stack, context);
+        } finally {
+            SKIP_ADVANCEMENT_CHECK.set(false);
+        }
+    }
+
+    public static boolean isHiddenIgnoringAdvancements(ItemStack stack, String context) {
+        SKIP_ADVANCEMENT_CHECK.set(true);
+        try {
+            return isHidden(stack, null, null, context);
+        } finally {
+            SKIP_ADVANCEMENT_CHECK.set(false);
         }
     }
 
@@ -165,6 +196,7 @@ public class RuleManager {
                 (rule.nbt == null || rule.nbt.isEmpty()) &&
                 (rule.registry == null || rule.registry.isEmpty()) &&
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
+                (rule.advancements == null || rule.advancements.isEmpty()) &&
                 rule.not == null &&
                 (rule.replaceWith == null || rule.replaceWith.isEmpty()) &&
                 rule.items != null && !rule.items.isEmpty() &&
@@ -173,6 +205,14 @@ public class RuleManager {
 
     public static Map<Action, List<RemovalRule>> getRulesByAction() {
         return RULES_BY_ACTION;
+    }
+
+    public static boolean isSkippingAdvancementCheck() {
+        return SKIP_ADVANCEMENT_CHECK.get();
+    }
+
+    public static boolean hasAdvancementRules() {
+        return HAS_ADVANCEMENT_RULES;
     }
 
     public static boolean isHidden(ItemStack stack) {
@@ -321,10 +361,14 @@ public class RuleManager {
     }
 
     public static boolean isCreativeBlocked(ItemStack stack) {
+        return isCreativeBlocked(stack, null);
+    }
+
+    public static boolean isCreativeBlocked(ItemStack stack, Entity player) {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromCreativeTabs) return false;
-        if (isHidden(stack)) return true;
-        if (getReplacement(stack, Action.REMOVE_CREATIVE, null, null, "creative") != null) return false;
-        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_CREATIVE, null, null, null, "creative");
+        if (isHidden(stack, null, player)) return true;
+        if (getReplacement(stack, Action.REMOVE_CREATIVE, null, player, "creative") != null) return false;
+        return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_CREATIVE, null, player, null, "creative");
     }
 
     public static boolean isDropsBlocked(ItemStack stack, Level level, Entity entity) {
@@ -358,9 +402,31 @@ public class RuleManager {
     }
 
     public static boolean isInfoBlocked(ItemStack stack) {
+        return isInfoBlocked(stack, null);
+    }
+
+    public static boolean isInfoBlocked(ItemStack stack, Entity player) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        return checkRules(stack, id, Action.REMOVE_INFO, null, null, null, "info");
+        return checkRules(stack, id, Action.REMOVE_INFO, null, player, null, "info");
+    }
+
+    public static boolean isCreativeBlockedIgnoringAdvancements(ItemStack stack) {
+        SKIP_ADVANCEMENT_CHECK.set(true);
+        try {
+            return isCreativeBlocked(stack);
+        } finally {
+            SKIP_ADVANCEMENT_CHECK.set(false);
+        }
+    }
+
+    public static boolean isInfoBlockedIgnoringAdvancements(ItemStack stack) {
+        SKIP_ADVANCEMENT_CHECK.set(true);
+        try {
+            return isInfoBlocked(stack);
+        } finally {
+            SKIP_ADVANCEMENT_CHECK.set(false);
+        }
     }
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
@@ -418,7 +484,7 @@ public class RuleManager {
         List<RemovalRule> rules = RULES_BY_ACTION.get(action);
         if (rules == null || rules.isEmpty()) return null;
         for (RemovalRule rule : rules) {
-            if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, registryHolder, context))
+            if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, target, registryHolder, context))
                 return rule;
         }
         return null;

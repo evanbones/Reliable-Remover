@@ -26,7 +26,7 @@ public class EmiRegistryImplMixin {
         for (EmiStack emiStack : recipe.getOutputs()) {
             if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
                 ItemStack stack = emiStack.getItemStack();
-                if (RuleManager.isCreativeBlocked(stack) || (isInfoTab && RuleManager.isInfoBlocked(stack))) {
+                if (RuleManager.isCreativeBlockedIgnoringAdvancements(stack) || (isInfoTab && RuleManager.isInfoBlockedIgnoringAdvancements(stack))) {
                     ci.cancel();
                     return;
                 }
@@ -43,7 +43,7 @@ public class EmiRegistryImplMixin {
                 for (EmiStack emiStack : ingredient.getEmiStacks()) {
                     if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
                         ItemStack stack = emiStack.getItemStack();
-                        if ((ModConfig.get().removeItemsFromInfoTabs && RuleManager.isCreativeBlocked(stack)) || RuleManager.isInfoBlocked(stack)) {
+                        if ((ModConfig.get().removeItemsFromInfoTabs && RuleManager.isCreativeBlockedIgnoringAdvancements(stack)) || RuleManager.isInfoBlockedIgnoringAdvancements(stack)) {
                             ci.cancel();
                             return;
                         }
