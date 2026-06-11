@@ -49,9 +49,4 @@ public interface IPlatformHelper {
      * @return True if on the client, false if on a dedicated server.
      */
     boolean isPhysicalClient();
-
-    /**
-     * Returns the local player entity when on the physical client, or null on a dedicated server.
-     */
-    Entity getLocalPlayer();
 }

@@ -1,8 +1,6 @@
 package com.evandev.reliable_remover.platform;
 
 import com.evandev.reliable_remover.platform.services.IPlatformHelper;
-import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
@@ -35,15 +33,5 @@ public class NeoForgePlatformHelper implements IPlatformHelper {
     @Override
     public boolean isPhysicalClient() {
         return FMLLoader.getDist() == Dist.CLIENT;
-    }
-
-    @Override
-    public Entity getLocalPlayer() {
-        if (!isPhysicalClient()) return null;
-        try {
-            return Minecraft.getInstance().player;
-        } catch (Exception e) {
-            return null;
-        }
     }
 }

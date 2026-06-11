@@ -2,9 +2,9 @@ package com.evandev.reliable_remover.mixin.emi;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
-import com.evandev.reliable_remover.platform.Services;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.registry.EmiStackList;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -43,7 +43,7 @@ public class EmiStackListMixin {
         if (!ModConfig.get().removeItemsFromEmi || !RuleManager.hasAdvancementRules()) return;
 
         try {
-            Entity localPlayer = Services.PLATFORM.getLocalPlayer();
+            Entity localPlayer = Minecraft.getInstance().player;
             List<EmiStack> filtered = new ArrayList<>(EmiStackList.filteredStacks);
             filtered.removeIf(stack -> {
                 try {
