@@ -1,3 +1,3 @@
-### Added
+### Fixed
 
-- Effects and fluids can now be hidden using Reliable Remover.
+- Fixed issues with fluid rules.

@@ -1,11 +1,13 @@
 package com.evandev.reliable_remover.compat;
 
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiStack;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.item.ItemStack;
 
 public class EmiBlacklistHelper {
 
@@ -35,6 +37,11 @@ public class EmiBlacklistHelper {
         } else if (key instanceof MobEffect effect) {
             ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(effect);
             return effectId != null && ModConfig.get().blacklistedItems.contains(effectId.toString());
+        }
+
+        ItemStack itemStack = stack.getItemStack();
+        if ((itemStack == null || itemStack.isEmpty()) && id != null) {
+            return RuleManager.isFluidHidden(id.toString());
         }
 
         return false;

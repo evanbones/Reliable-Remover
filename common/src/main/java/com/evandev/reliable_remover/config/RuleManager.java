@@ -25,11 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class RuleManager {
+    static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
-    static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -219,6 +219,13 @@ public class RuleManager {
 
     public static boolean hasAdvancementRules() {
         return HAS_ADVANCEMENT_RULES;
+    }
+
+    public static boolean isFluidHidden(String fluidId) {
+        if (fluidId == null || fluidId.isEmpty()) return false;
+        if (GLOBALLY_BANNED_ITEMS.contains(fluidId)) return true;
+        if (CNM_CASCADE_REMOVED.contains(fluidId)) return true;
+        return checkRules(null, fluidId, Action.REMOVE, null, null, null, "item");
     }
 
     public static boolean isHidden(ItemStack stack) {
