@@ -3,14 +3,13 @@ package com.evandev.reliable_remover.mixin.minecraft;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.platform.Services;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackLinkedSet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
 import java.util.Set;
@@ -24,8 +23,10 @@ public abstract class CreativeModeTabMixin {
     @Shadow
     private Set<ItemStack> displayItemsSearchTab = ItemStackLinkedSet.createTypeAndComponentsSet();
 
-    @Inject(method = "buildContents", at = @At(value = "RETURN"))
-    private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters displayContext, CallbackInfo ci) {
+    @WrapMethod(method = "buildContents")
+    private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters displayContext, Operation<Void> original) {
+        original.call(displayContext);
+
         if (!Services.PLATFORM.isPhysicalClient()) return;
 
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;

@@ -1,3 +1,3 @@
 ### Fixed
 
-- Improved loot table removal.
+- Fixed items not being removed from Create Simulated tabs.
