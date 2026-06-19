@@ -25,7 +25,8 @@
     "minecraft.RandomizableContainerMixin",
     "minecraft.RecipeManagerMixin",
     "minecraft.ServerPlayerGameModeMixin",
-    "minecraft.ServerPlayerMixin"
+    "minecraft.ServerPlayerMixin",
+    "minecraft.accessor.LootContextAccessor"
   ],
   "client": [
     "client.ClientAdvancementsMixin",

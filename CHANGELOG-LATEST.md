@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with fluid rules.
+- Improved loot table removal.
