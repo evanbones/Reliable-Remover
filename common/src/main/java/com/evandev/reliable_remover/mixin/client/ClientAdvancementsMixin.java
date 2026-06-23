@@ -29,7 +29,7 @@ public class ClientAdvancementsMixin {
                     AdvancementCache.markCompleted(entry.getKey());
                 }
             }
-            remover$triggerEmiReloadIfLoaded();
+            reliable_remover$triggerEmiReloadIfLoaded();
             return;
         }
 
@@ -57,12 +57,12 @@ public class ClientAdvancementsMixin {
         }
 
         if (changed) {
-            remover$triggerEmiReloadIfLoaded();
+            reliable_remover$triggerEmiReloadIfLoaded();
         }
     }
 
     @Unique
-    private static void remover$triggerEmiReloadIfLoaded() {
+    private static void reliable_remover$triggerEmiReloadIfLoaded() {
         if (Services.PLATFORM.isModLoaded("emi")) {
             com.evandev.reliable_remover.compat.EmiFastRefresh.refresh();
         }

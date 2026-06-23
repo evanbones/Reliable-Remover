@@ -39,7 +39,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // EMI
-    implementation "dev.emi:emi-neoforge:${emi_version}"
+    compileOnly "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
     implementation "maven.modrinth:just-enough-effect-descriptions-jeed:${jeed_version_neoforge}"
 
@@ -53,7 +53,7 @@ dependencies {
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
 
     // Clutter No More
-    implementation "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"
+    compileOnly "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"
 }
 
 publishMods {

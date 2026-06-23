@@ -28,14 +28,28 @@ public abstract class CreativeModeTabMixin {
         original.call(displayContext);
 
         if (!Services.PLATFORM.isPhysicalClient()) return;
-
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
         if (this.displayItems != null) {
-            this.displayItems.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+            try {
+                this.displayItems.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+            } catch (UnsupportedOperationException e) {
+                Collection<ItemStack> mutableItems = ItemStackLinkedSet.createTypeAndComponentsSet();
+                mutableItems.addAll(this.displayItems);
+                mutableItems.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+                this.displayItems = mutableItems;
+            }
         }
+
         if (this.displayItemsSearchTab != null) {
-            this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+            try {
+                this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+            } catch (UnsupportedOperationException e) {
+                Set<ItemStack> mutableSearch = ItemStackLinkedSet.createTypeAndComponentsSet();
+                mutableSearch.addAll(this.displayItemsSearchTab);
+                mutableSearch.removeIf(RuleManager::isCreativeBlockedIgnoringAdvancements);
+                this.displayItemsSearchTab = mutableSearch;
+            }
         }
     }
 }

@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed items not being removed from Create Simulated tabs.
+- Fixed crash with certain mods that modify creative mode tabs.
