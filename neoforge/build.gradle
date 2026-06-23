@@ -39,7 +39,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // EMI
-    compileOnly "dev.emi:emi-neoforge:${emi_version}"
+    implementation "dev.emi:emi-neoforge:${emi_version}"
     compileOnly "maven.modrinth:emi-loot:${emi_loot_version}+neoforge"
     implementation "maven.modrinth:just-enough-effect-descriptions-jeed:${jeed_version_neoforge}"
 
