@@ -7,7 +7,6 @@ public class CommonClass {
     public static void init() {
         RuleManager.load();
 
-        ReliableRecipesAPI.registerContextualItemHider(RuleManager::isHiddenIgnoringAdvancements
-        );
+        ReliableRecipesAPI.registerContextualItemHider(RuleManager::isHidden);
     }
 }

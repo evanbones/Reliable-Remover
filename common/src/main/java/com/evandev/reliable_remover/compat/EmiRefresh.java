@@ -2,12 +2,14 @@ package com.evandev.reliable_remover.compat;
 
 import com.evandev.reliable_remover.Constants;
 import dev.emi.emi.registry.EmiStackList;
+import dev.emi.emi.runtime.EmiReloadManager;
 import dev.emi.emi.screen.EmiScreenManager;
 
-public class EmiFastRefresh {
+public class EmiRefresh {
 
     public static void refresh() {
         try {
+            EmiReloadManager.reload();
             EmiStackList.bakeFiltered();
 
             if (EmiScreenManager.search != null) {
@@ -16,7 +18,7 @@ public class EmiFastRefresh {
             EmiScreenManager.forceRecalculate();
 
         } catch (Throwable e) {
-            Constants.LOG.error("Reliable Remover failed to execute fast EMI refresh.", e);
+            Constants.LOG.error("Reliable Remover failed to execute EMI refresh.", e);
         }
     }
 }

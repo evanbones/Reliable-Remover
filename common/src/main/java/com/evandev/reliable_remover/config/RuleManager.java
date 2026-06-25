@@ -122,15 +122,6 @@ public class RuleManager {
         }
     }
 
-    public static boolean isHiddenIgnoringAdvancements(ItemStack stack, String context) {
-        SKIP_ADVANCEMENT_CHECK.set(true);
-        try {
-            return isHidden(stack, null, null, context);
-        } finally {
-            SKIP_ADVANCEMENT_CHECK.set(false);
-        }
-    }
-
     private static void validateRules(Map<Action, List<RemovalRule>> rulesByAction) {
         for (List<RemovalRule> rules : rulesByAction.values()) {
             for (RemovalRule rule : rules) {
@@ -214,7 +205,9 @@ public class RuleManager {
     }
 
     public static boolean isSkippingAdvancementCheck() {
-        return SKIP_ADVANCEMENT_CHECK.get();
+        return SKIP_ADVANCEMENT_CHECK.get() ||
+                com.evandev.reliable_recipes.recipe.RecipeModifier.isModifyingJson() ||
+                com.evandev.reliable_recipes.tag.TagModifier.isApplyingTags();
     }
 
     public static boolean hasAdvancementRules() {
@@ -230,6 +223,10 @@ public class RuleManager {
 
     public static boolean isHidden(ItemStack stack) {
         return isHidden(stack, null, null, "item");
+    }
+
+    public static boolean isHidden(ItemStack stack, String context) {
+        return isHidden(stack, null, null, context);
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {

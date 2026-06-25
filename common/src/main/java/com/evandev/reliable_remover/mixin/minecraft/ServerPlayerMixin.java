@@ -14,6 +14,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -70,6 +71,25 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "initMenu", at = @At("HEAD"))
     private void reliable_remover$onInitMenu(AbstractContainerMenu menu, CallbackInfo ci) {
+        menu.addSlotListener(new net.minecraft.world.inventory.ContainerListener() {
+            @Override
+            public void slotChanged(@NotNull AbstractContainerMenu menu, int slotId, @NotNull ItemStack stack) {
+                if (!stack.isEmpty() && slotId >= 0 && slotId < menu.slots.size()) {
+                    ServerPlayer player = (ServerPlayer) (Object) ServerPlayerMixin.this;
+                    ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, player.level(), player, "inventory");
+                    if (replacement != null) {
+                        menu.getSlot(slotId).set(replacement);
+                    } else if (RuleManager.isInventoryBlocked(stack, player.level(), player) || RuleManager.isHidden(stack, player.level(), player)) {
+                        menu.getSlot(slotId).set(ItemStack.EMPTY);
+                    }
+                }
+            }
+
+            @Override
+            public void dataChanged(@NotNull AbstractContainerMenu menu, int id, int value) {
+            }
+        });
+
         if (!ModConfig.get().removeItemsOnInventoryOpen) return;
 
         boolean changed = false;

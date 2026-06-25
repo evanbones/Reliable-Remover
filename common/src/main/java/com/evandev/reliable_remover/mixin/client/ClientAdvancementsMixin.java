@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.client;
 
+import com.evandev.reliable_remover.compat.EmiRefresh;
 import com.evandev.reliable_remover.config.AdvancementCache;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.platform.Services;
@@ -17,6 +18,13 @@ import java.util.Map;
 
 @Mixin(ClientAdvancements.class)
 public class ClientAdvancementsMixin {
+
+    @Unique
+    private static void reliable_remover$triggerEmiReloadIfLoaded() {
+        if (Services.PLATFORM.isModLoaded("emi")) {
+            EmiRefresh.refresh();
+        }
+    }
 
     @Inject(method = "update", at = @At("TAIL"))
     private void reliable_remover$onAdvancementsUpdate(ClientboundUpdateAdvancementsPacket packet, CallbackInfo ci) {
@@ -58,13 +66,6 @@ public class ClientAdvancementsMixin {
 
         if (changed) {
             reliable_remover$triggerEmiReloadIfLoaded();
-        }
-    }
-
-    @Unique
-    private static void reliable_remover$triggerEmiReloadIfLoaded() {
-        if (Services.PLATFORM.isModLoaded("emi")) {
-            com.evandev.reliable_remover.compat.EmiFastRefresh.refresh();
         }
     }
 }
