@@ -1,3 +1,3 @@
 ### Fixed
 
-- Improvements to advancement-based filtering.
+- Fixed issues with the remove from inventory config option.

@@ -77,9 +77,10 @@ public abstract class ServerPlayerMixin extends Player {
                 if (!stack.isEmpty() && slotId >= 0 && slotId < menu.slots.size()) {
                     ServerPlayer player = (ServerPlayer) (Object) ServerPlayerMixin.this;
                     ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, player.level(), player, "inventory");
+
                     if (replacement != null) {
                         menu.getSlot(slotId).set(replacement);
-                    } else if (RuleManager.isInventoryBlocked(stack, player.level(), player) || RuleManager.isHidden(stack, player.level(), player)) {
+                    } else if (RuleManager.isInventoryBlocked(stack, player.level(), player)) {
                         menu.getSlot(slotId).set(ItemStack.EMPTY);
                     }
                 }
