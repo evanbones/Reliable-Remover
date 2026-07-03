@@ -29,6 +29,7 @@ public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
+    private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
 
     public static void load() {
@@ -65,8 +66,14 @@ public class RuleManager {
         GLOBALLY_BANNED_ITEMS = newBanned;
         GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
         CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
-        HAS_ADVANCEMENT_RULES = newRules.values().stream().flatMap(List::stream)
-                .anyMatch(r -> r.advancements != null && !r.advancements.isEmpty());
+        Set<String> newTrackedAdv = ConcurrentHashMap.newKeySet();
+        newRules.values().stream().flatMap(List::stream).forEach(r -> {
+            if (r.advancements != null && !r.advancements.isEmpty()) {
+                newTrackedAdv.addAll(r.advancements);
+            }
+        });
+        TRACKED_ADVANCEMENTS = newTrackedAdv;
+        HAS_ADVANCEMENT_RULES = !newTrackedAdv.isEmpty();
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -83,6 +90,10 @@ public class RuleManager {
                 }
             }
         }
+    }
+
+    public static boolean isAdvancementTracked(ResourceLocation id) {
+        return TRACKED_ADVANCEMENTS.contains(id.toString());
     }
 
     private static void generateDefaultConfig(Path configDir) {

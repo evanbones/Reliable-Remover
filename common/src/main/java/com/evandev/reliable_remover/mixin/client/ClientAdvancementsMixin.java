@@ -45,22 +45,29 @@ public class ClientAdvancementsMixin {
 
         for (ResourceLocation id : packet.getRemoved()) {
             if (AdvancementCache.isDone(id)) {
-                changed = true;
+                if (RuleManager.isAdvancementTracked(id)) {
+                    changed = true;
+                }
             }
             AdvancementCache.markNotCompleted(id);
         }
 
         for (Map.Entry<ResourceLocation, AdvancementProgress> entry : packet.getProgress().entrySet()) {
+            ResourceLocation id = entry.getKey();
             if (entry.getValue().isDone()) {
-                if (!AdvancementCache.isDone(entry.getKey())) {
-                    changed = true;
+                if (!AdvancementCache.isDone(id)) {
+                    if (RuleManager.isAdvancementTracked(id)) {
+                        changed = true;
+                    }
                 }
-                AdvancementCache.markCompleted(entry.getKey());
+                AdvancementCache.markCompleted(id);
             } else {
-                if (AdvancementCache.isDone(entry.getKey())) {
-                    changed = true;
+                if (AdvancementCache.isDone(id)) {
+                    if (RuleManager.isAdvancementTracked(id)) {
+                        changed = true;
+                    }
                 }
-                AdvancementCache.markNotCompleted(entry.getKey());
+                AdvancementCache.markNotCompleted(id);
             }
         }
 

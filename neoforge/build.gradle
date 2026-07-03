@@ -49,11 +49,11 @@ dependencies {
     // JEI
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    // Cloth Config
-    implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
-
     // Clutter No More
     compileOnly "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"
+
+    // YACL
+    implementation "maven.modrinth:yacl:${yacl_version}-neoforge"
 }
 
 publishMods {

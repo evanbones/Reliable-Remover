@@ -45,3 +45,10 @@ type = "optional"
 versionRange = "[1.0.4,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "yet_another_config_lib_v3"
+type = "required"
+versionRange = "[${yacl_version},)"
+ordering = "NONE"
+side = "CLIENT"

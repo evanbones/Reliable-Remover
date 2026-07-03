@@ -29,8 +29,8 @@ dependencies {
     // Reliable Recipes
     compileOnly "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
 
-    // Cloth Config
-    compileOnly "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
+    // YACL
+    compileOnly "maven.modrinth:yacl:${yacl_version}-neoforge"
 
     // Clutter No More
     compileOnly "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"

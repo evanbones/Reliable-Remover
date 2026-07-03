@@ -45,8 +45,8 @@ publishMods {
         minecraftVersions.add("${minecraft_version}")
 
         requires("reliable-recipes")
+        requires("yacl")
         optional("emi")
-        optional("cloth-config")
     }
 
     modrinth {
@@ -55,7 +55,7 @@ publishMods {
         minecraftVersions.add("${minecraft_version}")
 
         requires("reliable-recipes")
+        requires("yacl")
         optional("emi")
-        optional("cloth-config")
     }
 }

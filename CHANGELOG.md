@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-07-02
+
+### Changed
+
+- Switched from Cloth Config to YACLv3.
+  - Existing configs should still work fine.
+
+### Fixed
+
+- Improved performance with advancement-based filters.
+- Fixed config on-disk changes being reset when saving via the in-game config.
+
 ## [2.8.6] - 2026-06-27
 
 ### Fixed
