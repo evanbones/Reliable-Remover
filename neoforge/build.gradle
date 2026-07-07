@@ -67,3 +67,7 @@ sourceSets.configureEach {
         }
     }
 }
+
+publishMods {
+    file = tasks.named("jar").flatMap { it.archiveFile }
+}
