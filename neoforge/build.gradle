@@ -17,15 +17,19 @@ neoForge {
         }
         client {
             client()
-            gameDirectory = this.mkdir(this.file("runs/client"))
+            gameDirectory = this.mkdir(this.file('runs/client'))
+        }
+        data {
+            clientData()
+            gameDirectory = this.mkdir(this.file('runs/data'))
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
         server {
             server()
-            this.file("runs/server").createParentDirectories()
-            gameDirectory = this.mkdir(this.file("runs/server"))
+            this.file('runs/server').createParentDirectories()
+            gameDirectory = this.mkdir(this.file('runs/server'))
         }
     }
-
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
@@ -37,17 +41,13 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 dependencies {
     // RRV
-    implementation("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${rrv_version}")
+    implementation "cc.cassian.rrv:reliable-recipe-viewer-neoforge:${rrv_version}"
 
     // Reliable Recipes
-    jarJar "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
     implementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-neoforge"
 
-    // JEI
-    compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"
-
-    // Cloth Config
-    implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
+    // YACL
+    implementation "dev.isxander:yet-another-config-lib:${yacl_version}-neoforge"
 }
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
@@ -58,17 +58,12 @@ def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', Strin
         }
     }
 }
-
 sourceSets.configureEach {
     [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant ->
-        configurations.named("$variant") {
+        configurations.named(variant) {
             attributes {
                 attribute(loaderAttribute, 'neoforge')
             }
         }
     }
-}
-
-publishMods {
-    file = tasks.named("jar").flatMap { it.archiveFile }
 }

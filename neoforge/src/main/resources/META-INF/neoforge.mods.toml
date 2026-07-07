@@ -33,9 +33,23 @@ versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.${ mod_id }]]
+[[dependencies.${mod_id}]]
 modId = "rrv"
 type = "optional"
-versionRange = "[7.0.0,)"
+versionRange = "[8.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
+
+[[dependencies.${ mod_id }]]
+modId = "reliable_recipes"
+type = "required"
+versionRange = "[1.13.0,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "yet_another_config_lib_v3"
+type = "required"
+versionRange = "[${yacl_version},)"
+ordering = "NONE"
+side = "CLIENT"

@@ -125,7 +125,6 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
                 }
             }
         } catch (Exception ignored) {
-            // Guard in case RRV hasn't loaded
         }
 
         return false;

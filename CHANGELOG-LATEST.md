@@ -1,5 +1,5 @@
-### Fixed
+### Changed
 
-- Fixed potions not being removed from RRV.
-- Fixed `remove_creative` issues.
-- Fixed delete key not working when creative search is open.
+- Ported to 26.2.
+- Switched to YACL.
+- Reliable Recipes is now required instead of bundled.

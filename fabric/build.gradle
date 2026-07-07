@@ -3,25 +3,83 @@ plugins {
     id 'net.fabricmc.fabric-loom'
 }
 
+repositories {
+    mavenLocal()
+    maven {
+        name = "Terraformers (Mod Menu)"
+        url = uri("https://maven.terraformersmc.com/releases/")
+        content {
+            includeGroupAndSubgroups("com.terraformersmc")
+        }
+    }
+    maven {
+        name = "Xander Maven"
+        url = uri("https://maven.isxander.dev/releases")
+        content {
+            includeGroupAndSubgroups("dev.isxander")
+            includeGroupAndSubgroups("org.quiltmc.parsers")
+        }
+    }
+    maven {
+        name = "Quilt Maven"
+        url = uri("https://maven.quiltmc.org/repository/release/")
+        content {
+            includeGroupAndSubgroups("org.quiltmc.parsers")
+        }
+    }
+    maven {
+        name = "Modrinth"
+        url = uri("https://api.modrinth.com/maven")
+        content {
+            includeGroupAndSubgroups("maven.modrinth")
+        }
+    }
+    maven {
+        name = "Cassian's Maven"
+        url = uri("https://maven.cassian.cc/")
+        content {
+            includeGroupAndSubgroups("cc.cassian")
+        }
+    }
+    mavenCentral()
+}
+
 dependencies {
-    minecraft "com.mojang:minecraft:${minecraft_version}"
+    minecraft("com.mojang:minecraft:${minecraft_version}")
 
     // RRV
-    implementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}")
-
-    // JEI
-    compileOnly "mezz.jei:jei-1.21.11-neoforge:${jei_version}"
+    implementation "cc.cassian.rrv:reliable-recipe-viewer-fabric:${rrv_version}"
 
     // Reliable Recipes
     implementation "maven.modrinth:reliable-recipes:${reliable_recipes_version}-fabric"
-    include "maven.modrinth:reliable-recipes:${reliable_recipes_version}-fabric"
 
-    // Cloth Config
-    implementation "me.shedaniel.cloth:cloth-config-fabric:${cloth_config_version}"
+    // YACL
+    implementation "dev.isxander:yet-another-config-lib:${yacl_version}-fabric"
     implementation "com.terraformersmc:modmenu:${mod_menu_version}"
 
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+}
+
+loom {
+    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    if (aw.exists()) {
+        accessWidenerPath.set(aw)
+    }
+    runs {
+        client {
+            client()
+            setConfigName('Fabric Client')
+            ideConfigGenerated(true)
+            runDir('runs/client')
+        }
+        server {
+            server()
+            setConfigName('Fabric Server')
+            ideConfigGenerated(true)
+            runDir('runs/server')
+        }
+    }
 }
 
 def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
@@ -32,10 +90,9 @@ def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', Strin
         }
     }
 }
-
 sourceSets.configureEach {
     [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
-        configurations.named("$variant") {
+        configurations.named(variant) {
             attributes {
                 attribute(loaderAttribute, 'fabric')
             }

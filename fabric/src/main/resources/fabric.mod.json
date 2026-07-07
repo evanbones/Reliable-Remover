@@ -24,9 +24,6 @@
         "modmenu": [
             "com.evandev.reliable_remover.compat.ModMenuIntegration"
         ],
-        "jei_mod_plugin": [
-            "com.evandev.reliable_remover.compat.ReliableRemoverJeiPlugin"
-        ],
         "rrv_client": [
             "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
         ]
@@ -39,10 +36,11 @@
         "fabricloader": ">=${fabric_loader_version}",
         "fabric-api": "*",
         "minecraft": ">26 <27",
-        "java": ">=${java_version}"
+        "java": ">=${java_version}",
+        "reliable_recipes": ">=1.13.0",
+        "yet_another_config_lib_v3": ">=${yacl_version}"
     },
     "suggests": {
-        "rrv": "*",
-        "cloth-config": "*"
+        "rrv": "*"
     }
 }
