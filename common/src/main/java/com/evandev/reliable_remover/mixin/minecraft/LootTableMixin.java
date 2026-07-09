@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.mixin.minecraft.accessor.LootContextAccessor;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -10,54 +11,42 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LootTable.class)
 public abstract class LootTableMixin {
+
     @Unique
-    private boolean reliable_remover$isReRolling = false;
+    private static final ThreadLocal<Boolean> reliable_remover$isReRolling = ThreadLocal.withInitial(() -> false);
 
     @Shadow
-    public abstract void getRandomItemsRaw(LootContext context, Consumer<ItemStack> output);
+    protected abstract ObjectArrayList<ItemStack> getRandomItems(LootContext context);
 
-    @Inject(method = "getRandomItemsRaw(Lnet/minecraft/world/level/storage/loot/LootContext;Ljava/util/function/Consumer;)V", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$redirectGetRandomItemsRaw(LootContext context, Consumer<ItemStack> originalOutput, CallbackInfo ci) {
-        if (reliable_remover$isReRolling) {
+    @Inject(
+            method = "getRandomItems(Lnet/minecraft/world/level/storage/loot/LootContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;",
+            at = @At("RETURN"),
+            cancellable = true
+    )
+    private void reliable_remover$filterAndReroll(LootContext context, CallbackInfoReturnable<ObjectArrayList<ItemStack>> cir) {
+        if (reliable_remover$isReRolling.get()) {
             return;
         }
 
-        ci.cancel();
+        ObjectArrayList<ItemStack> currentItems = cir.getReturnValue();
+        if (currentItems == null || currentItems.isEmpty()) {
+            return;
+        }
 
-        List<ItemStack> finalItems = new ArrayList<>();
+        int targetCount = currentItems.size();
+        ObjectArrayList<ItemStack> finalItems = new ObjectArrayList<>();
+        var params = ((LootContextAccessor) context).reliable_remover$getParams();
         int attempts = 0;
-        int targetCount = -1;
 
         while (attempts < 5) {
-            List<ItemStack> currentRollItems = new ArrayList<>();
-            reliable_remover$isReRolling = true;
-            try {
-                this.getRandomItemsRaw(context, currentRollItems::add);
-            } finally {
-                reliable_remover$isReRolling = false;
-            }
-
-            if (targetCount == -1) {
-                targetCount = currentRollItems.size();
-            }
-
-            if (currentRollItems.isEmpty()) {
-                break;
-            }
-
             boolean anyBlocked = false;
+            finalItems.clear();
 
-            var params = ((LootContextAccessor) context).reliable_remover$getParams();
-
-            for (ItemStack stack : currentRollItems) {
+            for (ItemStack stack : currentItems) {
                 ItemStack replacement = RuleManager.getLootReplacement(stack, params);
                 if (replacement != null) {
                     finalItems.add(replacement);
@@ -73,8 +62,16 @@ public abstract class LootTableMixin {
             }
 
             attempts++;
+            if (attempts < 5) {
+                reliable_remover$isReRolling.set(true);
+                try {
+                    currentItems = this.getRandomItems(context);
+                } finally {
+                    reliable_remover$isReRolling.set(false);
+                }
+            }
         }
 
-        finalItems.forEach(originalOutput);
+        cir.setReturnValue(finalItems);
     }
 }
