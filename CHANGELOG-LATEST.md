@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with certain items in tags still showing up in EMI.
+- Fixed issues with invalid IDs not properly being logged.
