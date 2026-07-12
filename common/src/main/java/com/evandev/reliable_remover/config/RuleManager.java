@@ -31,6 +31,7 @@ public class RuleManager {
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
+    public static boolean MOD_INIT_PHASE = true;
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -59,7 +60,9 @@ public class RuleManager {
 
         if (!hasFiles) generateDefaultConfig(configDir);
 
-        validateRules(newRules);
+        if (!MOD_INIT_PHASE) {
+            validateRules(newRules);
+        }
         optimizeRules(newRules, newBanned);
 
         RULES_BY_ACTION = newRules;
@@ -156,6 +159,7 @@ public class RuleManager {
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)) {
                                 Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                                return true;
                             }
                         }
                         return false;
