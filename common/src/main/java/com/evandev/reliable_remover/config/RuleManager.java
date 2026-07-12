@@ -58,6 +58,19 @@ public class RuleManager {
 
         if (!MOD_INIT_PHASE) {
             validateRules(newRules);
+            ModConfig.get().blacklistedItems.removeIf(itemId -> {
+                if (itemId.startsWith("#")) return false;
+                ResourceLocation id = ResourceLocation.tryParse(itemId);
+                if (id == null) {
+                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
+                    return true;
+                }
+                if (!BuiltInRegistries.ITEM.containsKey(id)) {
+                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
+                    return true;
+                }
+                return false;
+            });
         }
         optimizeRules(newRules, newBanned);
 
