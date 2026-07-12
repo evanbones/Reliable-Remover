@@ -9,6 +9,7 @@ import java.util.List;
 public class CommonClass {
     public static void init() {
         RuleManager.load();
+        RuleManager.MOD_INIT_PHASE = false;
 
         for (List<RemovalRule> rules : RuleManager.getRulesByAction().values()) {
             for (RemovalRule rule : rules) {

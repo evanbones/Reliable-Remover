@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
+    public static boolean MOD_INIT_PHASE = true;
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -55,7 +56,9 @@ public class RuleManager {
 
         if (!hasFiles) generateDefaultConfig(configDir);
 
-        validateRules(newRules);
+        if (!MOD_INIT_PHASE) {
+            validateRules(newRules);
+        }
         optimizeRules(newRules, newBanned);
 
         RULES_BY_ACTION = newRules;
