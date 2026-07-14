@@ -7,6 +7,7 @@ import com.google.gson.annotations.SerializedName;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -285,6 +286,64 @@ public class RemovalRule {
         } catch (PatternSyntaxException e) {
             Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
             return null;
+        }
+    }
+
+    public void expandTags(RegistryAccess registryAccess) {
+        if (this.tags == null || this.tags.isEmpty()) return;
+
+        for (String tagId : this.tags) {
+            String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+            ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+            if (tagLocation == null) continue;
+
+            Set<String> resolved = new HashSet<>();
+            if (this.action == Action.REMOVE_POTION) {
+                TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
+                registryAccess.registry(Registries.POTION).ifPresent(registry -> {
+                    for (Map.Entry<ResourceKey<Potion>, Potion> entry : registry.entrySet()) {
+                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
+                            if (holder.is(tagKey)) {
+                                resolved.add(entry.getKey().location().toString());
+                            }
+                        });
+                    }
+                });
+            } else if (this.action == Action.REMOVE_ENCHANTMENT) {
+                TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                registryAccess.registry(Registries.ENCHANTMENT).ifPresent(registry -> {
+                    for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : registry.entrySet()) {
+                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
+                            if (holder.is(tagKey)) {
+                                resolved.add(entry.getKey().location().toString());
+                            }
+                        });
+                    }
+                });
+            } else {
+                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                registryAccess.registry(Registries.ITEM).ifPresent(registry -> {
+                    for (Item item : registry) {
+                        ResourceLocation key = registry.getKey(item);
+                        if (key == null) continue;
+                        registry.getHolder(ResourceKey.create(Registries.ITEM, key)).ifPresent(holder -> {
+                            if (holder.is(tagKey)) {
+                                resolved.add(key.toString());
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (!resolved.isEmpty()) {
+                RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
+                this.items.addAll(resolved);
+            } else {
+                Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+                if (cached != null) {
+                    this.items.addAll(cached);
+                }
+            }
         }
     }
 }

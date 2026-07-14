@@ -24,6 +24,7 @@
     "minecraft.PotionBrewingMixin",
     "minecraft.RandomizableContainerMixin",
     "minecraft.RecipeManagerMixin",
+    "minecraft.ReloadableServerResourcesMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
     "minecraft.accessor.LootContextAccessor"
@@ -31,6 +32,7 @@
   "client": [
     "client.ClientAdvancementsMixin",
     "client.ScreenMixin",
+    "minecraft.ClientPacketListenerMixin",
     "minecraft.MinecraftMixin"
   ],
   "server": [],

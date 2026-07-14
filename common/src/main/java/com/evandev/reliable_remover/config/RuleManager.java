@@ -6,6 +6,7 @@ import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -25,13 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class RuleManager {
+    public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
+    public static boolean MOD_INIT_PHASE = true;
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
-    public static boolean MOD_INIT_PHASE = true;
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -527,5 +529,19 @@ public class RuleManager {
                 return rule;
         }
         return null;
+    }
+
+    public static void expandTagRules(RegistryAccess registryAccess) {
+        RuleManager.load();
+        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+            for (RemovalRule rule : rules) {
+                rule.expandTags(registryAccess);
+            }
+        }
+        int totalExpandedItems = RULES_BY_ACTION.values().stream()
+                .flatMap(List::stream)
+                .mapToInt(rule -> rule.items != null ? rule.items.size() : 0)
+                .sum();
+        Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
     }
 }

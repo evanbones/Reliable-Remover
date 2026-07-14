@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with invalid IDs not properly being logged.
+- Fixed tag-based filtering not removing items properly.
