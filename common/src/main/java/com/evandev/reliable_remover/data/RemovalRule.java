@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.data;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.Holder;
@@ -267,6 +268,57 @@ public class RemovalRule {
         } catch (PatternSyntaxException e) {
             Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
             return null;
+        }
+    }
+
+    public void expandTags() {
+        if (this.tags == null || this.tags.isEmpty()) return;
+
+        for (String tagId : this.tags) {
+            String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+            ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+            if (tagLocation == null) continue;
+
+            Set<String> resolved = new HashSet<>();
+            if (this.action == Action.REMOVE_POTION) {
+                TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
+                for (Map.Entry<ResourceKey<Potion>, Potion> entry : BuiltInRegistries.POTION.entrySet()) {
+                    BuiltInRegistries.POTION.getHolder(entry.getKey()).ifPresent(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(entry.getKey().location().toString());
+                        }
+                    });
+                }
+            } else if (this.action == Action.REMOVE_ENCHANTMENT) {
+                TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : BuiltInRegistries.ENCHANTMENT.entrySet()) {
+                    BuiltInRegistries.ENCHANTMENT.getHolder(entry.getKey()).ifPresent(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(entry.getKey().location().toString());
+                        }
+                    });
+                }
+            } else {
+                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                for (Item item : BuiltInRegistries.ITEM) {
+                    ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
+                    BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, key)).ifPresent(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(key.toString());
+                        }
+                    });
+                }
+            }
+
+            if (!resolved.isEmpty()) {
+                RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
+                this.items.addAll(resolved);
+            } else {
+                Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+                if (cached != null) {
+                    this.items.addAll(cached);
+                }
+            }
         }
     }
 }

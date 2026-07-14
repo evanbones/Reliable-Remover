@@ -25,9 +25,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class RuleManager {
+    public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
+    public static boolean MOD_INIT_PHASE = true;
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
-    public static boolean MOD_INIT_PHASE = true;
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -407,5 +408,19 @@ public class RuleManager {
                 return rule;
         }
         return null;
+    }
+
+    public static void expandTagRules() {
+        RuleManager.load();
+        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+            for (RemovalRule rule : rules) {
+                rule.expandTags();
+            }
+        }
+        int totalExpandedItems = RULES_BY_ACTION.values().stream()
+                .flatMap(List::stream)
+                .mapToInt(rule -> rule.items != null ? rule.items.size() : 0)
+                .sum();
+        Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
     }
 }
