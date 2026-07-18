@@ -31,14 +31,32 @@ public class RuleParser {
 
                 if (json.isJsonArray()) {
                     for (JsonElement e : json.getAsJsonArray()) {
+                        if (e.isJsonObject()) normalizeRule(e.getAsJsonObject());
                         addRule(GSON.fromJson(e, RemovalRule.class), rulesByAction);
                     }
                 } else if (json.isJsonObject()) {
+                    normalizeRule(json.getAsJsonObject());
                     addRule(GSON.fromJson(json, RemovalRule.class), rulesByAction);
                 }
             }
         } catch (Exception e) {
             Constants.LOG.error("Error parsing file: {}", path, e);
+        }
+    }
+
+    private static void normalizeRule(JsonObject obj) {
+        if (obj.has("pattern") && obj.get("pattern").isJsonArray()) {
+            JsonArray patternArray = obj.getAsJsonArray("pattern");
+            JsonArray patterns = obj.has("patterns") && obj.get("patterns").isJsonArray()
+                    ? obj.getAsJsonArray("patterns")
+                    : new JsonArray();
+            patternArray.forEach(patterns::add);
+            obj.remove("pattern");
+            obj.add("patterns", patterns);
+        }
+
+        if (obj.has("not") && obj.get("not").isJsonObject()) {
+            normalizeRule(obj.getAsJsonObject("not"));
         }
     }
 

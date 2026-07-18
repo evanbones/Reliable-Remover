@@ -1,3 +1,4 @@
 ### Fixed
 
-- Fixed tag-based filtering not removing items properly.
+- Made `pattern` parsing more lenient.
+- Fixed issues with chest loot specific removal.

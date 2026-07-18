@@ -44,6 +44,8 @@ publishMods {
         projectId = "1420447"
         minecraftVersions.add("${minecraft_version}")
 
+        client = true
+        server = true
         requires("reliable-recipes")
         requires("yacl")
         optional("emi")
