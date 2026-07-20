@@ -71,8 +71,10 @@ public class RuleManager {
                     Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
                     return true;
                 }
-                if (!BuiltInRegistries.ITEM.containsKey(id)) {
-                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
+                if (!BuiltInRegistries.ITEM.containsKey(id)
+                        && !BuiltInRegistries.FLUID.containsKey(id)
+                        && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item/fluid/effect ID '{}'.", itemId);
                     return true;
                 }
                 return false;
