@@ -183,7 +183,7 @@ public class RuleManager {
                             return true;
                         }
 
-                        if (rule.action == Action.REMOVE_POTION) {
+                        if (rule.action == Action.REMOVE_POTION || rule.action == Action.REMOVE_EFFECT) {
                             if (!BuiltInRegistries.POTION.containsKey(id) && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
                                 Constants.LOG.warn("Skipping invalid potion/effect ID '{}'.", itemId);
                                 return true;
@@ -336,6 +336,7 @@ public class RuleManager {
     public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (state == null || state.isAir()) return false;
         ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        if (loc == null) return false;
         String id = loc.toString();
         String dim = level != null ? level.dimension().location().toString() : null;
         return checkRules(null, id, Action.REMOVE_INTERACTIONS, dim, entity, state.getBlockHolder(), "block_interaction");
@@ -365,6 +366,7 @@ public class RuleManager {
         if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
         if (CNM_CASCADE_REMOVED.contains(id)) return true;
         String dim = level != null ? level.dimension().location().toString() : null;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, dim, entity, effectHolder, "effect")) return true;
         if (checkRules(null, id, Action.REMOVE_POTION, dim, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, dim, entity, effectHolder, "effect");
     }

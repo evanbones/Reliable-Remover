@@ -134,14 +134,26 @@ Removes Water and Lava fluids from recipe viewers.
 
 ```
 
-### Remove Potions and Prevent Effect Application
+### Remove Potions by Effect
 
-Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect and prevents entities from receiving the effect.
+Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect from Creative Tabs and recipe viewers.
 
 ```json
 {
   "action": "remove_potion",
   "effects": ["minecraft:night_vision"]
+}
+
+```
+
+### Prevent Status Effect Application (`remove_effect`)
+
+Prevents entities from gaining the `minecraft:poison` status effect from any source (potions, mob attacks, beacons, etc.).
+
+```json
+{
+  "action": "remove_effect",
+  "effects": ["minecraft:poison"]
 }
 
 ```

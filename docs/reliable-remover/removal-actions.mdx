@@ -146,13 +146,28 @@ Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchant
 
 ### `remove_potion`
 
-Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect, and prevents application of the status effect to living entities from any source (drinking, splash potions, mob attacks, `/effect give`, etc.).
+Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect from Creative Tabs, EMI/JEI/REI, and loot.
 
-* **Use Case**: Remove "Poison" or "Invisibility" potions from the game and block entities from receiving the effect.
+* **Use Case**: Remove "Poison" or "Invisibility" potion items from the game menus and loot tables.
 
 ```json
 {
   "action": "remove_potion",
+  "effects": ["minecraft:poison", "minecraft:invisibility"]
+}
+
+```
+
+### `remove_effect`
+
+Prevents active status effects from being applied to living entities from any source (drinking potions, splash potions, mob attacks, beacons, environmental hazards, `/effect give`, etc.).
+
+* **Aliases**: `remove_effects`, `remove_status_effect`, `remove_status_effects`, `remove_mob_effect`
+* **Use Case**: Disable the "Poison" or "Blindness" status effect from affecting players or mobs without hiding unrelated items.
+
+```json
+{
+  "action": "remove_effect",
   "effects": ["minecraft:poison", "minecraft:blindness"]
 }
 

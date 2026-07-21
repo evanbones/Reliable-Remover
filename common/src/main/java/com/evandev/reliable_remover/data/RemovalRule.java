@@ -278,7 +278,7 @@ public class RemovalRule {
         ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
 
         if (tagLocation != null && itemLocation != null) {
-            if (currentAction == Action.REMOVE_POTION) {
+            if (currentAction == Action.REMOVE_POTION || currentAction == Action.REMOVE_EFFECT) {
                 if (compiledPotionTags == null) {
                     synchronized (this) {
                         if (compiledPotionTags == null) compiledPotionTags = new ConcurrentHashMap<>();
