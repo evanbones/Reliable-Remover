@@ -4,9 +4,10 @@
 <a href='https://fabricmc.net'><img alt="fabric" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/fabric_vector.svg"></a>
 <a href='https://neoforged.net/'><img alt="neoforge" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/neoforge_vector.svg"></a>
 
-A lightweight utility designed for completely removing items or blocking interactions
-through simple JSON configuration. This mod allows modpack creators to effortlessly ban items or restrict their
-usage using standard JSON files, without the need for complex scripts.
+A lightweight utility designed for completely removing items, blocks, fluids, and status effects, or blocking
+interactions through simple JSON configuration. This mod allows modpack creators to effortlessly ban items, block
+in-world interactions (such as anvils or beds), and remove items, blocks, fluids, or effects, without the need for
+complex scripts.
 
 ## What About [Item Obliterator](https://modrinth.com/mod/item-obliterator)?
 

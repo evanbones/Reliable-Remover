@@ -120,16 +120,28 @@ This rule uses the `patterns` list to block the swing animation for all shovels 
 
 ```
 
-## NBT & Data
+## Fluids & Effects
 
-### Remove Potions by Effect
+### Remove Fluids by ID
 
-Removes any potion (Splash, Lingering, or Drinkable) that contains the `minecraft:night_vision` effect.
+Removes Water and Lava fluids from recipe viewers.
+
+```json
+{
+  "action": "remove",
+  "fluids": ["minecraft:water", "minecraft:lava"]
+}
+
+```
+
+### Remove Potions and Prevent Effect Application
+
+Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect and prevents entities from receiving the effect.
 
 ```json
 {
   "action": "remove_potion",
-  "items": ["minecraft:night_vision"]
+  "effects": ["minecraft:night_vision"]
 }
 
 ```

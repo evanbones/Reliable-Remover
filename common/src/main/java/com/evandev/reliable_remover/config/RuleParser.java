@@ -61,6 +61,9 @@ public class RuleParser {
     }
 
     private static void addRule(RemovalRule rule, Map<Action, List<RemovalRule>> rulesByAction) {
+        if (rule.blocks != null && !rule.blocks.isEmpty()) rule.items.addAll(rule.blocks);
+        if (rule.fluids != null && !rule.fluids.isEmpty()) rule.items.addAll(rule.fluids);
+        if (rule.effects != null && !rule.effects.isEmpty()) rule.items.addAll(rule.effects);
         if (rule.action == null) rule.action = Action.REMOVE;
         rulesByAction.computeIfAbsent(rule.action, k -> new ArrayList<>()).add(rule);
     }

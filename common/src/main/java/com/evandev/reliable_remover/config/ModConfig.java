@@ -57,6 +57,13 @@ public class ModConfig {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 INSTANCE = GSON.fromJson(reader, ModConfig.class);
+                if (INSTANCE != null) {
+                    if (INSTANCE.blacklistedItems == null) {
+                        INSTANCE.blacklistedItems = new ArrayList<>();
+                    } else {
+                        INSTANCE.blacklistedItems = new ArrayList<>(INSTANCE.blacklistedItems);
+                    }
+                }
             } catch (Exception e) {
                 Constants.LOG.error("Failed to load reliable_remover.json", e);
                 INSTANCE = new ModConfig();
@@ -65,6 +72,9 @@ public class ModConfig {
         } else {
             INSTANCE = new ModConfig();
             save();
+        }
+        if (INSTANCE != null && INSTANCE.blacklistedItems == null) {
+            INSTANCE.blacklistedItems = new ArrayList<>();
         }
     }
 
@@ -108,7 +118,7 @@ public class ModConfig {
                 .group(ListOption.<String>createBuilder()
                         .name(Component.translatable("config.reliable_remover.option.blacklisted_items"))
                         .description(OptionDescription.of(Component.translatable("config.reliable_remover.option.blacklisted_items.tooltip")))
-                        .binding(new ArrayList<>(), () -> get().blacklistedItems, val -> get().blacklistedItems = val)
+                        .binding(new ArrayList<>(), () -> get().blacklistedItems, val -> get().blacklistedItems = new ArrayList<>(val))
                         .controller(StringControllerBuilder::create)
                         .initial("")
                         .build());

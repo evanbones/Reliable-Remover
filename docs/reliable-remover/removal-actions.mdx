@@ -95,9 +95,16 @@ Prevents the specified item from generating as loot *only* in containers (Chests
 
 ### `remove_interactions`
 
-Prevents the player from "using" the item (Right-Click).
+Prevents the player from "using" an item or interacting with a placed block in the world (Right-Click).
 
-* **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket).
+* **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket), or to disable right-click interactions on in-world blocks (e.g., anvils, beds, crafting tables, chests, levers).
+
+```json
+{
+  "action": "remove_interactions",
+  "blocks": ["minecraft:anvil", "#minecraft:beds"]
+}
+```
 
 [View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
 
@@ -125,14 +132,14 @@ Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchant
 
 ### `remove_potion`
 
-Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect.
+Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect, and prevents application of the status effect to living entities from any source (drinking, splash potions, mob attacks, `/effect give`, etc.).
 
-* **Use Case**: Remove "Poison" or "Invisibility" potions from the game.
+* **Use Case**: Remove "Poison" or "Invisibility" potions from the game and block entities from receiving the effect.
 
 ```json
 {
   "action": "remove_potion",
-  "items": ["minecraft:poison", "minecraft:strong_poison"]
+  "effects": ["minecraft:poison", "minecraft:blindness"]
 }
 
 ```

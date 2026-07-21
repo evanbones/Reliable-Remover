@@ -1,11 +1,14 @@
 package com.evandev.reliable_remover.api;
 
 import com.evandev.reliable_remover.config.RuleManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 
 public class ReliableRemoverAPI {
@@ -91,6 +94,20 @@ public class ReliableRemoverAPI {
      */
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         return RuleManager.isInteractionBlocked(stack, level, target);
+    }
+
+    /**
+     * Checks if right-click interactions with a block in the world have been blocked.
+     */
+    public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
+        return RuleManager.isBlockInteractionBlocked(state, level, pos, entity);
+    }
+
+    /**
+     * Checks if a status effect / mob effect has been blocked.
+     */
+    public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level, Entity entity) {
+        return RuleManager.isEffectBlocked(effectHolder, level, entity);
     }
 
     /**

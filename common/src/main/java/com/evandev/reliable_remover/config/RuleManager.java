@@ -5,17 +5,20 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 
 import java.nio.file.Files;
@@ -64,21 +67,26 @@ public class RuleManager {
 
         if (!MOD_INIT_PHASE) {
             validateRules(newRules);
-            ModConfig.get().blacklistedItems.removeIf(itemId -> {
-                if (itemId.startsWith("#")) return false;
-                ResourceLocation id = ResourceLocation.tryParse(itemId);
-                if (id == null) {
-                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
-                    return true;
-                }
-                if (!BuiltInRegistries.ITEM.containsKey(id)
-                        && !BuiltInRegistries.FLUID.containsKey(id)
-                        && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
-                    Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item/fluid/effect ID '{}'.", itemId);
-                    return true;
-                }
-                return false;
-            });
+            if (ModConfig.get().blacklistedItems != null) {
+                List<String> validBlacklist = new ArrayList<>(ModConfig.get().blacklistedItems);
+                validBlacklist.removeIf(itemId -> {
+                    if (itemId.startsWith("#")) return false;
+                    ResourceLocation id = ResourceLocation.tryParse(itemId);
+                    if (id == null) {
+                        Constants.LOG.warn("Skipping invalid blacklisted item ID '{}'.", itemId);
+                        return true;
+                    }
+                    if (!BuiltInRegistries.ITEM.containsKey(id)
+                            && !BuiltInRegistries.BLOCK.containsKey(id)
+                            && !BuiltInRegistries.FLUID.containsKey(id)
+                            && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                        Constants.LOG.warn("Skipping invalid blacklisted item/block/fluid/effect ID '{}'.", itemId);
+                        return true;
+                    }
+                    return false;
+                });
+                ModConfig.get().blacklistedItems = validBlacklist;
+            }
         }
         optimizeRules(newRules, newBanned);
 
@@ -170,20 +178,23 @@ public class RuleManager {
 
                         ResourceLocation id = ResourceLocation.tryParse(itemId);
                         if (id == null) {
-                            Constants.LOG.warn("Reliable Remover: Skipping completely invalid ID '{}'.", itemId);
+                            Constants.LOG.warn("Skipping invalid ID '{}'.", itemId);
                             return true;
                         }
 
                         if (rule.action == Action.REMOVE_POTION) {
-                            if (!BuiltInRegistries.POTION.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid potion ID '{}'.", itemId);
+                            if (!BuiltInRegistries.POTION.containsKey(id) && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                                Constants.LOG.warn("Skipping invalid potion/effect ID '{}'.", itemId);
                                 return true;
                             }
                         } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
                             return false;
                         } else {
-                            if (!BuiltInRegistries.ITEM.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                            if (!BuiltInRegistries.ITEM.containsKey(id)
+                                    && !BuiltInRegistries.BLOCK.containsKey(id)
+                                    && !BuiltInRegistries.FLUID.containsKey(id)
+                                    && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                                Constants.LOG.warn("Skipping invalid item/block/fluid/effect ID '{}'.", itemId);
                                 return true;
                             }
                         }
@@ -196,7 +207,7 @@ public class RuleManager {
                         String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
                         ResourceLocation id = ResourceLocation.tryParse(cleanTagId);
                         if (id == null) {
-                            Constants.LOG.warn("Reliable Remover: Skipping invalid tag ID '{}'.", tagId);
+                            Constants.LOG.warn("Skipping invalid tag ID '{}'.", tagId);
                             return true;
                         }
                         return false;
@@ -311,10 +322,44 @@ public class RuleManager {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null) {
                 String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.location().toString()).orElse(null);
-                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
+                if (potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context))
+                    return true;
+                for (var effectInst : contents.customEffects()) {
+                    if (isEffectBlocked(effectInst.getEffect(), level, holder)) return true;
+                }
             }
         }
         return false;
+    }
+
+    public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
+        if (state == null || state.isAir()) return false;
+        ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        if (loc == null) return false;
+        String id = loc.toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        return checkRules(null, id, Action.REMOVE_INTERACTIONS, dim, entity, state.getBlockHolder(), "interaction");
+    }
+
+    public static boolean isBlockInteractionBlocked(BlockState state, Level level) {
+        return isBlockInteractionBlocked(state, level, null, null);
+    }
+
+    public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level, Entity entity) {
+        if (effectHolder == null) return false;
+        MobEffect effect = effectHolder.value();
+        ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+        if (loc == null) return false;
+        String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
+        String dim = level != null ? level.dimension().location().toString() : null;
+        if (checkRules(null, id, Action.REMOVE_POTION, dim, entity, effectHolder, "effect")) return true;
+        return checkRules(null, id, Action.REMOVE, dim, entity, effectHolder, "effect");
+    }
+
+    public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level) {
+        return isEffectBlocked(effectHolder, level, null);
     }
 
     /**

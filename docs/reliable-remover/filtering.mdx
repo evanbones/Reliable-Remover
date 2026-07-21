@@ -9,12 +9,15 @@ In Reliable Remover, you define an action and then add filters to the action.
 
 | Field | Description | Example |
 | :--- | :--- | :--- |
-| `items` | List of specific IDs. | `["minecraft:tnt"]` |
-| `tags` | List of item tags to remove. | `["minecraft:logs"]` |
+| `items` | List of specific item IDs. | `["minecraft:tnt"]` |
+| `blocks` | List of specific block IDs or block tags. | `["minecraft:anvil", "#minecraft:beds"]` |
+| `fluids` | List of specific fluid IDs or fluid tags. | `["minecraft:water"]` |
+| `effects` | List of status effect / potion IDs or effect tags. | `["minecraft:poison", "minecraft:blindness"]` |
+| `tags` | List of item/block/fluid/effect tags to remove. | `["minecraft:logs"]` |
 | `mod` | Target all items from a mod ID. | `"farmersdelight"` |
 | `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
 | `entities` | List of entity IDs (for interaction, attack, and equipment removal rules). | `["minecraft:villager"]` |
-| `patterns` | A list of Regex patterns to match multiple item IDs. | `["/.*_sword/", "/.*_helmet/"]` |
+| `patterns` | A list of Regex patterns to match multiple item/block/fluid/effect IDs. | `["/.*_sword/", "/.*_helmet/"]` |
 | `nbt` | Matches NBT tags (or Data Components in 1.21+). Provide strict SNBT format for a subset match (e.g., `"{Damage:0}"`), or wrap the string in slashes to use Regex (e.g., `"/{.*Damage.*}/"`). |
 | `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
 | `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |

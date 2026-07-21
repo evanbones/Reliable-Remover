@@ -3,7 +3,7 @@ title: Blocking Interactions
 hide_meta: true
 ---
 
-These examples use the `remove_interactions` action. The item still exists and can be crafted, but cannot be "used" (right-clicked).
+These examples use the `remove_interactions` action. Items or blocks still exist, but cannot be "used" or right-clicked.
 
 ### Disable Item Usage
 Prevents players from using Lava Buckets or Flint and Steel.
@@ -14,6 +14,20 @@ Prevents players from using Lava Buckets or Flint and Steel.
   "items": [
     "minecraft:lava_bucket",
     "minecraft:flint_and_steel"
+  ]
+}
+
+```
+
+### Disable Block Right-Click Interactions
+Prevents players from opening/using Anvils or any Bed in the world.
+
+```json
+{
+  "action": "remove_interactions",
+  "blocks": [
+    "minecraft:anvil",
+    "#minecraft:beds"
   ]
 }
 

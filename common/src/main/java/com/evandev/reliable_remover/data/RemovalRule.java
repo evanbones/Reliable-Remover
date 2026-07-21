@@ -16,11 +16,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +34,16 @@ public class RemovalRule {
     public Action action;
 
     public Set<String> items = new HashSet<>();
+
+    @SerializedName(value = "blocks", alternate = {"block"})
+    public Set<String> blocks = new HashSet<>();
+
+    @SerializedName(value = "fluids", alternate = {"fluid"})
+    public Set<String> fluids = new HashSet<>();
+
+    @SerializedName(value = "effects", alternate = {"effect", "status_effects", "status_effect", "mob_effects", "mob_effect"})
+    public Set<String> effects = new HashSet<>();
+
     public Set<String> dimensions = new HashSet<>();
     public Set<String> entities = new HashSet<>();
 
@@ -236,8 +249,19 @@ public class RemovalRule {
                     }
                 }
                 TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
-                return BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
+                if (BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
                         .map(holder -> holder.is(tagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                if (registryHolder != null && registryHolder.value() instanceof MobEffect) {
+                    @SuppressWarnings("unchecked")
+                    Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
+                    if (effectHolder.is(effectTagKey)) return true;
+                }
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
                         .orElse(false);
 
             } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
@@ -259,6 +283,24 @@ public class RemovalRule {
                 return false;
 
             } else {
+                if (registryHolder != null) {
+                    if (registryHolder.value() instanceof Block) {
+                        TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Block> blockHolder = (Holder<Block>) registryHolder;
+                        if (blockHolder.is(blockTagKey)) return true;
+                    } else if (registryHolder.value() instanceof MobEffect) {
+                        TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
+                        if (effectHolder.is(effectTagKey)) return true;
+                    } else if (registryHolder.value() instanceof Fluid) {
+                        TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Fluid> fluidHolder = (Holder<Fluid>) registryHolder;
+                        if (fluidHolder.is(fluidTagKey)) return true;
+                    }
+                }
                 if (compiledItemTags == null) {
                     synchronized (this) {
                         if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
@@ -266,12 +308,29 @@ public class RemovalRule {
                 }
                 TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
                 if (stack != null && !stack.isEmpty()) {
-                    return stack.is(tagKey);
-                } else {
-                    return BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
-                            .map(holder -> holder.is(tagKey))
-                            .orElse(false);
+                    if (stack.is(tagKey)) return true;
                 }
+                if (BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
+                        .map(holder -> holder.is(tagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                if (BuiltInRegistries.BLOCK.getHolder(ResourceKey.create(Registries.BLOCK, itemLocation))
+                        .map(holder -> holder.is(blockTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                if (BuiltInRegistries.FLUID.getHolder(ResourceKey.create(Registries.FLUID, itemLocation))
+                        .map(holder -> holder.is(fluidTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
+                        .orElse(false);
             }
         }
         return false;

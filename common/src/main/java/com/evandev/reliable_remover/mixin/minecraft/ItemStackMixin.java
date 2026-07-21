@@ -25,7 +25,8 @@ public class ItemStackMixin {
 
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$blockUseOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel(), null)) {
+        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel(), null)
+                || RuleManager.isBlockInteractionBlocked(context.getLevel().getBlockState(context.getClickedPos()), context.getLevel(), context.getClickedPos(), context.getPlayer())) {
             Player player = context.getPlayer();
             if (player != null && ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);

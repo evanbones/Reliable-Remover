@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.10.0] - 2026-07-21
+
+### Added
+
+- Status effects are now properly blocked from applying when removed.
+- Added support for right-click interaction removal on in-world blocks (such as anvils, beds, crafting tables, chests,
+  levers, etc.) via `remove_interactions`.
+- Added dedicated `blocks`, `fluids`, and `effects` options in rule definitions.
+
+### Fixed
+
+- Fixed crash when removing/saving items in the blacklist config screen on the main menu.
+- Fixed rare startup crash.
+
 ## [2.9.5] - 2026-07-19
 
 ### Fixed
