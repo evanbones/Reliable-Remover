@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class RuleManager {
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
@@ -335,14 +336,24 @@ public class RuleManager {
     public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (state == null || state.isAir()) return false;
         ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-        if (loc == null) return false;
         String id = loc.toString();
         String dim = level != null ? level.dimension().location().toString() : null;
-        return checkRules(null, id, Action.REMOVE_INTERACTIONS, dim, entity, state.getBlockHolder(), "interaction");
+        return checkRules(null, id, Action.REMOVE_INTERACTIONS, dim, entity, state.getBlockHolder(), "block_interaction");
     }
 
     public static boolean isBlockInteractionBlocked(BlockState state, Level level) {
         return isBlockInteractionBlocked(state, level, null, null);
+    }
+
+    public static boolean isPlacementBlocked(ItemStack stack, Level level, Entity entity) {
+        if (stack == null || stack.isEmpty()) return false;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        return checkRules(stack, id, Action.REMOVE_PLACEMENT, dim, entity, null, "placement");
+    }
+
+    public static boolean isPlacementBlocked(ItemStack stack, Level level) {
+        return isPlacementBlocked(stack, level, null);
     }
 
     public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level, Entity entity) {

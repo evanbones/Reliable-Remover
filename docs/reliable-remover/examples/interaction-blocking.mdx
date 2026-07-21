@@ -19,8 +19,8 @@ Prevents players from using Lava Buckets or Flint and Steel.
 
 ```
 
-### Disable Block Right-Click Interactions
-Prevents players from opening/using Anvils or any Bed in the world.
+### Disable Block Interactions (Placeable but Not Usable)
+Prevents players from sleeping in beds or using anvils in the world, while still allowing them to place beds and anvils from their inventory.
 
 ```json
 {
@@ -28,6 +28,20 @@ Prevents players from opening/using Anvils or any Bed in the world.
   "blocks": [
     "minecraft:anvil",
     "#minecraft:beds"
+  ]
+}
+
+```
+
+### Disable Block Placement (`remove_placement`)
+Prevents players from placing TNT or Bedrock in the world.
+
+```json
+{
+  "action": "remove_placement",
+  "blocks": [
+    "minecraft:tnt",
+    "minecraft:bedrock"
   ]
 }
 

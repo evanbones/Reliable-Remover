@@ -97,6 +97,13 @@ public class ReliableRemoverAPI {
     }
 
     /**
+     * Checks if placing the item/block in the world has been blocked.
+     */
+    public static boolean isPlacementBlocked(ItemStack stack, Level level, Entity entity) {
+        return RuleManager.isPlacementBlocked(stack, level, entity);
+    }
+
+    /**
      * Checks if right-click interactions with a block in the world have been blocked.
      */
     public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {

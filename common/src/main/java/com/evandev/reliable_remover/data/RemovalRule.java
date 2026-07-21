@@ -178,11 +178,17 @@ public class RemovalRule {
             if (RuleManager.isSkippingAdvancementCheck() || checkAllAdvancements(entity, advancements)) return false;
         }
 
+        if (this.action == Action.REMOVE_INTERACTIONS && "interaction".equals(context)) {
+            if (this.blocks != null && !this.blocks.isEmpty() && (this.items == null || this.items.isEmpty())) {
+                return false;
+            }
+        }
+
         boolean hasPattern = pattern != null && !pattern.isEmpty();
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
         boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
-        boolean hasItemFilter = (items != null && !items.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
+        boolean hasItemFilter = (items != null && !items.isEmpty()) || (blocks != null && !blocks.isEmpty()) || (fluids != null && !fluids.isEmpty()) || (effects != null && !effects.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
@@ -202,6 +208,36 @@ public class RemovalRule {
 
         if (items != null && !items.isEmpty()) {
             for (String filter : items) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (blocks != null && !blocks.isEmpty()) {
+            for (String filter : blocks) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (fluids != null && !fluids.isEmpty()) {
+            for (String filter : fluids) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (effects != null && !effects.isEmpty()) {
+            for (String filter : effects) {
                 if (filter.startsWith("#")) {
                     if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
                 } else if (filter.equals(itemId)) {

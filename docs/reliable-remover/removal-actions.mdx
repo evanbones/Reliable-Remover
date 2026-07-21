@@ -97,7 +97,8 @@ Prevents the specified item from generating as loot *only* in containers (Chests
 
 Prevents the player from "using" an item or interacting with a placed block in the world (Right-Click).
 
-* **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket), or to disable right-click interactions on in-world blocks (e.g., anvils, beds, crafting tables, chests, levers).
+* **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket), or to disable right-click interactions on placed blocks (e.g., sleeping in beds, using anvils, opening chests).
+* **Tip**: Specifying `blocks` allows players to place the block from their hand, but disables right-clicking/interacting with the placed block in the world. If you want to prevent placing the block altogether, use `remove_placement`.
 
 ```json
 {
@@ -107,6 +108,19 @@ Prevents the player from "using" an item or interacting with a placed block in t
 ```
 
 [View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
+
+### `remove_placement`
+
+Prevents the player from placing the specified block or item in the world.
+
+* **Use Case**: Allow players to craft, hold, or trade a block (e.g. TNT, Bedrock) while preventing them from placing it on the ground.
+
+```json
+{
+  "action": "remove_placement",
+  "blocks": ["minecraft:tnt"]
+}
+```
 
 ### `remove_attacks`
 
