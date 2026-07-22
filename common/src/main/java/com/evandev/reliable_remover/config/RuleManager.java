@@ -375,6 +375,24 @@ public class RuleManager {
         return isEffectBlocked(effectHolder, level, null);
     }
 
+    public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder, Entity entity) {
+        if (effectHolder == null) return false;
+        MobEffect effect = effectHolder.value();
+        ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+        if (loc == null) return false;
+        String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
+        if (checkRules(null, id, Action.REMOVE_CREATIVE, null, entity, effectHolder, "creative")) return true;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, null, entity, effectHolder, "effect")) return true;
+        if (checkRules(null, id, Action.REMOVE_POTION, null, entity, effectHolder, "effect")) return true;
+        return checkRules(null, id, Action.REMOVE, null, entity, effectHolder, "effect");
+    }
+
+    public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder) {
+        return isEffectCreativeBlocked(effectHolder, null);
+    }
+
     /**
      * Strips blocked enchantments from an item stack using Data Components.
      */

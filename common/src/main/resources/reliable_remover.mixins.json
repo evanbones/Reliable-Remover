@@ -12,6 +12,7 @@
     "emi.EmiStackListMixin",
     "emi.EmiTagsMixin",
     "emi.LootTableParserMixin",
+    "jeed.JeedMixin",
     "minecraft.AnvilMenuMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",

@@ -17,14 +17,15 @@ Using `remove` is equivalent to applying **all** of the granular removal actions
 
 ### `remove_creative`
 
-Hides the specified item from Creative Mode tabs and recipe viewers like EMI, JEI, and REI.
+Hides the specified item or status effect from Creative Mode tabs and recipe/effect viewers like EMI, JEI, REI, and JEED.
 
-* **Use Case**: You want an item to be obtainable via commands or scripts, but not visible to players in menus.
+* **Use Case**: You want an item or status effect to exist and be usable in-game (via commands, mob abilities, potions, etc.), but not visible to players in creative tabs or recipe/effect browser menus.
 
 ```json
 {
   "action": "remove_creative",
-  "items": ["minecraft:command_block"]
+  "items": ["minecraft:command_block"],
+  "effects": ["minecraft:wither"]
 }
 ```
 

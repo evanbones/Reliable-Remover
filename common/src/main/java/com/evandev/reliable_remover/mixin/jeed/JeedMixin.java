@@ -1,7 +1,8 @@
 package com.evandev.reliable_remover.mixin.jeed;
 
-import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleManager;
 import net.mehvahdjukaar.jeed.Jeed;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +18,7 @@ public class JeedMixin {
 
     /**
      * Intercepts JEED's effect list generation and filters out any
-     * effects whose IDs are present in Reliable Remover's blacklist.
+     * effects whose IDs are present in Reliable Remover's blacklist or rules.
      */
     @Inject(method = "getEffectList", at = @At("RETURN"), cancellable = true)
     private static void reliable_remover$filterJeedEffects(CallbackInfoReturnable<List<MobEffect>> cir) {
@@ -27,8 +28,9 @@ public class JeedMixin {
             List<MobEffect> filteredList = new ArrayList<>(originalList);
 
             filteredList.removeIf(effect -> {
-                var id = BuiltInRegistries.MOB_EFFECT.getKey(effect);
-                return id != null && ModConfig.get().blacklistedItems.contains(id.toString());
+                var holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+                var player = Minecraft.getInstance().player;
+                return RuleManager.isEffectCreativeBlocked(holder, player);
             });
 
             if (filteredList.size() != originalList.size()) {

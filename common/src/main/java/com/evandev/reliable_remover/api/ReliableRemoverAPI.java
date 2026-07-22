@@ -118,6 +118,17 @@ public class ReliableRemoverAPI {
     }
 
     /**
+     * Checks if a status effect / mob effect has been blocked from creative/JEED/EMI views.
+     */
+    public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder, Entity entity) {
+        return RuleManager.isEffectCreativeBlocked(effectHolder, entity);
+    }
+
+    public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder) {
+        return RuleManager.isEffectCreativeBlocked(effectHolder);
+    }
+
+    /**
      * Checks if a specific enchantment has been blocked.
      */
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {

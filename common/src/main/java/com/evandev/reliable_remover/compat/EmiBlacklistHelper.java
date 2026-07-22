@@ -27,16 +27,25 @@ public class EmiBlacklistHelper {
                         return true;
                     }
                 }
+                for (var entry : BuiltInRegistries.MOB_EFFECT.entrySet()) {
+                    ResourceLocation effectId = entry.getKey().location();
+                    if (id.getPath().contains(effectId.getPath()) || id.toString().contains(effectId.getPath())) {
+                        Holder<MobEffect> holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(entry.getValue());
+                        if (RuleManager.isEffectCreativeBlocked(holder)) {
+                            return true;
+                        }
+                    }
+                }
             }
         }
 
         Object key = stack.getKey();
         if (key instanceof Holder<?> holder && holder.value() instanceof MobEffect effect) {
-            ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(effect);
-            return effectId != null && ModConfig.get().blacklistedItems.contains(effectId.toString());
+            Holder<MobEffect> mobEffectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+            return RuleManager.isEffectCreativeBlocked(mobEffectHolder);
         } else if (key instanceof MobEffect effect) {
-            ResourceLocation effectId = BuiltInRegistries.MOB_EFFECT.getKey(effect);
-            return effectId != null && ModConfig.get().blacklistedItems.contains(effectId.toString());
+            Holder<MobEffect> mobEffectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+            return RuleManager.isEffectCreativeBlocked(mobEffectHolder);
         }
 
         ItemStack itemStack = stack.getItemStack();
