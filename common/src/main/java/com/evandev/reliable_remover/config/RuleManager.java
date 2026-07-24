@@ -36,6 +36,7 @@ public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
+    private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
 
@@ -119,6 +120,12 @@ public class RuleManager {
                 }
             }
         }
+
+        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+    }
+
+    public static void registerCnmCascadeRecompute(Runnable hook) {
+        CNM_CASCADE_RECOMPUTE_HOOK = hook;
     }
 
     public static boolean isInChestFill() {
@@ -629,5 +636,6 @@ public class RuleManager {
                 .mapToInt(rule -> rule.items != null ? rule.items.size() : 0)
                 .sum();
         Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
+        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
     }
 }

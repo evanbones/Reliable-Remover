@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed server crash.
+- Fixed Clutter No More integration.

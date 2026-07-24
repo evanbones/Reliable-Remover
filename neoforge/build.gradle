@@ -51,6 +51,7 @@ dependencies {
 
     // Clutter No More
     compileOnly "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"
+    runtimeOnly "maven.modrinth:clutter-no-more:${cnm_version}-neoforge"
 
     // YACL
     implementation "maven.modrinth:yacl:${yacl_version}-neoforge"
