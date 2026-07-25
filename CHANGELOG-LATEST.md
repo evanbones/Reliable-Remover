@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed Clutter No More integration.
+- Updated Reliable Recipes version.
