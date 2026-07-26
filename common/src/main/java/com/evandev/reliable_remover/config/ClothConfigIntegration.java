@@ -11,6 +11,7 @@ import java.util.ArrayList;
 public class ClothConfigIntegration {
 
     public static Screen createScreen(Screen parent) {
+        ModConfig.load();
         ModConfig config = ModConfig.get();
 
         ConfigBuilder builder = ConfigBuilder.create()

@@ -31,6 +31,7 @@ public class RuleManager {
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
 
     public static void load() {
+        ModConfig.load();
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
         Set<String> newBanned = ConcurrentHashMap.newKeySet();
         for (Action action : Action.values()) newRules.put(action, new ArrayList<>());

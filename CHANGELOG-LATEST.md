@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed tag-based filtering not removing items properly.
+- Fixed rules being reset when editing them on disk while in a world.

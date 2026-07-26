@@ -49,6 +49,14 @@ public class ModConfig {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
                 INSTANCE = GSON.fromJson(reader, ModConfig.class);
+                if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
+                }
+                if (INSTANCE.blacklistedItems == null) {
+                    INSTANCE.blacklistedItems = new ArrayList<>();
+                } else {
+                    INSTANCE.blacklistedItems = new ArrayList<>(INSTANCE.blacklistedItems);
+                }
             } catch (Exception e) {
                 Constants.LOG.error("Failed to load reliable_remover.json", e);
                 INSTANCE = new ModConfig();
