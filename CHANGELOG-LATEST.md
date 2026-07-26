@@ -1,3 +1,3 @@
-### Changed
+### Fixed
 
-- Updated Reliable Recipes version.
+- Fixed issues with JEED.
