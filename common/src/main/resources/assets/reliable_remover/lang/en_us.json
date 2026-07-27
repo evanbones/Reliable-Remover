@@ -42,8 +42,8 @@
   "command.reliable_remover.dump.title.inventory": "All Inventory Items",
 
   "config.reliable_remover.category.emi": "EMI Actions",
-  "config.reliable_remover.option.enable_emi_removal": "Enable Dev Mode",
-  "config.reliable_remover.option.enable_emi_removal.tooltip": "Enable dev mode to delete items directly by hovering and pressing Delete in EMI.",
+  "config.reliable_remover.option.enable_emi_removal": "Enable EMI Removal",
+  "config.reliable_remover.option.enable_emi_removal.tooltip": "Enable to delete items directly by hovering and pressing Delete in EMI.",
   "config.reliable_remover.option.show_toast": "Show Toast",
   "config.reliable_remover.option.show_toast.tooltip": "Show a toast after removing an item through EMI.",
   "config.reliable_remover.option.show_chat_messages": "Show Chat Messages",

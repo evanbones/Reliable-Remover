@@ -18,7 +18,10 @@ public class ClothConfigIntegration {
                 .setParentScreen(parent)
                 .setTitle(Component.translatable("config.reliable_remover.title"));
 
-        builder.setSavingRunnable(ModConfig::save);
+        builder.setSavingRunnable(() -> {
+            ModConfig.save();
+            RuleManager.load();
+        });
 
         ConfigCategory general = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.general"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
@@ -106,10 +109,7 @@ public class ClothConfigIntegration {
         blacklistCategory.addEntry(entryBuilder.startStrList(Component.translatable("config.reliable_remover.option.blacklisted_items"), config.blacklistedItems)
                 .setDefaultValue(new ArrayList<>())
                 .setTooltip(Component.translatable("config.reliable_remover.option.blacklisted_items.tooltip"))
-                .setSaveConsumer(newValue -> {
-                    config.blacklistedItems = newValue;
-                    RuleManager.load();
-                })
+                .setSaveConsumer(newValue -> config.blacklistedItems = newValue)
                 .build());
 
         ConfigCategory emiCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.emi"));
