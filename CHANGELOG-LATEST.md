@@ -1,3 +1,3 @@
 ### Fixed
 
-- Fixed issues with JEED.
+- Fixed issues with EMI's armor trim recipes.
