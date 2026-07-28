@@ -1,7 +1,3 @@
 ### Fixed
 
-- Fixed issues with the config resetting itself.
-
-### Changed
-
-- Tweaked wording of some config options to be clearer.
+- Fixed certain recipes being removed from EMI entirely when the recipe's placeholder preview item was banned.
