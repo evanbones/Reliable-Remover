@@ -48,20 +48,24 @@ public class ModConfig {
     public static void load() {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
-                INSTANCE = GSON.fromJson(reader, ModConfig.class);
-                if (INSTANCE != null) {
-                    if (INSTANCE.blacklistedItems == null) {
-                        INSTANCE.blacklistedItems = new ArrayList<>();
+                ModConfig loaded = GSON.fromJson(reader, ModConfig.class);
+                if (loaded != null) {
+                    if (loaded.blacklistedItems == null) {
+                        loaded.blacklistedItems = new ArrayList<>();
                     } else {
-                        INSTANCE.blacklistedItems = new ArrayList<>(INSTANCE.blacklistedItems);
+                        loaded.blacklistedItems = new ArrayList<>(loaded.blacklistedItems);
                     }
+                    INSTANCE = loaded;
+                } else if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
                 }
             } catch (Exception e) {
-                Constants.LOG.error("Failed to load reliable_remover.json", e);
-                INSTANCE = new ModConfig();
-                save();
+                Constants.LOG.error("Failed to load reliable_remover.json, keeping previous configuration", e);
+                if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
+                }
             }
-        } else {
+        } else if (INSTANCE == null) {
             INSTANCE = new ModConfig();
             save();
         }

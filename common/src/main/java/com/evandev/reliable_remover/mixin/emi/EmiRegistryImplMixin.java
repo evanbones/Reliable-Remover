@@ -35,17 +35,19 @@ public class EmiRegistryImplMixin {
         ResourceLocation categoryId = recipe.getCategory().getId();
         boolean isInfoTab = categoryId != null && categoryId.getNamespace().equals("emi") && categoryId.getPath().equals("info");
 
-        for (EmiStack emiStack : recipe.getOutputs()) {
-            if (EmiBlacklistHelper.isEmiStackBlacklisted(emiStack)) {
-                ci.cancel();
-                return;
-            }
-
-            if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
-                ItemStack stack = emiStack.getItemStack();
-                if (RuleManager.isCreativeBlockedIgnoringAdvancements(stack) || (isInfoTab && RuleManager.isInfoBlockedIgnoringAdvancements(stack))) {
+        if (recipe.supportsRecipeTree()) {
+            for (EmiStack emiStack : recipe.getOutputs()) {
+                if (EmiBlacklistHelper.isEmiStackBlacklisted(emiStack)) {
                     ci.cancel();
                     return;
+                }
+
+                if (emiStack.getItemStack() != null && !emiStack.getItemStack().isEmpty()) {
+                    ItemStack stack = emiStack.getItemStack();
+                    if (RuleManager.isCreativeBlockedIgnoringAdvancements(stack) || (isInfoTab && RuleManager.isInfoBlockedIgnoringAdvancements(stack))) {
+                        ci.cancel();
+                        return;
+                    }
                 }
             }
         }
