@@ -33,6 +33,9 @@ import java.util.regex.PatternSyntaxException;
 public class RemovalRule {
     public Action action;
 
+    @SerializedName(value = "actions", alternate = {"action_list"})
+    public Set<Action> actions = new HashSet<>();
+
     public Set<String> items = new HashSet<>();
 
     @SerializedName(value = "blocks", alternate = {"block"})
