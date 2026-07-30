@@ -133,16 +133,15 @@ Prevents the player from attacking entities while holding the specified item.
 
 ### `remove_enchantment`
 
-Hides any item (Enchanted Book, Tool, Armor) that contains the specified enchantment.
+Removes specific enchantments from item generation (loot tables, enchanting tables, villager trades, and item drops). If an enchanted book's enchantments are all removed, it will automatically reroll a valid allowed enchantment or convert into a standard `minecraft:book` item. Supports enchantment tags (such as `#minecraft:curse`).
 
-* **Use Case**: Remove "Protection" or specific curses from the game entirely.
+* **Use Case**: Remove "Protection" or specific curses from loot, enchanting tables, villager trades, and books entirely.
 
 ```json
 {
   "action": "remove_enchantment",
-  "items": ["minecraft:protection", "minecraft:mending"]
+  "enchantments": ["minecraft:protection", "#minecraft:curse"]
 }
-
 ```
 
 ### `remove_potion`

@@ -32,18 +32,9 @@ public class ServerPlayerGameModeMixin {
 
     @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$cancelUseItemOn(ServerPlayer player, Level level, ItemStack stack, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
-        BlockPos pos = hitResult.getBlockPos();
-        BlockState state = level.getBlockState(pos);
         if (RuleManager.isPlacementBlocked(stack, level, player)) {
             if (ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.placement_disabled"), true);
-            }
-            cir.setReturnValue(InteractionResult.FAIL);
-            return;
-        }
-        if (RuleManager.isBlockInteractionBlocked(state, level, pos, player)) {
-            if (ModConfig.get().showRemovalMessage) {
-                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
             cir.setReturnValue(InteractionResult.FAIL);
         }

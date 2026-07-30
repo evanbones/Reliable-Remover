@@ -42,14 +42,6 @@ public class ItemStackMixin {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.placement_disabled"), true);
             }
             cir.setReturnValue(InteractionResult.FAIL);
-            return;
-        }
-
-        if (RuleManager.isBlockInteractionBlocked(level.getBlockState(context.getClickedPos()), level, context.getClickedPos(), player)) {
-            if (player != null && ModConfig.get().showRemovalMessage) {
-                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
-            }
-            cir.setReturnValue(InteractionResult.FAIL);
         }
     }
 

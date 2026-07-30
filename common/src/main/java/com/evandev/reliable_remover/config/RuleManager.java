@@ -10,8 +10,12 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -25,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
@@ -329,11 +334,19 @@ public class RuleManager {
         if (stack.has(DataComponents.POTION_CONTENTS)) {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null) {
+                String dim = level != null ? level.dimension().location().toString() : null;
                 String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.location().toString()).orElse(null);
-                if (potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context))
+                if (potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, dim, holder, null, context))
                     return true;
-                for (var effectInst : contents.customEffects()) {
-                    if (isEffectBlocked(effectInst.getEffect(), level, holder)) return true;
+                for (MobEffectInstance effectInst : contents.getAllEffects()) {
+                    Holder<MobEffect> effectHolder = effectInst.getEffect();
+                    ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effectHolder.value());
+                    if (loc != null) {
+                        String effectId = loc.toString();
+                        if (checkRules(null, effectId, Action.REMOVE_POTION, dim, holder, effectHolder, context))
+                            return true;
+                    }
+                    if (isEffectBlocked(effectHolder, level, holder)) return true;
                 }
             }
         }
@@ -343,7 +356,6 @@ public class RuleManager {
     public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (state == null || state.isAir()) return false;
         ResourceLocation loc = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-        if (loc == null) return false;
         String id = loc.toString();
         String dim = level != null ? level.dimension().location().toString() : null;
         return checkRules(null, id, Action.REMOVE_INTERACTIONS, dim, entity, state.getBlockHolder(), "block_interaction");
@@ -374,7 +386,6 @@ public class RuleManager {
         if (CNM_CASCADE_REMOVED.contains(id)) return true;
         String dim = level != null ? level.dimension().location().toString() : null;
         if (checkRules(null, id, Action.REMOVE_EFFECT, dim, entity, effectHolder, "effect")) return true;
-        if (checkRules(null, id, Action.REMOVE_POTION, dim, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, dim, entity, effectHolder, "effect");
     }
 
@@ -392,7 +403,6 @@ public class RuleManager {
         if (CNM_CASCADE_REMOVED.contains(id)) return true;
         if (checkRules(null, id, Action.REMOVE_CREATIVE, null, entity, effectHolder, "creative")) return true;
         if (checkRules(null, id, Action.REMOVE_EFFECT, null, entity, effectHolder, "effect")) return true;
-        if (checkRules(null, id, Action.REMOVE_POTION, null, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, null, entity, effectHolder, "effect");
     }
 
@@ -400,10 +410,19 @@ public class RuleManager {
         return isEffectCreativeBlocked(effectHolder, null);
     }
 
-    /**
-     * Strips blocked enchantments from an item stack using Data Components.
-     */
     public static void stripBlockedEnchantments(ItemStack stack) {
+        stripBlockedEnchantments(stack, null, RandomSource.create());
+    }
+
+    public static void stripBlockedEnchantments(ItemStack stack, Level level) {
+        if (level != null) {
+            stripBlockedEnchantments(stack, level.registryAccess(), level.getRandom());
+        } else {
+            stripBlockedEnchantments(stack);
+        }
+    }
+
+    public static void stripBlockedEnchantments(ItemStack stack, RegistryAccess registryAccess, RandomSource random) {
         if (stack == null || stack.isEmpty()) return;
 
         if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
@@ -421,7 +440,20 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    stack.set(DataComponents.STORED_ENCHANTMENTS, validEnchantments.toImmutable());
+                    ItemEnchantments result = validEnchantments.toImmutable();
+                    if (result.isEmpty() && registryAccess != null) {
+                        Holder<Enchantment> rerolled = getRandomAllowedEnchantment(registryAccess, random, null);
+                        if (rerolled != null) {
+                            int level = Mth.nextInt(random, rerolled.value().getMinLevel(), rerolled.value().getMaxLevel());
+                            validEnchantments.set(rerolled, level);
+                            result = validEnchantments.toImmutable();
+                        }
+                    }
+                    if (result.isEmpty()) {
+                        stack.remove(DataComponents.STORED_ENCHANTMENTS);
+                    } else {
+                        stack.set(DataComponents.STORED_ENCHANTMENTS, result);
+                    }
                 }
             }
         }
@@ -441,10 +473,31 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    stack.set(DataComponents.ENCHANTMENTS, validEnchantments.toImmutable());
+                    ItemEnchantments result = validEnchantments.toImmutable();
+                    if (result.isEmpty()) {
+                        stack.remove(DataComponents.ENCHANTMENTS);
+                    } else {
+                        stack.set(DataComponents.ENCHANTMENTS, result);
+                    }
                 }
             }
         }
+    }
+
+    public static Holder<Enchantment> getRandomAllowedEnchantment(RegistryAccess registryAccess, RandomSource random, Predicate<Holder<Enchantment>> extraFilter) {
+        if (registryAccess == null) return null;
+        var registryOpt = registryAccess.registry(Registries.ENCHANTMENT);
+        if (registryOpt.isEmpty()) return null;
+        var registry = registryOpt.get();
+        var candidates = registry.holders()
+                .filter(h -> !isEnchantmentBlocked(h))
+                .filter(h -> extraFilter == null || extraFilter.test(h))
+                .toList();
+        if (candidates.isEmpty() && extraFilter != null) {
+            candidates = registry.holders().filter(h -> !isEnchantmentBlocked(h)).toList();
+        }
+        if (candidates.isEmpty()) return null;
+        return candidates.get(random.nextInt(candidates.size()));
     }
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
@@ -564,10 +617,9 @@ public class RuleManager {
     }
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
-        return enchantment.unwrapKey()
-                .map(key -> key.location().toString())
-                .map(id -> checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment"))
-                .orElse(false);
+        if (enchantment == null) return false;
+        String id = enchantment.unwrapKey().map(key -> key.location().toString()).orElse("");
+        return checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
     }
 
     public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {

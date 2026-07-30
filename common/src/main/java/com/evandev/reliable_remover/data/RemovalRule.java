@@ -36,6 +36,7 @@ public class RemovalRule {
     @SerializedName(value = "actions", alternate = {"action_list"})
     public Set<Action> actions = new HashSet<>();
 
+    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment"})
     public Set<String> items = new HashSet<>();
 
     @SerializedName(value = "blocks", alternate = {"block"})
@@ -281,7 +282,7 @@ public class RemovalRule {
         ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
 
         if (tagLocation != null && itemLocation != null) {
-            if (currentAction == Action.REMOVE_POTION || currentAction == Action.REMOVE_EFFECT) {
+            if (currentAction == Action.REMOVE_POTION) {
                 if (compiledPotionTags == null) {
                     synchronized (this) {
                         if (compiledPotionTags == null) compiledPotionTags = new ConcurrentHashMap<>();
@@ -293,6 +294,17 @@ public class RemovalRule {
                         .orElse(false)) {
                     return true;
                 }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                if (registryHolder != null && registryHolder.value() instanceof MobEffect) {
+                    @SuppressWarnings("unchecked")
+                    Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
+                    if (effectHolder.is(effectTagKey)) return true;
+                }
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
+                        .orElse(false);
+
+            } else if (currentAction == Action.REMOVE_EFFECT) {
                 TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
                 if (registryHolder != null && registryHolder.value() instanceof MobEffect) {
                     @SuppressWarnings("unchecked")
@@ -400,6 +412,27 @@ public class RemovalRule {
                 TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
                 registryAccess.registry(Registries.POTION).ifPresent(registry -> {
                     for (Map.Entry<ResourceKey<Potion>, Potion> entry : registry.entrySet()) {
+                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
+                            if (holder.is(tagKey)) {
+                                resolved.add(entry.getKey().location().toString());
+                            }
+                        });
+                    }
+                });
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                registryAccess.registry(Registries.MOB_EFFECT).ifPresent(registry -> {
+                    for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : registry.entrySet()) {
+                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
+                            if (holder.is(effectTagKey)) {
+                                resolved.add(entry.getKey().location().toString());
+                            }
+                        });
+                    }
+                });
+            } else if (this.action == Action.REMOVE_EFFECT) {
+                TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                registryAccess.registry(Registries.MOB_EFFECT).ifPresent(registry -> {
+                    for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : registry.entrySet()) {
                         registry.getHolder(entry.getKey()).ifPresent(holder -> {
                             if (holder.is(tagKey)) {
                                 resolved.add(entry.getKey().location().toString());
