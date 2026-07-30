@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -40,6 +41,14 @@ public class ItemStackMixin {
         if (RuleManager.isPlacementBlocked(stack, level, player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
                 player.displayClientMessage(Component.translatable("message.reliable_remover.placement_disabled"), true);
+            }
+            cir.setReturnValue(InteractionResult.FAIL);
+            return;
+        }
+
+        if (!(stack.getItem() instanceof BlockItem) && RuleManager.isBlockInteractionBlocked(level.getBlockState(context.getClickedPos()), level, context.getClickedPos(), player)) {
+            if (player != null && ModConfig.get().showRemovalMessage) {
+                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
             }
             cir.setReturnValue(InteractionResult.FAIL);
         }
