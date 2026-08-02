@@ -37,7 +37,7 @@ public class RemovalRule {
     public Set<Action> actions = new HashSet<>();
 
     @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment"})
-    public Set<String> items = new HashSet<>();
+    public volatile Set<String> items = new HashSet<>();
 
     @SerializedName(value = "blocks", alternate = {"block"})
     public Set<String> blocks = new HashSet<>();
@@ -402,6 +402,8 @@ public class RemovalRule {
     public void expandTags(RegistryAccess registryAccess) {
         if (this.tags == null || this.tags.isEmpty()) return;
 
+        Set<String> expandedItems = new HashSet<>(this.items);
+
         for (String tagId : this.tags) {
             String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
             ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
@@ -468,13 +470,15 @@ public class RemovalRule {
 
             if (!resolved.isEmpty()) {
                 RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
-                this.items.addAll(resolved);
+                expandedItems.addAll(resolved);
             } else {
                 Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
                 if (cached != null) {
-                    this.items.addAll(cached);
+                    expandedItems.addAll(cached);
                 }
             }
         }
+
+        this.items = expandedItems;
     }
 }
