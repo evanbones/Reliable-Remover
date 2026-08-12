@@ -14,7 +14,7 @@ description = '''${description}'''
 [[dependencies.${ mod_id }]]
 modId = "emi"
 mandatory = false
-versionRange = "[1.0.4,)"
+versionRange = "[1.1.23,)"
 ordering = "AFTER"
 side = "BOTH"
 

@@ -23,7 +23,8 @@
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
-    "minecraft.ReloadableServerResourcesMixin"
+    "minecraft.ReloadableServerResourcesMixin",
+    "minecraft.accessor.LootContextAccessor"
   ],
   "client": [
     "client.ScreenMixin",

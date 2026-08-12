@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 public class RuleManager {
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
     public static boolean MOD_INIT_PHASE = true;
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
@@ -278,6 +279,14 @@ public class RuleManager {
         return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_TRADE, null, null, null, "trade");
     }
 
+    public static boolean isInChestFill() {
+        return IN_CHEST_FILL.get();
+    }
+
+    public static void setInChestFill(boolean value) {
+        IN_CHEST_FILL.set(value);
+    }
+
     public static boolean isLootBlocked(ItemStack stack) {
         return isLootBlocked(stack, null);
     }
@@ -287,7 +296,7 @@ public class RuleManager {
         if (isHidden(stack)) return true;
         if (getLootReplacement(stack, context) != null) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        if (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY)) {
+        if (isInChestFill() || (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY))) {
             if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot")) return true;
         }
         return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
@@ -378,7 +387,7 @@ public class RuleManager {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return null;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         RemovalRule rule = null;
-        if (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY))
+        if (isInChestFill() || (context != null && context.hasParam(LootContextParams.BLOCK_ENTITY)))
             rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot");
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, null, null, null, "item");

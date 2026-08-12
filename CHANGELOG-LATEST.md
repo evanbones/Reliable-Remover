@@ -1,3 +1,8 @@
+### Changed
+
+- Backported improved loot handling.
+
 ### Fixed
 
-- Fixed certain recipes being removed from EMI entirely when the recipe's placeholder preview item was banned.
+- Fixed issues with Crafttweaker causing loot tables to break.
+- Clarified supported EMI version ranges.
