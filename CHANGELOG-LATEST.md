@@ -1,5 +1,3 @@
 ### Changed
 
-- Ported to 26.2.
-- Switched to YACL.
-- Reliable Recipes is now required instead of bundled.
+- Ported changes from 1.21 (improved enchantment removal and loot removal).
