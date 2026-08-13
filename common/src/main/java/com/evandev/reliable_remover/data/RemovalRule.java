@@ -1,26 +1,47 @@
 package com.evandev.reliable_remover.data;
 
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class RemovalRule {
     public Action action;
 
-    public Set<String> items = new HashSet<>();
+    @SerializedName(value = "actions", alternate = {"action_list"})
+    public Set<Action> actions = new HashSet<>();
+
+    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment", "potion", "potions", "effect", "effects", "block", "blocks", "fluid", "fluids", "entity", "entities", "mob", "mobs", "mob_equipment"})
+    public volatile Set<String> items = new HashSet<>();
+
+    @SerializedName(value = "blocks", alternate = {"block_list"})
+    public Set<String> blocks = new HashSet<>();
+
+    @SerializedName(value = "fluids", alternate = {"fluid_list"})
+    public Set<String> fluids = new HashSet<>();
+
+    @SerializedName(value = "effects", alternate = {"effect_list", "status_effects", "mob_effects"})
+    public Set<String> effects = new HashSet<>();
+
     public Set<String> dimensions = new HashSet<>();
     public Set<String> entities = new HashSet<>();
 
@@ -55,7 +76,11 @@ public class RemovalRule {
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
+        return matches(stack, itemId, dimension, entityId, null, registryHolder, context);
+    }
+
+    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Holder<?> registryHolder, String context) {
+        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty()) return false;
@@ -91,10 +116,10 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder, String context) {
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Action currentAction, Holder<?> registryHolder, String context) {
         if (currentAction == null) currentAction = Action.REMOVE;
 
-        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder, context))
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, targetEntity, currentAction, registryHolder, context))
             return false;
 
         if (context != null) {
@@ -191,7 +216,7 @@ public class RemovalRule {
             if (currentAction == Action.REMOVE_POTION) {
                 if (compiledPotionTags == null) {
                     synchronized (this) {
-                        if (compiledPotionTags == null) compiledPotionTags = new java.util.HashMap<>();
+                        if (compiledPotionTags == null) compiledPotionTags = new ConcurrentHashMap<>();
                     }
                 }
                 TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
@@ -203,7 +228,7 @@ public class RemovalRule {
                 if (registryHolder != null) {
                     if (compiledEnchTags == null) {
                         synchronized (this) {
-                            if (compiledEnchTags == null) compiledEnchTags = new java.util.HashMap<>();
+                            if (compiledEnchTags == null) compiledEnchTags = new ConcurrentHashMap<>();
                         }
                     }
                     TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
@@ -218,19 +243,54 @@ public class RemovalRule {
                 return false;
 
             } else {
+                if (registryHolder != null) {
+                    if (registryHolder.value() instanceof Block) {
+                        TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Block> blockHolder = (Holder<Block>) registryHolder;
+                        if (blockHolder.is(blockTagKey)) return true;
+                    } else if (registryHolder.value() instanceof MobEffect) {
+                        TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
+                        if (effectHolder.is(effectTagKey)) return true;
+                    } else if (registryHolder.value() instanceof Fluid) {
+                        TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Fluid> fluidHolder = (Holder<Fluid>) registryHolder;
+                        if (fluidHolder.is(fluidTagKey)) return true;
+                    }
+                }
                 if (compiledItemTags == null) {
                     synchronized (this) {
-                        if (compiledItemTags == null) compiledItemTags = new java.util.HashMap<>();
+                        if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
                     }
                 }
                 TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
                 if (stack != null && !stack.isEmpty()) {
-                    return stack.is(tagKey);
-                } else {
-                    return BuiltInRegistries.ITEM.get(itemLocation)
-                            .map(holder -> holder.is(tagKey))
-                            .orElse(false);
+                    if (stack.is(tagKey)) return true;
                 }
+                if (BuiltInRegistries.ITEM.get(itemLocation)
+                        .map(holder -> holder.is(tagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                if (BuiltInRegistries.BLOCK.get(itemLocation)
+                        .map(holder -> holder.is(blockTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                if (BuiltInRegistries.FLUID.get(itemLocation)
+                        .map(holder -> holder.is(fluidTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                return BuiltInRegistries.MOB_EFFECT.get(itemLocation)
+                        .map(holder -> holder.is(effectTagKey))
+                        .orElse(false);
             }
         }
         return false;
@@ -246,5 +306,76 @@ public class RemovalRule {
             Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
             return null;
         }
+    }
+
+    public void expandTags(RegistryAccess registryAccess) {
+        if (this.tags == null || this.tags.isEmpty()) return;
+
+        Set<String> expandedItems = new HashSet<>(this.items);
+
+        for (String tagId : this.tags) {
+            String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+            Identifier tagLocation = Identifier.tryParse(cleanTagId);
+            if (tagLocation == null) continue;
+
+            Set<String> resolved = new HashSet<>();
+            if (this.action == Action.REMOVE_POTION) {
+                TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
+                registryAccess.lookup(Registries.POTION).ifPresent(lookup -> {
+                    lookup.listElements().forEach(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(holder.key().identifier().toString());
+                        }
+                    });
+                });
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                registryAccess.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
+                    lookup.listElements().forEach(holder -> {
+                        if (holder.is(effectTagKey)) {
+                            resolved.add(holder.key().identifier().toString());
+                        }
+                    });
+                });
+            } else if (this.action == Action.REMOVE_EFFECT) {
+                TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                registryAccess.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
+                    lookup.listElements().forEach(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(holder.key().identifier().toString());
+                        }
+                    });
+                });
+            } else if (this.action == Action.REMOVE_ENCHANTMENT) {
+                TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                registryAccess.lookup(Registries.ENCHANTMENT).ifPresent(lookup -> {
+                    lookup.listElements().forEach(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(holder.key().identifier().toString());
+                        }
+                    });
+                });
+            } else {
+                TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
+                registryAccess.lookup(Registries.ITEM).ifPresent(lookup -> {
+                    lookup.listElements().forEach(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(holder.key().identifier().toString());
+                        }
+                    });
+                });
+            }
+
+            if (!resolved.isEmpty()) {
+                RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
+                expandedItems.addAll(resolved);
+            } else {
+                Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+                if (cached != null) {
+                    expandedItems.addAll(cached);
+                }
+            }
+        }
+
+        this.items = expandedItems;
     }
 }

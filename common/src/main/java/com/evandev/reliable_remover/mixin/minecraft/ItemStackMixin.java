@@ -7,6 +7,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -24,8 +25,27 @@ public class ItemStackMixin {
 
     @Inject(method = "useOn", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$blockUseOn(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
-        if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, context.getLevel(), null)) {
-            Player player = context.getPlayer();
+        ItemStack stack = (ItemStack) (Object) this;
+        Player player = context.getPlayer();
+        Level level = context.getLevel();
+
+        if (RuleManager.isInteractionBlocked(stack, level, null)) {
+            if (player != null && ModConfig.get().showRemovalMessage) {
+                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+            }
+            cir.setReturnValue(InteractionResult.FAIL);
+            return;
+        }
+
+        if (RuleManager.isPlacementBlocked(stack, level, player)) {
+            if (player != null && ModConfig.get().showRemovalMessage) {
+                player.sendSystemMessage(Component.translatable("message.reliable_remover.placement_disabled"));
+            }
+            cir.setReturnValue(InteractionResult.FAIL);
+            return;
+        }
+
+        if (!(stack.getItem() instanceof BlockItem) && RuleManager.isBlockInteractionBlocked(level.getBlockState(context.getClickedPos()), level, context.getClickedPos(), player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
                 player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
             }

@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_18",
   "mixins": [
     "minecraft.AnvilMenuMixin",
+    "minecraft.BlockStateBaseMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
     "minecraft.GiveCommandMixin",
@@ -19,6 +20,11 @@
     "minecraft.RandomizableContainerMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
+    "minecraft.accessor.LootContextAccessor",
+    "minecraft.loot.EnchantRandomlyFunctionMixin",
+    "minecraft.loot.EnchantWithLevelsFunctionMixin",
+    "minecraft.loot.SetEnchantmentsFunctionMixin",
+    "minecraft.trade.VillagerTradeMixin",
     "rrv.AbstractRrvItemListOverlayMixin"
   ],
   "client": [
@@ -31,4 +37,3 @@
     "defaultRequire": 1
   }
 }
-
