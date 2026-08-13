@@ -1,8 +1,3 @@
 ### Changed
 
-- Backported improved loot handling.
-
-### Fixed
-
-- Fixed issues with Crafttweaker causing loot tables to break.
-- Clarified supported EMI version ranges.
+- Backported fixes and improvements from 1.21.

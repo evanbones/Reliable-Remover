@@ -13,10 +13,14 @@ import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Fluid;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +30,21 @@ import java.util.regex.PatternSyntaxException;
 public class RemovalRule {
     public Action action;
 
-    public Set<String> items = new HashSet<>();
+    @SerializedName(value = "actions", alternate = {"action_list"})
+    public Set<Action> actions = new HashSet<>();
+
+    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment"})
+    public volatile Set<String> items = new HashSet<>();
+
+    @SerializedName(value = "blocks", alternate = {"block"})
+    public Set<String> blocks = new HashSet<>();
+
+    @SerializedName(value = "fluids", alternate = {"fluid"})
+    public Set<String> fluids = new HashSet<>();
+
+    @SerializedName(value = "effects", alternate = {"effect", "status_effects", "status_effect", "mob_effects", "mob_effect"})
+    public Set<String> effects = new HashSet<>();
+
     public Set<String> dimensions = new HashSet<>();
     public Set<String> entities = new HashSet<>();
 
@@ -61,8 +79,8 @@ public class RemovalRule {
     private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, this.action, registryHolder, context)) return false;
+    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Holder<?> registryHolder, String context) {
+        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context)) return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty() || !stack.hasTag()) return false;
@@ -114,10 +132,10 @@ public class RemovalRule {
         return true;
     }
 
-    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Action currentAction, Holder<?> registryHolder, String context) {
+    private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Action currentAction, Holder<?> registryHolder, String context) {
         if (currentAction == null) currentAction = Action.REMOVE;
 
-        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, currentAction, registryHolder, context))
+        if (not != null && not.matchesLogic(stack, itemId, dimension, entityId, targetEntity, currentAction, registryHolder, context))
             return false;
 
         if (context != null) {
@@ -152,7 +170,7 @@ public class RemovalRule {
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
         boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
-        boolean hasItemFilter = (items != null && !items.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
+        boolean hasItemFilter = (items != null && !items.isEmpty()) || (blocks != null && !blocks.isEmpty()) || (fluids != null && !fluids.isEmpty()) || (effects != null && !effects.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
@@ -171,6 +189,36 @@ public class RemovalRule {
 
         if (items != null && !items.isEmpty()) {
             for (String filter : items) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (blocks != null && !blocks.isEmpty()) {
+            for (String filter : blocks) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (fluids != null && !fluids.isEmpty()) {
+            for (String filter : fluids) {
+                if (filter.startsWith("#")) {
+                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+                } else if (filter.equals(itemId)) {
+                    return true;
+                }
+            }
+        }
+
+        if (effects != null && !effects.isEmpty()) {
+            for (String filter : effects) {
                 if (filter.startsWith("#")) {
                     if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
                 } else if (filter.equals(itemId)) {
@@ -218,8 +266,20 @@ public class RemovalRule {
                     }
                 }
                 TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
-                return BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
+                if (BuiltInRegistries.POTION.getHolder(ResourceKey.create(Registries.POTION, itemLocation))
                         .map(holder -> holder.is(tagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
+                        .orElse(false);
+
+            } else if (currentAction == Action.REMOVE_EFFECT) {
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
                         .orElse(false);
 
             } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
@@ -248,12 +308,29 @@ public class RemovalRule {
                 }
                 TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
                 if (stack != null && !stack.isEmpty()) {
-                    return stack.is(tagKey);
-                } else {
-                    return BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
-                            .map(holder -> holder.is(tagKey))
-                            .orElse(false);
+                    if (stack.is(tagKey)) return true;
                 }
+                if (BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, itemLocation))
+                        .map(holder -> holder.is(tagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                if (BuiltInRegistries.BLOCK.getHolder(ResourceKey.create(Registries.BLOCK, itemLocation))
+                        .map(holder -> holder.is(blockTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                if (BuiltInRegistries.FLUID.getHolder(ResourceKey.create(Registries.FLUID, itemLocation))
+                        .map(holder -> holder.is(fluidTagKey))
+                        .orElse(false)) {
+                    return true;
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                return BuiltInRegistries.MOB_EFFECT.getHolder(ResourceKey.create(Registries.MOB_EFFECT, itemLocation))
+                        .map(holder -> holder.is(effectTagKey))
+                        .orElse(false);
             }
         }
         return false;
@@ -266,13 +343,15 @@ public class RemovalRule {
         try {
             return Pattern.compile(p);
         } catch (PatternSyntaxException e) {
-            Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
+            Constants.LOG.error("Invalid regex pattern found in config: '{}'. Skipping this pattern.", regex);
             return null;
         }
     }
 
     public void expandTags() {
         if (this.tags == null || this.tags.isEmpty()) return;
+
+        Set<String> expandedItems = new HashSet<>(this.items);
 
         for (String tagId : this.tags) {
             String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
@@ -284,6 +363,23 @@ public class RemovalRule {
                 TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
                 for (Map.Entry<ResourceKey<Potion>, Potion> entry : BuiltInRegistries.POTION.entrySet()) {
                     BuiltInRegistries.POTION.getHolder(entry.getKey()).ifPresent(holder -> {
+                        if (holder.is(tagKey)) {
+                            resolved.add(entry.getKey().location().toString());
+                        }
+                    });
+                }
+                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : BuiltInRegistries.MOB_EFFECT.entrySet()) {
+                    BuiltInRegistries.MOB_EFFECT.getHolder(entry.getKey()).ifPresent(holder -> {
+                        if (holder.is(effectTagKey)) {
+                            resolved.add(entry.getKey().location().toString());
+                        }
+                    });
+                }
+            } else if (this.action == Action.REMOVE_EFFECT) {
+                TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : BuiltInRegistries.MOB_EFFECT.entrySet()) {
+                    BuiltInRegistries.MOB_EFFECT.getHolder(entry.getKey()).ifPresent(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(entry.getKey().location().toString());
                         }
@@ -312,13 +408,15 @@ public class RemovalRule {
 
             if (!resolved.isEmpty()) {
                 RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
-                this.items.addAll(resolved);
+                expandedItems.addAll(resolved);
             } else {
                 Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
                 if (cached != null) {
-                    this.items.addAll(cached);
+                    expandedItems.addAll(cached);
                 }
             }
         }
+
+        this.items = expandedItems;
     }
 }

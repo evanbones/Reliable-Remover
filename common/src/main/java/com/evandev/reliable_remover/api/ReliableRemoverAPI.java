@@ -1,12 +1,14 @@
 package com.evandev.reliable_remover.api;
 
 import com.evandev.reliable_remover.config.RuleManager;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootParams;
 
+@SuppressWarnings("unused")
 public class ReliableRemoverAPI {
 
     /**
@@ -90,6 +92,38 @@ public class ReliableRemoverAPI {
      */
     public static boolean isInteractionBlocked(ItemStack stack, Level level, Entity target) {
         return RuleManager.isInteractionBlocked(stack, level, target);
+    }
+
+    /**
+     * Checks if placing the item/block in the world has been blocked.
+     */
+    public static boolean isPlacementBlocked(ItemStack stack, Level level, Entity entity) {
+        return RuleManager.isPlacementBlocked(stack, level, entity);
+    }
+
+    /**
+     * Checks if a status effect / mob effect has been blocked.
+     */
+    public static boolean isEffectBlocked(MobEffect effect, Level level, Entity entity) {
+        return RuleManager.isEffectBlocked(effect, level, entity);
+    }
+
+    /**
+     * Checks if a status effect / mob effect has been blocked in a dimension.
+     */
+    public static boolean isEffectBlocked(MobEffect effect, Level level) {
+        return RuleManager.isEffectBlocked(effect, level);
+    }
+
+    /**
+     * Checks if a status effect / mob effect has been blocked from creative/JEED/EMI views.
+     */
+    public static boolean isEffectCreativeBlocked(MobEffect effect, Entity entity) {
+        return RuleManager.isEffectCreativeBlocked(effect, entity);
+    }
+
+    public static boolean isEffectCreativeBlocked(MobEffect effect) {
+        return RuleManager.isEffectCreativeBlocked(effect, null);
     }
 
     /**

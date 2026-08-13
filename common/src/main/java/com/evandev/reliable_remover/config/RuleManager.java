@@ -7,6 +7,8 @@ import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -24,6 +26,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class RuleManager {
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
@@ -117,18 +120,30 @@ public class RuleManager {
                             return true;
                         }
 
-                        if (rule.action == Action.REMOVE_POTION) {
-                            if (!BuiltInRegistries.POTION.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid potion ID '{}'.", itemId);
+                        if (rule.action == Action.REMOVE_POTION || rule.action == Action.REMOVE_EFFECT) {
+                            if (!BuiltInRegistries.POTION.containsKey(id) && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                                Constants.LOG.warn("Skipping invalid potion/effect ID '{}'.", itemId);
                                 return true;
                             }
                         } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
                             return false;
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                                Constants.LOG.warn("Skipping invalid item ID '{}'.", itemId);
                                 return true;
                             }
+                        }
+                        return false;
+                    });
+                }
+
+                if (rule.effects != null) {
+                    rule.effects.removeIf(effectId -> {
+                        if (effectId.startsWith("#")) return false;
+                        ResourceLocation id = ResourceLocation.tryParse(effectId);
+                        if (id == null || (!BuiltInRegistries.POTION.containsKey(id) && !BuiltInRegistries.MOB_EFFECT.containsKey(id))) {
+                            Constants.LOG.warn("Reliable Remover: Skipping invalid potion/effect ID '{}'.", effectId);
+                            return true;
                         }
                         return false;
                     });
@@ -227,7 +242,21 @@ public class RuleManager {
         Potion potion = PotionUtils.getPotion(stack);
         if (potion != Potions.EMPTY) {
             String potionId = BuiltInRegistries.POTION.getKey(potion).toString();
-            return checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
+            if (checkRules(null, potionId, Action.REMOVE_POTION, level != null ? level.dimension().location().toString() : null, holder, null, context)) {
+                return true;
+            }
+        }
+
+        for (MobEffectInstance effectInst : PotionUtils.getMobEffects(stack)) {
+            MobEffect effect = effectInst.getEffect();
+            ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+            if (loc != null) {
+                String effectId = loc.toString();
+                if (checkRules(null, effectId, Action.REMOVE_POTION, level != null ? level.dimension().location().toString() : null, holder, null, context)) {
+                    return true;
+                }
+            }
+            if (isEffectBlocked(effect, level, holder)) return true;
         }
 
         return false;
@@ -350,6 +379,39 @@ public class RuleManager {
         return checkRules(stack, id, Action.REMOVE_HAND_SWING, dim, null, null, "swing");
     }
 
+    public static boolean isPlacementBlocked(ItemStack stack, Level level, Entity entity) {
+        if (stack == null || stack.isEmpty()) return false;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = level != null ? level.dimension().location().toString() : null;
+        return checkRules(stack, id, Action.REMOVE_PLACEMENT, dim, entity, null, "placement");
+    }
+
+    public static boolean isEffectBlocked(MobEffect effect, Level level, Entity entity) {
+        if (effect == null) return false;
+        ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+        if (loc == null) return false;
+        String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        String dim = level != null ? level.dimension().location().toString() : null;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, dim, entity, null, "effect")) return true;
+        return checkRules(null, id, Action.REMOVE, dim, entity, null, "effect");
+    }
+
+    public static boolean isEffectBlocked(MobEffect effect, Level level) {
+        return isEffectBlocked(effect, level, null);
+    }
+
+    public static boolean isEffectCreativeBlocked(MobEffect effect, Entity entity) {
+        if (effect == null) return false;
+        ResourceLocation loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
+        if (loc == null) return false;
+        String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (checkRules(null, id, Action.REMOVE_CREATIVE, null, entity, null, "creative")) return true;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, null, entity, null, "effect")) return true;
+        return checkRules(null, id, Action.REMOVE, null, entity, null, "effect");
+    }
+
     public static boolean isInfoBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
@@ -414,7 +476,7 @@ public class RuleManager {
         List<RemovalRule> rules = RULES_BY_ACTION.get(action);
         if (rules == null || rules.isEmpty()) return null;
         for (RemovalRule rule : rules) {
-            if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, registryHolder, context))
+            if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, target, registryHolder, context))
                 return rule;
         }
         return null;

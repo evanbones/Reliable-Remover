@@ -24,7 +24,12 @@
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
     "minecraft.ReloadableServerResourcesMixin",
-    "minecraft.accessor.LootContextAccessor"
+    "minecraft.accessor.LootContextAccessor",
+    "minecraft.trade.EnchantBookForEmeraldsMixin",
+    "minecraft.trade.EnchantedItemForEmeraldsMixin",
+    "minecraft.loot.EnchantRandomlyFunctionMixin",
+    "minecraft.loot.EnchantWithLevelsFunctionMixin",
+    "minecraft.loot.SetEnchantmentsFunctionMixin"
   ],
   "client": [
     "client.ScreenMixin",
