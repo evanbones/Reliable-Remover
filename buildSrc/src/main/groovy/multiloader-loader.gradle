@@ -57,9 +57,11 @@ publishMods {
         minecraftVersions.add("26.1")
         minecraftVersions.add("26.1.1")
         minecraftVersions.add("26.1.2")
+        client = true
+        server = true
 
-        optional { slug = "rrv" }
-        optional { slug = "cloth-config" }
+        optional("rrv")
+        optional("cloth-config")
     }
 
     modrinth {
@@ -69,7 +71,7 @@ publishMods {
         minecraftVersions.add("26.1.1")
         minecraftVersions.add("26.1.2")
 
-        optional { slug = "rrv" }
-        optional { slug = "cloth-config" }
+        optional("rrv")
+        optional("cloth-config")
     }
 }
