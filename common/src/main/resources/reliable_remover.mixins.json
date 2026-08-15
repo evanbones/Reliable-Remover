@@ -35,6 +35,7 @@
     "minecraft.ReloadableServerResourcesMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
+    "minecraft.accessor.CreativeModeTabsAccessor",
     "minecraft.accessor.LootContextAccessor"
   ],
   "client": [

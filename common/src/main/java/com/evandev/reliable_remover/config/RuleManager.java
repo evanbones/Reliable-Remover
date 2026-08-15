@@ -2,9 +2,9 @@ package com.evandev.reliable_remover.config;
 
 import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
-import com.evandev.reliable_remover.compat.EmiRefresh;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
+import com.evandev.reliable_remover.mixin.minecraft.accessor.CreativeModeTabsAccessor;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -158,9 +158,13 @@ public class RuleManager {
 
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
 
-        if (!MOD_INIT_PHASE && Services.PLATFORM.isPhysicalClient() && Services.PLATFORM.isModLoaded("emi")) {
-            EmiRefresh.refresh();
+        if (Services.PLATFORM.isPhysicalClient()) {
+            try {
+                CreativeModeTabsAccessor.setCachedParameters(null);
+            } catch (Throwable ignored) {
+            }
         }
+
     }
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
