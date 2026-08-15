@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed certain `remove_interactions` rules not working.
+- Updated API.

@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.config;
 
 import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.compat.EmiRefresh;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
@@ -37,6 +38,7 @@ public class RuleManager {
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
+    private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
     public static boolean MOD_INIT_PHASE = true;
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
@@ -44,6 +46,21 @@ public class RuleManager {
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
     private static volatile boolean HAS_ADVANCEMENT_RULES = false;
+
+    public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
+        if (rules == null || rules.isEmpty()) {
+            DYNAMIC_RULES.remove(sourceId);
+        } else {
+            DYNAMIC_RULES.put(sourceId, new ArrayList<>(rules));
+        }
+        load();
+    }
+
+    public static void unregisterDynamicRules(String sourceId) {
+        if (DYNAMIC_RULES.remove(sourceId) != null) {
+            load();
+        }
+    }
 
     public static void load() {
         Map<Action, List<RemovalRule>> newRules = new EnumMap<>(Action.class);
@@ -71,6 +88,19 @@ public class RuleManager {
         }
 
         if (!hasFiles) generateDefaultConfig(configDir);
+
+        for (List<RemovalRule> dynList : DYNAMIC_RULES.values()) {
+            for (RemovalRule rule : dynList) {
+                if (rule.actions != null && !rule.actions.isEmpty()) {
+                    for (Action act : rule.actions) {
+                        newRules.computeIfAbsent(act, a -> new ArrayList<>()).add(rule);
+                    }
+                } else {
+                    Action act = rule.action != null ? rule.action : Action.REMOVE;
+                    newRules.computeIfAbsent(act, a -> new ArrayList<>()).add(rule);
+                }
+            }
+        }
 
         if (!MOD_INIT_PHASE) {
             validateRules(newRules);
@@ -127,6 +157,10 @@ public class RuleManager {
         }
 
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+
+        if (!MOD_INIT_PHASE && Services.PLATFORM.isPhysicalClient() && Services.PLATFORM.isModLoaded("emi")) {
+            EmiRefresh.refresh();
+        }
     }
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
