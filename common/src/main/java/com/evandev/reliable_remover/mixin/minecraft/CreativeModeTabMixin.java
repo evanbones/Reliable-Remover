@@ -18,10 +18,10 @@ import java.util.Set;
 public abstract class CreativeModeTabMixin {
 
     @Shadow
-    private Collection<ItemStack> displayItems = ItemStackLinkedSet.createTypeAndComponentsSet();
+    private Collection<ItemStack> displayItems;
 
     @Shadow
-    private Set<ItemStack> displayItemsSearchTab = ItemStackLinkedSet.createTypeAndComponentsSet();
+    private Set<ItemStack> displayItemsSearchTab;
 
     @WrapMethod(method = "buildContents")
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters displayContext, Operation<Void> original) {
