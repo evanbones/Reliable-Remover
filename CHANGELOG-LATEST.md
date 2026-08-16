@@ -1,3 +1,4 @@
-### Changed
+### Fixed
 
-- Ported changes from 1.21 (improved enchantment removal and loot removal).
+- Fixed crash.
+- Fixed issues with tag-based removal.

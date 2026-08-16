@@ -7,6 +7,7 @@ import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -526,11 +527,11 @@ public class RuleManager {
         return null;
     }
 
-    public static void expandTagRules(RegistryAccess registryAccess) {
+    public static void expandTagRules(HolderLookup.Provider registries) {
         RuleManager.load();
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {
-                rule.expandTags(registryAccess);
+                rule.expandTags(registries);
             }
         }
         int totalExpandedItems = RULES_BY_ACTION.values().stream()
