@@ -4,7 +4,7 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
 import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -30,17 +30,8 @@ public class RemovalRule {
     @SerializedName(value = "actions", alternate = {"action_list"})
     public Set<Action> actions = new HashSet<>();
 
-    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment", "potion", "potions", "effect", "effects", "block", "blocks", "fluid", "fluids", "entity", "entities", "mob", "mobs", "mob_equipment"})
+    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment", "potion", "potions", "effect", "effects", "block", "blocks", "fluid", "fluids", "mob", "mobs", "mob_equipment"})
     public volatile Set<String> items = new HashSet<>();
-
-    @SerializedName(value = "blocks", alternate = {"block_list"})
-    public Set<String> blocks = new HashSet<>();
-
-    @SerializedName(value = "fluids", alternate = {"fluid_list"})
-    public Set<String> fluids = new HashSet<>();
-
-    @SerializedName(value = "effects", alternate = {"effect_list", "status_effects", "mob_effects"})
-    public Set<String> effects = new HashSet<>();
 
     public Set<String> dimensions = new HashSet<>();
     public Set<String> entities = new HashSet<>();
@@ -243,6 +234,11 @@ public class RemovalRule {
                 return false;
 
             } else {
+                Set<String> cachedResolved = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+                if (cachedResolved != null && cachedResolved.contains(itemLocation.toString())) {
+                    return true;
+                }
+
                 if (registryHolder != null) {
                     if (registryHolder.value() instanceof Block) {
                         TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
@@ -308,7 +304,7 @@ public class RemovalRule {
         }
     }
 
-    public void expandTags(RegistryAccess registryAccess) {
+    public void expandTags(HolderLookup.Provider registries) {
         if (this.tags == null || this.tags.isEmpty()) return;
 
         Set<String> expandedItems = new HashSet<>(this.items);
@@ -321,7 +317,7 @@ public class RemovalRule {
             Set<String> resolved = new HashSet<>();
             if (this.action == Action.REMOVE_POTION) {
                 TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
-                registryAccess.lookup(Registries.POTION).ifPresent(lookup -> {
+                registries.lookup(Registries.POTION).ifPresent(lookup -> {
                     lookup.listElements().forEach(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(holder.key().identifier().toString());
@@ -329,7 +325,7 @@ public class RemovalRule {
                     });
                 });
                 TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                registryAccess.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
+                registries.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
                     lookup.listElements().forEach(holder -> {
                         if (holder.is(effectTagKey)) {
                             resolved.add(holder.key().identifier().toString());
@@ -338,7 +334,7 @@ public class RemovalRule {
                 });
             } else if (this.action == Action.REMOVE_EFFECT) {
                 TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                registryAccess.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
+                registries.lookup(Registries.MOB_EFFECT).ifPresent(lookup -> {
                     lookup.listElements().forEach(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(holder.key().identifier().toString());
@@ -347,7 +343,7 @@ public class RemovalRule {
                 });
             } else if (this.action == Action.REMOVE_ENCHANTMENT) {
                 TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
-                registryAccess.lookup(Registries.ENCHANTMENT).ifPresent(lookup -> {
+                registries.lookup(Registries.ENCHANTMENT).ifPresent(lookup -> {
                     lookup.listElements().forEach(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(holder.key().identifier().toString());
@@ -356,7 +352,7 @@ public class RemovalRule {
                 });
             } else {
                 TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
-                registryAccess.lookup(Registries.ITEM).ifPresent(lookup -> {
+                registries.lookup(Registries.ITEM).ifPresent(lookup -> {
                     lookup.listElements().forEach(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(holder.key().identifier().toString());
