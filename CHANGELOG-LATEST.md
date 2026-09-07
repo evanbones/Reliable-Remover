@@ -1,4 +1,3 @@
 ### Fixed
 
-- Fixed crash.
-- Fixed issues with tag-based removal.
+- Fixed issues with Penchant's Randomized Librarians only selling unenchanted books.
