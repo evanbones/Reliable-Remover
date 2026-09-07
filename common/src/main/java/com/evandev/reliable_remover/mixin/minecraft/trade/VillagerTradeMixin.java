@@ -14,8 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Optional;
-
 @Mixin(VillagerTrade.class)
 public class VillagerTradeMixin {
 
@@ -26,15 +24,21 @@ public class VillagerTradeMixin {
 
         ItemStack result = offer.getResult();
         if (!result.isEmpty()) {
+            boolean hadStoredEnchantments = false;
+            if (result.is(Items.ENCHANTED_BOOK)) {
+                ItemEnchantments stored = result.get(DataComponents.STORED_ENCHANTMENTS);
+                hadStoredEnchantments = stored != null && !stored.isEmpty();
+            }
+
             RuleManager.stripBlockedEnchantments(result, lootContext != null ? lootContext.getLevel() : null);
 
-            if (result.is(Items.ENCHANTED_BOOK)) {
+            if (hadStoredEnchantments) {
                 ItemEnchantments enchantments = result.get(DataComponents.STORED_ENCHANTMENTS);
                 if (enchantments == null || enchantments.isEmpty()) {
                     ItemCost emeraldCost = offer.getItemCostA();
                     MerchantOffer replacementOffer = new MerchantOffer(
                             emeraldCost,
-                            Optional.of(new ItemCost(Items.BOOK)),
+                            offer.getItemCostB(),
                             new ItemStack(Items.BOOK),
                             offer.getMaxUses(),
                             offer.getXp(),
