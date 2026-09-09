@@ -105,6 +105,7 @@ public class RuleParser {
         copy.action = act;
         copy.actions = original.actions != null ? new HashSet<>(original.actions) : new HashSet<>();
         copy.items = original.items != null ? new HashSet<>(original.items) : new HashSet<>();
+        copy.enchantments = original.enchantments != null ? new HashSet<>(original.enchantments) : new HashSet<>();
         copy.blocks = original.blocks != null ? new HashSet<>(original.blocks) : new HashSet<>();
         copy.fluids = original.fluids != null ? new HashSet<>(original.fluids) : new HashSet<>();
         copy.effects = original.effects != null ? new HashSet<>(original.effects) : new HashSet<>();

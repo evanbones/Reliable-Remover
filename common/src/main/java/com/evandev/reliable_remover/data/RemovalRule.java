@@ -36,8 +36,11 @@ public class RemovalRule {
     @SerializedName(value = "actions", alternate = {"action_list"})
     public Set<Action> actions = new HashSet<>();
 
-    @SerializedName(value = "items", alternate = {"item", "enchantments", "enchantment"})
+    @SerializedName(value = "items", alternate = {"item"})
     public volatile Set<String> items = new HashSet<>();
+
+    @SerializedName(value = "enchantments", alternate = {"enchantment"})
+    public Set<String> enchantments = new HashSet<>();
 
     @SerializedName(value = "blocks", alternate = {"block"})
     public Set<String> blocks = new HashSet<>();
@@ -144,6 +147,32 @@ public class RemovalRule {
         return true;
     }
 
+    private boolean matchesItem(String filter, ItemStack stack, String stackItemId) {
+        if (filter.startsWith("#")) {
+            String cleanTagId = filter.substring(1);
+            ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+            if (tagLocation == null) return false;
+            if (compiledItemTags == null) {
+                synchronized (this) {
+                    if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
+                }
+            }
+            TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
+            return stack != null && !stack.isEmpty() && stack.is(tagKey);
+        } else {
+            return filter.equals(stackItemId);
+        }
+    }
+
+    private boolean matchesAnyItem(Set<String> itemFilters, ItemStack stack) {
+        if (itemFilters == null || itemFilters.isEmpty() || stack == null || stack.isEmpty()) return false;
+        String stackItemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        for (String filter : itemFilters) {
+            if (matchesItem(filter, stack, stackItemId)) return true;
+        }
+        return false;
+    }
+
     private boolean matchesLogic(ItemStack stack, String itemId, String dimension, String entityId, Entity entity, Action currentAction, Holder<?> registryHolder, String context) {
         if (currentAction == null) currentAction = Action.REMOVE;
 
@@ -192,7 +221,8 @@ public class RemovalRule {
         boolean hasPatternList = patterns != null && !patterns.isEmpty();
         boolean hasTagFilter = tags != null && !tags.isEmpty();
         boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
-        boolean hasItemFilter = (items != null && !items.isEmpty()) || (blocks != null && !blocks.isEmpty()) || (fluids != null && !fluids.isEmpty()) || (effects != null && !effects.isEmpty()) || hasPattern || hasPatternList || hasTagFilter;
+        boolean hasEnchFilter = enchantments != null && !enchantments.isEmpty();
+        boolean hasItemFilter = (items != null && !items.isEmpty()) || (blocks != null && !blocks.isEmpty()) || (fluids != null && !fluids.isEmpty()) || (effects != null && !effects.isEmpty()) || hasEnchFilter || hasPattern || hasPatternList || hasTagFilter;
         boolean hasModFilter = (mod != null && !mod.isEmpty());
 
         if (!hasItemFilter && !hasModFilter) {
@@ -209,6 +239,92 @@ public class RemovalRule {
         }
 
         ResourceLocation itemLocation = ResourceLocation.tryParse(itemId);
+
+        if (currentAction == Action.REMOVE_ENCHANTMENT) {
+            boolean hasEnchExplicit = this.enchantments != null && !this.enchantments.isEmpty();
+            boolean hasItemExplicit = this.items != null && !this.items.isEmpty();
+
+            if (hasEnchExplicit) {
+                boolean enchMatches = false;
+                for (String filter : this.enchantments) {
+                    if (filter.startsWith("#")) {
+                        if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) {
+                            enchMatches = true;
+                            break;
+                        }
+                    } else if (filter.equals(itemId)) {
+                        enchMatches = true;
+                        break;
+                    }
+                }
+                if (!enchMatches) return false;
+
+                if (hasItemExplicit) {
+                    if (stack == null || stack.isEmpty()) return false;
+                    return matchesAnyItem(this.items, stack);
+                }
+                return true;
+            }
+
+            if (hasTagFilter) {
+                boolean tagMatches = false;
+                for (String tagId : tags) {
+                    if (checkTag(tagId, itemLocation, stack, currentAction, registryHolder)) {
+                        tagMatches = true;
+                        break;
+                    }
+                }
+                if (tagMatches) {
+                    if (hasItemExplicit) {
+                        if (stack == null || stack.isEmpty()) return false;
+                        return matchesAnyItem(this.items, stack);
+                    }
+                    return true;
+                }
+            }
+
+            if (hasPattern || hasPatternList) {
+                boolean patternMatches = false;
+                if (compiledPatterns == null) {
+                    synchronized (this) {
+                        if (compiledPatterns == null) {
+                            List<Pattern> list = new ArrayList<>();
+                            if (hasPattern) list.add(compile(pattern));
+                            if (hasPatternList) {
+                                for (String p : patterns) list.add(compile(p));
+                            }
+                            compiledPatterns = list;
+                        }
+                    }
+                }
+                for (Pattern p : compiledPatterns) {
+                    if (p.matcher(itemId).matches()) {
+                        patternMatches = true;
+                        break;
+                    }
+                }
+                if (patternMatches) {
+                    if (hasItemExplicit) {
+                        if (stack == null || stack.isEmpty()) return false;
+                        return matchesAnyItem(this.items, stack);
+                    }
+                    return true;
+                }
+            }
+
+            if (hasItemExplicit) {
+                if (matchesAnyItem(this.items, stack)) return true;
+
+                if (this.items.contains(itemId)) return true;
+                for (String filter : this.items) {
+                    if (filter.startsWith("#") && checkTag(filter, itemLocation, stack, currentAction, registryHolder)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         if (items != null && !items.isEmpty()) {
             for (String filter : items) {
@@ -400,7 +516,46 @@ public class RemovalRule {
     }
 
     public void expandTags(RegistryAccess registryAccess) {
+        if (this.not != null) {
+            this.not.expandTags(registryAccess);
+        }
+
         if (this.tags == null || this.tags.isEmpty()) return;
+
+        if (this.action == Action.REMOVE_ENCHANTMENT) {
+            Set<String> expandedEnchantments = new HashSet<>(this.enchantments);
+
+            for (String tagId : this.tags) {
+                String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
+                ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+                if (tagLocation == null) continue;
+
+                Set<String> resolved = new HashSet<>();
+                TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
+                registryAccess.registry(Registries.ENCHANTMENT).ifPresent(registry -> {
+                    for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : registry.entrySet()) {
+                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
+                            if (holder.is(tagKey)) {
+                                resolved.add(entry.getKey().location().toString());
+                            }
+                        });
+                    }
+                });
+
+                if (!resolved.isEmpty()) {
+                    RuleManager.EXPANDED_TAGS_CACHE.put(cleanTagId, resolved);
+                    expandedEnchantments.addAll(resolved);
+                } else {
+                    Set<String> cached = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+                    if (cached != null) {
+                        expandedEnchantments.addAll(cached);
+                    }
+                }
+            }
+
+            this.enchantments = expandedEnchantments;
+            return;
+        }
 
         Set<String> expandedItems = new HashSet<>(this.items);
 
@@ -435,17 +590,6 @@ public class RemovalRule {
                 TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
                 registryAccess.registry(Registries.MOB_EFFECT).ifPresent(registry -> {
                     for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : registry.entrySet()) {
-                        registry.getHolder(entry.getKey()).ifPresent(holder -> {
-                            if (holder.is(tagKey)) {
-                                resolved.add(entry.getKey().location().toString());
-                            }
-                        });
-                    }
-                });
-            } else if (this.action == Action.REMOVE_ENCHANTMENT) {
-                TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
-                registryAccess.registry(Registries.ENCHANTMENT).ifPresent(registry -> {
-                    for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : registry.entrySet()) {
                         registry.getHolder(entry.getKey()).ifPresent(holder -> {
                             if (holder.is(tagKey)) {
                                 resolved.add(entry.getKey().location().toString());

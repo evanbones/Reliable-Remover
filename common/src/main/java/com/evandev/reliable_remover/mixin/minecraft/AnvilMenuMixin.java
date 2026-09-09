@@ -19,6 +19,7 @@ public class AnvilMenuMixin {
         ItemStack resultStack = menu.getSlot(2).getItem();
 
         if (!resultStack.isEmpty()) {
+            RuleManager.stripBlockedEnchantments(resultStack);
             ItemStack replacement = RuleManager.getReplacement(resultStack, Action.REMOVE, null, null, "item");
             if (replacement != null) {
                 menu.getSlot(2).set(replacement);

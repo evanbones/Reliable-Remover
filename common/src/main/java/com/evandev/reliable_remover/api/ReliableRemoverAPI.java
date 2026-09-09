@@ -140,6 +140,13 @@ public class ReliableRemoverAPI {
     }
 
     /**
+     * Checks if a specific enchantment has been blocked on a specific item.
+     */
+    public static boolean isEnchantmentBlocked(ItemStack stack, Holder<Enchantment> enchantment) {
+        return RuleManager.isEnchantmentBlocked(stack, enchantment);
+    }
+
+    /**
      * Registers programmatic removal rules from an external mod.
      *
      * @param sourceId A unique ID for the provider mod/feature.

@@ -253,6 +253,18 @@ public class RuleManager {
                     });
                 }
 
+                if (rule.enchantments != null) {
+                    rule.enchantments.removeIf(enchId -> {
+                        if (enchId.startsWith("#")) return false;
+                        ResourceLocation id = ResourceLocation.tryParse(enchId);
+                        if (id == null) {
+                            Constants.LOG.warn("Skipping invalid enchantment ID '{}'.", enchId);
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+
                 if (rule.tags != null) {
                     rule.tags.removeIf(tagId -> {
                         String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
@@ -359,7 +371,7 @@ public class RuleManager {
                 if (enchantments != null && !enchantments.isEmpty()) {
                     boolean allBlocked = true;
                     for (var entry : enchantments.entrySet()) {
-                        if (!isEnchantmentBlocked(entry.getKey())) {
+                        if (!isEnchantmentBlocked(stack, entry.getKey())) {
                             allBlocked = false;
                             break;
                         }
@@ -470,7 +482,7 @@ public class RuleManager {
                 ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
 
                 for (var entry : enchantments.entrySet()) {
-                    if (isEnchantmentBlocked(entry.getKey())) {
+                    if (isEnchantmentBlocked(stack, entry.getKey())) {
                         changed = true;
                     } else {
                         validEnchantments.set(entry.getKey(), entry.getIntValue());
@@ -503,7 +515,7 @@ public class RuleManager {
                 ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
 
                 for (var entry : enchantments.entrySet()) {
-                    if (isEnchantmentBlocked(entry.getKey())) {
+                    if (isEnchantmentBlocked(stack, entry.getKey())) {
                         changed = true;
                     } else {
                         validEnchantments.set(entry.getKey(), entry.getIntValue());
@@ -655,9 +667,13 @@ public class RuleManager {
     }
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return isEnchantmentBlocked(null, enchantment);
+    }
+
+    public static boolean isEnchantmentBlocked(ItemStack stack, Holder<Enchantment> enchantment) {
         if (enchantment == null) return false;
         String id = enchantment.unwrapKey().map(key -> key.location().toString()).orElse("");
-        return checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
+        return checkRules(stack, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
     }
 
     public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {

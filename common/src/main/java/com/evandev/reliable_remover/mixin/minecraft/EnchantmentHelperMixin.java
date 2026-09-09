@@ -26,7 +26,7 @@ public class EnchantmentHelperMixin {
     ) {
         List<EnchantmentInstance> list = cir.getReturnValue();
         if (list != null) {
-            list.removeIf(instance -> RuleManager.isEnchantmentBlocked(instance.enchantment));
+            list.removeIf(instance -> RuleManager.isEnchantmentBlocked(stack, instance.enchantment));
         }
     }
 }

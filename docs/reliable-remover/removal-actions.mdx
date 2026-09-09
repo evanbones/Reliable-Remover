@@ -135,12 +135,28 @@ Prevents the player from attacking entities while holding the specified item.
 
 Removes specific enchantments from item generation (loot tables, enchanting tables, villager trades, and item drops). If an enchanted book's enchantments are all removed, it will automatically reroll a valid allowed enchantment or convert into a standard `minecraft:book` item. Supports enchantment tags (such as `#minecraft:curse`).
 
-* **Use Case**: Remove "Protection" or specific curses from loot, enchanting tables, villager trades, and books entirely.
+Also supports targeting specific `items` to allow or preserve enchantments on specific tools.
+
+* **Use Case**: Remove "Protection" or specific curses from loot, enchanting tables, villager trades, and books entirely, or remove an enchantment from all items except specific tools.
 
 ```json
 {
   "action": "remove_enchantment",
   "enchantments": ["minecraft:protection", "#minecraft:curse"]
+}
+```
+
+#### Whitelisting Specific Items (`not`):
+
+```json
+{
+  "action": "remove_enchantment",
+  "enchantments": ["minecraft:fortune"],
+  "not": {
+    "items": [
+      "minecraft:golden_pickaxe"
+    ]
+  }
 }
 ```
 
