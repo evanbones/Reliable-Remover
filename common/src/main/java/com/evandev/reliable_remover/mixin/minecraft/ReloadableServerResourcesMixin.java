@@ -18,6 +18,6 @@ public class ReloadableServerResourcesMixin {
             )
     )
     private void reliableRemover$onTagsLoaded(RegistryAccess registryAccess, CallbackInfo ci) {
-        RuleManager.expandTagRules();
+        RuleManager.expandTagRules(registryAccess);
     }
 }

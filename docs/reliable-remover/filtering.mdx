@@ -1,0 +1,45 @@
+---
+title: Filtering
+hide_meta: true
+---
+
+In Reliable Remover, you define an action and then add filters to the action.
+
+### Filter Options
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| `items` | List of specific item IDs. | `["minecraft:tnt"]` |
+| `blocks` | List of specific block IDs or block tags. | `["minecraft:anvil", "#minecraft:beds"]` |
+| `fluids` | List of specific fluid IDs or fluid tags. | `["minecraft:water"]` |
+| `effects` | List of status effect / potion IDs or effect tags. | `["minecraft:poison", "minecraft:blindness"]` |
+| `tags` | List of item/block/fluid/effect tags to remove. | `["minecraft:logs"]` |
+| `mod` | Target all items from a mod ID. | `"farmersdelight"` |
+| `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
+| `entities` | List of entity IDs (for interaction, attack, and equipment removal rules). | `["minecraft:villager"]` |
+| `patterns` | A list of Regex patterns to match multiple item/block/fluid/effect IDs. | `["/.*_sword/", "/.*_helmet/"]` |
+| `nbt` | Matches NBT tags (or Data Components in 1.21+). Provide strict SNBT format for a subset match (e.g., `"{Damage:0}"`), or wrap the string in slashes to use Regex (e.g., `"/{.*Damage.*}/"`). |
+| `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
+| `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
+| `advancements` | List of advancement IDs. The rule only applies while the player has **not** yet earned all listed advancements. Once all advancements are obtained, the rule deactivates and the items become visible/usable again. | `["minecraft:nether/root"]` |
+| `replace_with` | Replaces the removed item in all recipes with this specified item ID. | `"minecraft:copper_ingot"` |
+
+### Logic (`not`)
+
+You can use the `not` field to invert conditions.
+This is useful for creating exceptions (whitelists).
+
+```json
+{
+  "action": "remove",
+  "mod": ["examplemod"],
+  "not": {
+    "items": ["examplemod:safe_item"]
+  }
+}
+
+```
+
+For complex logical examples, such as **"Ban Mod X except Item Y"** or **"Allow Item only in Dimension Z"**, please see the advanced examples page.
+
+[View 'Advanced Logic & NBT' Examples](/project/reliable-remover/latest/docs/reliable-remover/examples/advanced-logic)

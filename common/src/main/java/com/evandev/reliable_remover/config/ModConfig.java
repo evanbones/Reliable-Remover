@@ -31,6 +31,7 @@ public class ModConfig {
     public boolean removeItemsFromInfoTabs = true;
     public boolean removeItemsFromTrades = true;
     public boolean removeMobEquipment = true;
+    public boolean removeCnmChildren = true;
 
     public boolean enableEmiRemoval = false;
     public boolean showEmiToast = true;
@@ -48,22 +49,29 @@ public class ModConfig {
     public static void load() {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
-                INSTANCE = GSON.fromJson(reader, ModConfig.class);
+                ModConfig loaded = GSON.fromJson(reader, ModConfig.class);
+                if (loaded != null) {
+                    if (loaded.blacklistedItems == null) {
+                        loaded.blacklistedItems = new ArrayList<>();
+                    } else {
+                        loaded.blacklistedItems = new ArrayList<>(loaded.blacklistedItems);
+                    }
+                    INSTANCE = loaded;
+                } else if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
+                }
+            } catch (Exception e) {
+                Constants.LOG.error("Failed to load reliable_remover.json, keeping previous configuration", e);
                 if (INSTANCE == null) {
                     INSTANCE = new ModConfig();
                 }
-                if (INSTANCE.blacklistedItems == null) {
-                    INSTANCE.blacklistedItems = new ArrayList<>();
-                } else {
-                    INSTANCE.blacklistedItems = new ArrayList<>(INSTANCE.blacklistedItems);
-                }
-            } catch (Exception e) {
-                Constants.LOG.error("Failed to load reliable_remover.json", e);
-                INSTANCE = new ModConfig();
             }
-        } else {
+        } else if (INSTANCE == null) {
             INSTANCE = new ModConfig();
             save();
+        }
+        if (INSTANCE != null && INSTANCE.blacklistedItems == null) {
+            INSTANCE.blacklistedItems = new ArrayList<>();
         }
     }
 

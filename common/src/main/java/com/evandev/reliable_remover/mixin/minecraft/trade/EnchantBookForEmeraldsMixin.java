@@ -22,7 +22,7 @@ public class EnchantBookForEmeraldsMixin {
 
         ItemStack result = offer.getResult();
         if (result.is(Items.ENCHANTED_BOOK)) {
-            RuleManager.stripBlockedEnchantments(result);
+            RuleManager.stripBlockedEnchantments(result, trader.level());
 
             if (EnchantedBookItem.getEnchantments(result).isEmpty()) {
                 ItemStack baseCost = offer.getBaseCostA();

@@ -1,0 +1,47 @@
+---
+title: Usage
+hide_meta: true
+---
+
+The mod watches a specific folder in your instance for JSON files: `./config/reliable_remover/`.
+You can place as many JSON files as you like in this folder or in subfolders.
+
+If the folder is empty when the game starts, a `removal_example.json` file will be generated automatically to help you
+get started.
+
+### Global Configuration
+
+Global settings can be configured via the YACLv3 screen in-game or by editing `config/reliable_remover.json`.
+This includes toggling visibility messages and enabling Dev Mode for quick removals using EMI.
+
+### JSON Structure
+
+You can define a single rule or **multiple rules** in a single JSON file. To define multiple rules, simply wrap them in
+a JSON Array `[...]`.
+
+```json
+[
+  {
+    "action": "remove",
+    ...
+  },
+  {
+    "action": "remove_attacks",
+    ...
+  }
+]
+
+```
+
+### EMI Integration
+
+If EMI is installed and Dev Mode is enabled in the Reliable Remover config, you can manage removals directly from the EMI side panel:
+
+* Remove Item: Hover over any item in the EMI list and press Delete (or Backspace). This keybind is changable in Controls.
+* Automatic Reload: The mod can automatically trigger a full reload (/reload) after a removal to ensure the item is
+immediately hidden from all menus.
+
+#### Dynamic Removals
+
+* When you remove an item via the EMI interface, the rule is saved to the blacklist in `config/reliable_remover.json`.
+You can manually edit this file, use cloth config, or use the `/rremover undo <item_id>` command to revert changes.

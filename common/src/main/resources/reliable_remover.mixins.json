@@ -2,43 +2,50 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.evandev.reliable_remover.mixin",
-  "refmap": "${mod_id}.refmap.json",
   "plugin": "com.evandev.reliable_remover.mixin.ReliableRemoverMixinPlugin",
+  "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "clutternomore.ShapeMapMixin",
     "emi.EmiRegistryImplMixin",
     "emi.EmiScreenManagerMixin",
     "emi.EmiStackListMixin",
     "emi.EmiTagsMixin",
     "minecraft.AnvilMenuMixin",
+    "minecraft.BlockStateBaseMixin",
     "minecraft.CreativeModeTabMixin",
     "minecraft.EnchantmentHelperMixin",
+    "minecraft.EntityMixin",
     "minecraft.GiveCommandMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
     "minecraft.LivingEntityMixin",
     "minecraft.LootTableMixin",
     "minecraft.MerchantMenuMixin",
-    "minecraft.PotionBrewingMixin",
-    "minecraft.RandomizableContainerMixin",
-    "minecraft.ServerPlayerGameModeMixin",
-    "minecraft.ServerPlayerMixin",
-    "minecraft.ReloadableServerResourcesMixin",
-    "minecraft.accessor.LootContextAccessor",
-    "minecraft.trade.EnchantBookForEmeraldsMixin",
-    "minecraft.trade.EnchantedItemForEmeraldsMixin",
+    "minecraft.PlayerMixin",
     "minecraft.loot.EnchantRandomlyFunctionMixin",
     "minecraft.loot.EnchantWithLevelsFunctionMixin",
-    "minecraft.loot.SetEnchantmentsFunctionMixin"
+    "minecraft.loot.SetEnchantmentsFunctionMixin",
+    "minecraft.trade.EnchantBookForEmeraldsMixin",
+    "minecraft.trade.EnchantedItemForEmeraldsMixin",
+    "minecraft.PotionBrewingMixin",
+    "minecraft.RandomizableContainerMixin",
+    "minecraft.RecipeManagerMixin",
+    "minecraft.ReloadableServerResourcesMixin",
+    "minecraft.ServerPlayerGameModeMixin",
+    "minecraft.ServerPlayerMixin",
+    "minecraft.accessor.CreativeModeTabsAccessor",
+    "minecraft.accessor.LootContextAccessor"
   ],
   "client": [
+    "client.MultiPlayerGameModeMixin",
     "client.ScreenMixin",
-    "minecraft.MinecraftMixin",
-    "minecraft.ClientPacketListenerMixin"
+    "jeed.JeedMixin",
+    "minecraft.ClientPacketListenerMixin",
+    "minecraft.MinecraftMixin"
   ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
   }
 }
-

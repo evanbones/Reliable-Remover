@@ -11,6 +11,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -70,6 +71,26 @@ public abstract class ServerPlayerMixin extends Player {
 
     @Inject(method = "initMenu", at = @At("HEAD"))
     private void reliable_remover$onInitMenu(AbstractContainerMenu menu, CallbackInfo ci) {
+        menu.addSlotListener(new ContainerListener() {
+            @Override
+            public void slotChanged(AbstractContainerMenu menu, int slotId, ItemStack stack) {
+                if (!stack.isEmpty() && slotId >= 0 && slotId < menu.slots.size()) {
+                    ServerPlayer player = (ServerPlayer) (Object) ServerPlayerMixin.this;
+                    ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, player.level(), player, "inventory");
+
+                    if (replacement != null) {
+                        menu.getSlot(slotId).set(replacement);
+                    } else if (RuleManager.isInventoryBlocked(stack, player.level(), player)) {
+                        menu.getSlot(slotId).set(ItemStack.EMPTY);
+                    }
+                }
+            }
+
+            @Override
+            public void dataChanged(AbstractContainerMenu menu, int id, int value) {
+            }
+        });
+
         if (!ModConfig.get().removeItemsOnInventoryOpen) return;
 
         boolean changed = false;

@@ -5,7 +5,6 @@ import java.util.List;
 public class RuleConfigIO {
 
     public static boolean addRemovalRule(String itemId) {
-        ModConfig.load();
         List<String> blacklist = ModConfig.get().blacklistedItems;
         if (!blacklist.contains(itemId)) {
             blacklist.add(itemId);
@@ -17,7 +16,6 @@ public class RuleConfigIO {
     }
 
     public static boolean removeRemovalRule(String itemId) {
-        ModConfig.load();
         List<String> blacklist = ModConfig.get().blacklistedItems;
         if (blacklist.contains(itemId)) {
             blacklist.remove(itemId);

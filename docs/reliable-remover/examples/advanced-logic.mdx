@@ -1,0 +1,274 @@
+---
+title: Advanced Logic & NBT
+hide_meta: true
+---
+
+### Ban All Swords from Minecraft Only
+
+Uses the `mod` filter to limit the scope of the Regex pattern. It will remove `minecraft:diamond_sword` but keep `othermod:copper_sword`.
+
+```json
+{
+  "action": "remove",
+  "mod": ["minecraft"],
+  "pattern": "/.*_sword/"
+}
+
+```
+
+### Ban All Spawn Eggs
+
+Uses a Regex pattern to match any item ending in `_spawn_egg` across all mods.
+
+```json
+{
+  "action": "remove",
+  "pattern": "/.*_spawn_egg/"
+}
+
+```
+
+## Inverted Logic (Whitelists)
+
+### Ban a Mod, Keep Specific Items
+
+Removes everything from `ae2` except for the Certus Quartz Crystal.
+
+```json
+{
+  "action": "remove",
+  "mod": ["ae2"],
+  "not": {
+    "items": ["ae2:certus_quartz_crystal"]
+  }
+}
+
+```
+
+### Allow Elytra ONLY in the End
+
+Prevents the Elytra from being used (right-clicked) in any dimension except The End.
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:elytra"],
+  "not": {
+    "dimensions": ["minecraft:the_end"]
+  }
+}
+
+```
+
+## Interaction & Combat
+
+### Pacifist Mode (No Weapons)
+
+Prevents attacking with any item that has "sword" or "axe" in its ID.
+
+```json
+{
+  "action": "remove_attacks",
+  "patterns": [
+    "/.*_sword/",
+    "/.*_axe/"
+  ]
+}
+
+```
+
+### Protect Villagers & Golems
+
+Prevents players from attacking Villagers or Iron Golems with *any* item.
+
+```json
+{
+  "action": "remove_attacks",
+  "entities": [
+    "minecraft:villager",
+    "minecraft:iron_golem"
+  ]
+}
+
+```
+
+### Disable Shearing Sheep
+
+Prevents using Shears on Sheep, but allows using them on other things (like leaves or wool blocks).
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:shears"],
+  "entities": ["minecraft:sheep"]
+}
+
+```
+
+### Disable Hand Swinging for Multiple Tools
+
+This rule uses the `patterns` list to block the swing animation for all shovels and pickaxes.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "patterns": [
+    "/.*_shovel/",
+    "/.*_pickaxe/"
+  ]
+}
+
+```
+
+## Fluids & Effects
+
+### Remove Fluids by ID
+
+Removes Water and Lava fluids from recipe viewers.
+
+```json
+{
+  "action": "remove",
+  "fluids": ["minecraft:water", "minecraft:lava"]
+}
+
+```
+
+### Remove Potions by Effect
+
+Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect from Creative Tabs and recipe viewers.
+
+```json
+{
+  "action": "remove_potion",
+  "effects": ["minecraft:night_vision"]
+}
+
+```
+
+### Prevent Status Effect Application (`remove_effect`)
+
+Prevents entities from gaining the `minecraft:poison` status effect from any source (potions, mob attacks, beacons, etc.).
+
+```json
+{
+  "action": "remove_effect",
+  "effects": ["minecraft:poison"]
+}
+
+```
+
+### Remove Items with Specific NBT
+
+Removes any item containing the text `"CustomModelData":1` or `"CustomModelData":2` in its NBT tag.
+
+```json
+{
+  "action": "remove",
+  "nbt": [
+    "/.*\"CustomModelData\":1.*/",
+    "/.*\"CustomModelData\":2.*/"
+  ]
+}
+
+```
+
+### Remove All Enchanted Books
+
+This uses a Regex match against the item's NBT string.
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:enchanted_book"],
+  "nbt": ["/.*StoredEnchantments.*/"]
+}
+
+```
+
+## Entity Equipment
+
+### Strip Specific Weapons from Mobs
+Because the `entities` filter can be tied to the `remove` action, you can selectively strip equipment from specific mobs without banning the item for players.
+
+This rule will actively delete Diamond Swords from Zombies, but players and other entities will still be able to use them:
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond_sword"],
+  "entities": ["minecraft:zombie"]
+}
+
+```
+
+### Strip All Armor from Skeletons
+Using regex patterns, you can completely prevent Skeletons from wearing any helmet.
+
+```json
+{
+  "action": "remove",
+  "patterns": ["/.*_helmet/"],
+  "entities": ["minecraft:skeleton"]
+}
+
+```
+
+## Registry & Tag Isolation
+
+### Tag-Type Isolation
+
+Tells Reliable Remover to hide the item from **item tags**, but completely ignore **block tags**. For example, removing `minecraft:oak_log` will strip it from `#minecraft:logs` for crafting, but the placed block will still behave normally when mined with an axe.
+
+```json
+[
+  {
+    "action": "remove",
+    "items": [
+      "minecraft:oak_log"
+    ],
+    "tag_type": [
+      "item"
+    ]
+  }
+]
+
+```
+
+### Registry Context
+
+Removes the item from the game as a dropped entity and hides it from standard item contexts, but leaves its placed block form alone. If a player mines a Diamond Ore with this rule active, the dropped diamond entity will immediately vanish.
+
+```json
+[
+  {
+    "action": "remove",
+    "items": [
+      "minecraft:diamond"
+    ],
+    "registry": [
+      "item",
+      "entity"
+    ]
+  }
+]
+
+```
+
+### Mod-Wide Removal
+
+Wipes a specific tag type for an entire mod without breaking the physical blocks of that mod. All item-form tags (e.g., `#forge:ingots/copper` for items) will have that mod's items stripped out, but the blocks will behave normally in the world.
+
+```json
+[
+  {
+    "action": "remove",
+    "mod": [
+      "examplemod"
+    ],
+    "tag_type": [
+      "item"
+    ]
+  }
+]
+
+```

@@ -56,6 +56,12 @@ dependencies {
     // Cloth Config
     modImplementation "me.shedaniel.cloth:cloth-config-forge:${cloth_config_version}"
 
+    // Clutter No More
+    compileOnly "maven.modrinth:clutter-no-more:${cnm_version}"
+
+    // JEED
+    compileOnly "maven.modrinth:just-enough-effect-descriptions-jeed:${jeed_version}"
+
     compileOnly project(":common")
     compileOnly 'org.jetbrains:annotations:26.0.2-1'
     annotationProcessor("org.spongepowered:mixin:0.8.5:processor")

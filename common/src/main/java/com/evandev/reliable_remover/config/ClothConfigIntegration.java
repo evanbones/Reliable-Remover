@@ -104,6 +104,12 @@ public class ClothConfigIntegration {
                 .setSaveConsumer(newValue -> config.removeMobEquipment = newValue)
                 .build());
 
+        general.addEntry(entryBuilder.startBooleanToggle(Component.translatable("config.reliable_remover.option.remove_cnm_children"), config.removeCnmChildren)
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.reliable_remover.option.remove_cnm_children.tooltip"))
+                .setSaveConsumer(newValue -> config.removeCnmChildren = newValue)
+                .build());
+
         ConfigCategory blacklistCategory = builder.getOrCreateCategory(Component.translatable("config.reliable_remover.category.blacklist"));
 
         blacklistCategory.addEntry(entryBuilder.startStrList(Component.translatable("config.reliable_remover.option.blacklisted_items"), config.blacklistedItems)

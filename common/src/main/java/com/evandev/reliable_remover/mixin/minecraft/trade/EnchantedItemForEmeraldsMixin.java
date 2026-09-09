@@ -14,13 +14,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class EnchantedItemForEmeraldsMixin {
 
     @Inject(method = "getOffer", at = @At("RETURN"))
-    private void reliable_remover$stripBlockedEnchantments(Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
+    private void reliable_remover$stripTradeItemEnchantments(Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
         MerchantOffer offer = cir.getReturnValue();
-        if (offer != null) {
-            ItemStack result = offer.getResult();
-            if (!result.isEmpty()) {
-                RuleManager.stripBlockedEnchantments(result);
-            }
+        if (offer != null && !offer.getResult().isEmpty()) {
+            RuleManager.stripBlockedEnchantments(offer.getResult(), trader.level());
         }
     }
 }

@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -56,7 +57,7 @@ public abstract class ItemEntityMixin extends Entity {
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void reliable_remover$checkLoad(net.minecraft.nbt.CompoundTag compound, CallbackInfo ci) {
+    private void reliable_remover$checkLoad(CompoundTag compound, CallbackInfo ci) {
         ItemStack stack = this.getItem();
         ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_DROPS, this.level(), this, "drops");
         if (replacement != null) {

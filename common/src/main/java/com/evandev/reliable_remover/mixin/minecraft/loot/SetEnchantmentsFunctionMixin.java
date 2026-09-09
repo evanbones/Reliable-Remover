@@ -1,7 +1,9 @@
 package com.evandev.reliable_remover.mixin.minecraft.loot;
 
 import com.evandev.reliable_remover.config.RuleManager;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.SetEnchantmentsFunction;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,11 +14,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SetEnchantmentsFunction.class)
 public class SetEnchantmentsFunctionMixin {
 
-    @Inject(method = "run", at = @At("RETURN"))
-    private void reliable_remover$stripBlockedEnchantments(ItemStack stack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
-        ItemStack result = cir.getReturnValue();
-        if (result != null && !result.isEmpty()) {
-            RuleManager.stripBlockedEnchantments(result);
+    @Inject(method = "run", at = @At("RETURN"), cancellable = true)
+    private void reliable_remover$cleanAndRerollEnchantedBook(ItemStack originalStack, LootContext context, CallbackInfoReturnable<ItemStack> cir) {
+        ItemStack stack = cir.getReturnValue();
+        if (stack == null || stack.isEmpty()) return;
+
+        RuleManager.stripBlockedEnchantments(stack, context != null ? context.getLevel() : null);
+
+        if (stack.is(Items.ENCHANTED_BOOK)) {
+            if (EnchantedBookItem.getEnchantments(stack).isEmpty()) {
+                cir.setReturnValue(new ItemStack(Items.BOOK, stack.getCount()));
+            }
         }
     }
 }

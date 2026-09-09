@@ -1,3 +1,10 @@
+### Added
+
+- Added Clutter No More and JEED integration.
+- Added API support for dynamic removals.
+- Added in-world block & entity interaction blocking/filtering.
+
 ### Changed
 
-- Backported fixes and improvements from 1.21.
+- Improved enchantment stripping.
+- Improved tag expansion.

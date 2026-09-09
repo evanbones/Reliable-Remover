@@ -5,6 +5,7 @@ import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -80,7 +81,8 @@ public class RemovalRule {
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Holder<?> registryHolder, String context) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context)) return false;
+        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context))
+            return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty() || !stack.hasTag()) return false;
@@ -164,6 +166,12 @@ public class RemovalRule {
 
         if (entities != null && !entities.isEmpty()) {
             if (entityId == null || !entities.contains(entityId)) return false;
+        }
+
+        if (this.action == Action.REMOVE_INTERACTIONS && "interaction".equals(context)) {
+            if (this.blocks != null && !this.blocks.isEmpty() && (this.items == null || this.items.isEmpty())) {
+                return false;
+            }
         }
 
         boolean hasPattern = pattern != null && !pattern.isEmpty();
@@ -301,6 +309,24 @@ public class RemovalRule {
                 return false;
 
             } else {
+                if (registryHolder != null) {
+                    if (registryHolder.value() instanceof Block) {
+                        TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Block> blockHolder = (Holder<Block>) registryHolder;
+                        if (blockHolder.is(blockTagKey)) return true;
+                    } else if (registryHolder.value() instanceof MobEffect) {
+                        TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
+                        if (effectHolder.is(effectTagKey)) return true;
+                    } else if (registryHolder.value() instanceof Fluid) {
+                        TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
+                        @SuppressWarnings("unchecked")
+                        Holder<Fluid> fluidHolder = (Holder<Fluid>) registryHolder;
+                        if (fluidHolder.is(fluidTagKey)) return true;
+                    }
+                }
                 if (compiledItemTags == null) {
                     synchronized (this) {
                         if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
@@ -348,7 +374,7 @@ public class RemovalRule {
         }
     }
 
-    public void expandTags() {
+    public void expandTags(RegistryAccess registryAccess) {
         if (this.tags == null || this.tags.isEmpty()) return;
 
         Set<String> expandedItems = new HashSet<>(this.items);
@@ -361,16 +387,18 @@ public class RemovalRule {
             Set<String> resolved = new HashSet<>();
             if (this.action == Action.REMOVE_POTION) {
                 TagKey<Potion> tagKey = TagKey.create(Registries.POTION, tagLocation);
-                for (Map.Entry<ResourceKey<Potion>, Potion> entry : BuiltInRegistries.POTION.entrySet()) {
-                    BuiltInRegistries.POTION.getHolder(entry.getKey()).ifPresent(holder -> {
+                var potionReg = registryAccess != null ? registryAccess.registry(Registries.POTION).orElse(BuiltInRegistries.POTION) : BuiltInRegistries.POTION;
+                for (Map.Entry<ResourceKey<Potion>, Potion> entry : potionReg.entrySet()) {
+                    potionReg.getHolder(entry.getKey()).ifPresent(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(entry.getKey().location().toString());
                         }
                     });
                 }
                 TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : BuiltInRegistries.MOB_EFFECT.entrySet()) {
-                    BuiltInRegistries.MOB_EFFECT.getHolder(entry.getKey()).ifPresent(holder -> {
+                var effectReg = registryAccess != null ? registryAccess.registry(Registries.MOB_EFFECT).orElse(BuiltInRegistries.MOB_EFFECT) : BuiltInRegistries.MOB_EFFECT;
+                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : effectReg.entrySet()) {
+                    effectReg.getHolder(entry.getKey()).ifPresent(holder -> {
                         if (holder.is(effectTagKey)) {
                             resolved.add(entry.getKey().location().toString());
                         }
@@ -378,8 +406,9 @@ public class RemovalRule {
                 }
             } else if (this.action == Action.REMOVE_EFFECT) {
                 TagKey<MobEffect> tagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : BuiltInRegistries.MOB_EFFECT.entrySet()) {
-                    BuiltInRegistries.MOB_EFFECT.getHolder(entry.getKey()).ifPresent(holder -> {
+                var effectReg = registryAccess != null ? registryAccess.registry(Registries.MOB_EFFECT).orElse(BuiltInRegistries.MOB_EFFECT) : BuiltInRegistries.MOB_EFFECT;
+                for (Map.Entry<ResourceKey<MobEffect>, MobEffect> entry : effectReg.entrySet()) {
+                    effectReg.getHolder(entry.getKey()).ifPresent(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(entry.getKey().location().toString());
                         }
@@ -387,8 +416,9 @@ public class RemovalRule {
                 }
             } else if (this.action == Action.REMOVE_ENCHANTMENT) {
                 TagKey<Enchantment> tagKey = TagKey.create(Registries.ENCHANTMENT, tagLocation);
-                for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : BuiltInRegistries.ENCHANTMENT.entrySet()) {
-                    BuiltInRegistries.ENCHANTMENT.getHolder(entry.getKey()).ifPresent(holder -> {
+                var enchReg = registryAccess != null ? registryAccess.registry(Registries.ENCHANTMENT).orElse(BuiltInRegistries.ENCHANTMENT) : BuiltInRegistries.ENCHANTMENT;
+                for (Map.Entry<ResourceKey<Enchantment>, Enchantment> entry : enchReg.entrySet()) {
+                    enchReg.getHolder(entry.getKey()).ifPresent(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(entry.getKey().location().toString());
                         }
@@ -396,9 +426,11 @@ public class RemovalRule {
                 }
             } else {
                 TagKey<Item> tagKey = TagKey.create(Registries.ITEM, tagLocation);
-                for (Item item : BuiltInRegistries.ITEM) {
-                    ResourceLocation key = BuiltInRegistries.ITEM.getKey(item);
-                    BuiltInRegistries.ITEM.getHolder(ResourceKey.create(Registries.ITEM, key)).ifPresent(holder -> {
+                var itemReg = registryAccess != null ? registryAccess.registry(Registries.ITEM).orElse(BuiltInRegistries.ITEM) : BuiltInRegistries.ITEM;
+                for (Item item : itemReg) {
+                    ResourceLocation key = itemReg.getKey(item);
+                    if (key == null) continue;
+                    itemReg.getHolder(ResourceKey.create(Registries.ITEM, key)).ifPresent(holder -> {
                         if (holder.is(tagKey)) {
                             resolved.add(key.toString());
                         }

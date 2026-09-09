@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.emi;
 
+import com.evandev.reliable_remover.compat.EmiBlacklistHelper;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiIngredient;
@@ -7,7 +8,9 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.stack.ListEmiIngredient;
 import dev.emi.emi.registry.EmiTags;
 import dev.emi.emi.runtime.EmiTagKey;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -23,20 +26,14 @@ public class EmiTagsMixin {
         if (!ModConfig.get().removeItemsFromEmi) return;
 
         List<EmiStack> original = cir.getReturnValue();
-        if (original != null && !original.isEmpty()) {
-            List<EmiStack> filtered = original.stream()
-                    .filter(stack -> {
-                        try {
-                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlocked(stack.getItemStack());
-                        } catch (Exception e) {
-                            return true;
-                        }
-                    })
-                    .collect(Collectors.toList());
+        if (original == null || original.isEmpty()) return;
 
-            if (filtered.size() != original.size()) {
-                cir.setReturnValue(filtered);
-            }
+        List<EmiStack> filtered = original.stream()
+                .filter(EmiTagsMixin::reliable_remover$isVisible)
+                .collect(Collectors.toList());
+
+        if (!filtered.isEmpty() && filtered.size() != original.size()) {
+            cir.setReturnValue(filtered);
         }
     }
 
@@ -45,25 +42,30 @@ public class EmiTagsMixin {
         if (!ModConfig.get().removeItemsFromEmi) return;
 
         EmiIngredient result = cir.getReturnValue();
-        if (result != null && result.getClass() == ListEmiIngredient.class) {
-            List<EmiStack> originalStacks = result.getEmiStacks();
-            List<EmiStack> filtered = originalStacks.stream()
-                    .filter(stack -> {
-                        try {
-                            return stack.getItemStack() == null || stack.getItemStack().isEmpty() || !RuleManager.isCreativeBlocked(stack.getItemStack());
-                        } catch (Exception e) {
-                            return true;
-                        }
-                    })
-                    .collect(Collectors.toList());
+        if (result == null || result.getClass() != ListEmiIngredient.class) return;
 
-            if (filtered.size() != originalStacks.size()) {
-                if (filtered.isEmpty()) {
-                    cir.setReturnValue(EmiStack.EMPTY);
-                } else {
-                    cir.setReturnValue(new ListEmiIngredient(filtered, amount));
-                }
+        List<EmiStack> originalStacks = result.getEmiStacks();
+        List<EmiStack> filtered = originalStacks.stream()
+                .filter(EmiTagsMixin::reliable_remover$isVisible)
+                .collect(Collectors.toList());
+
+        if (filtered.size() != originalStacks.size()) {
+            if (filtered.isEmpty()) {
+                cir.setReturnValue(EmiStack.EMPTY);
+            } else {
+                cir.setReturnValue(new ListEmiIngredient(filtered, amount));
             }
+        }
+    }
+
+    @Unique
+    private static boolean reliable_remover$isVisible(EmiStack stack) {
+        try {
+            if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) return false;
+            ItemStack itemStack = stack.getItemStack();
+            return itemStack == null || itemStack.isEmpty() || !RuleManager.isCreativeBlocked(itemStack);
+        } catch (Throwable t) {
+            return true;
         }
     }
 }

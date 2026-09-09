@@ -1,0 +1,65 @@
+---
+title: Blocking Interactions
+hide_meta: true
+---
+
+These examples use the `remove_interactions` action. Items or blocks still exist, but cannot be "used" or right-clicked.
+
+### Disable Item Usage
+Prevents players from using Lava Buckets or Flint and Steel.
+
+```json
+{
+  "action": "remove_interactions",
+  "items": [
+    "minecraft:lava_bucket",
+    "minecraft:flint_and_steel"
+  ]
+}
+
+```
+
+### Disable Block Interactions (Placeable but Not Usable)
+Prevents players from sleeping in beds or using anvils in the world, while still allowing them to place beds and anvils from their inventory.
+
+```json
+{
+  "action": "remove_interactions",
+  "blocks": [
+    "minecraft:anvil",
+    "#minecraft:beds"
+  ]
+}
+
+```
+
+### Disable Block Placement (`remove_placement`)
+Prevents players from placing TNT or Bedrock in the world.
+
+```json
+{
+  "action": "remove_placement",
+  "blocks": [
+    "minecraft:tnt",
+    "minecraft:bedrock"
+  ]
+}
+
+```
+
+### Prevent Interaction with Specific Entities
+
+Prevents players from using a Saddle on a Pig. Other interactions with Saddles (like on Horses) remain unaffected.
+
+```json
+{
+  "action": "remove_interactions",
+  "items": [
+    "minecraft:saddle"
+  ],
+  "entities": [
+    "minecraft:pig"
+  ]
+}
+
+```

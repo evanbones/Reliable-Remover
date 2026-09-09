@@ -5,6 +5,7 @@ import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackLinkedSet;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,8 +18,11 @@ import java.util.Set;
 @Mixin(value = CreativeModeTab.class, priority = 10000)
 public abstract class CreativeModeTabMixin {
 
-    @Shadow private Collection<ItemStack> displayItems;
-    @Shadow private Set<ItemStack> displayItemsSearchTab;
+    @Shadow
+    private Collection<ItemStack> displayItems;
+
+    @Shadow
+    private Set<ItemStack> displayItemsSearchTab;
 
     @Inject(method = "buildContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/CreativeModeTab;rebuildSearchTree()V"))
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
@@ -27,10 +31,24 @@ public abstract class CreativeModeTabMixin {
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
         if (this.displayItems != null) {
-            this.displayItems.removeIf(RuleManager::isCreativeBlocked);
+            try {
+                this.displayItems.removeIf(RuleManager::isCreativeBlocked);
+            } catch (UnsupportedOperationException e) {
+                Collection<ItemStack> mutableItems = ItemStackLinkedSet.createTypeAndTagSet();
+                mutableItems.addAll(this.displayItems);
+                mutableItems.removeIf(RuleManager::isCreativeBlocked);
+                this.displayItems = mutableItems;
+            }
         }
         if (this.displayItemsSearchTab != null) {
-            this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlocked);
+            try {
+                this.displayItemsSearchTab.removeIf(RuleManager::isCreativeBlocked);
+            } catch (UnsupportedOperationException e) {
+                Set<ItemStack> mutableSearch = ItemStackLinkedSet.createTypeAndTagSet();
+                mutableSearch.addAll(this.displayItemsSearchTab);
+                mutableSearch.removeIf(RuleManager::isCreativeBlocked);
+                this.displayItemsSearchTab = mutableSearch;
+            }
         }
     }
 }

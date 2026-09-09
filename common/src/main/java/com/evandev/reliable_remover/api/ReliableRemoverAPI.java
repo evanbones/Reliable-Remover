@@ -1,12 +1,19 @@
 package com.evandev.reliable_remover.api;
 
 import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.data.Action;
+import com.evandev.reliable_remover.data.RemovalRule;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
+
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class ReliableRemoverAPI {
@@ -102,6 +109,13 @@ public class ReliableRemoverAPI {
     }
 
     /**
+     * Checks if right-click interactions with a block in the world have been blocked.
+     */
+    public static boolean isBlockInteractionBlocked(BlockState state, Level level, BlockPos pos, Entity entity) {
+        return RuleManager.isBlockInteractionBlocked(state, level, pos, entity);
+    }
+
+    /**
      * Checks if a status effect / mob effect has been blocked.
      */
     public static boolean isEffectBlocked(MobEffect effect, Level level, Entity entity) {
@@ -131,5 +145,50 @@ public class ReliableRemoverAPI {
      */
     public static boolean isEnchantmentBlocked(Enchantment enchantment) {
         return RuleManager.isEnchantmentBlocked(enchantment);
+    }
+
+    public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return RuleManager.isEnchantmentBlocked(enchantment);
+    }
+
+    /**
+     * Registers programmatic removal rules from an external mod.
+     *
+     * @param sourceId A unique ID for the provider mod/feature.
+     * @param rules    The list of removal rules to register, or null/empty to clear rules for this source.
+     */
+    public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
+        RuleManager.registerDynamicRules(sourceId, rules);
+    }
+
+    /**
+     * Unregisters all dynamic removal rules for the specified source.
+     *
+     * @param sourceId A unique ID for the provider mod/feature.
+     */
+    public static void unregisterDynamicRules(String sourceId) {
+        RuleManager.unregisterDynamicRules(sourceId);
+    }
+
+    /**
+     * Helper to register item replacements programmatically.
+     *
+     * @param sourceId     A unique ID for the provider mod/feature.
+     * @param replacements Map of original item ID -> replacement item ID.
+     */
+    public static void registerDynamicReplacements(String sourceId, Map<String, String> replacements) {
+        if (replacements == null || replacements.isEmpty()) {
+            unregisterDynamicRules(sourceId);
+            return;
+        }
+        List<RemovalRule> rules = new ArrayList<>();
+        for (Map.Entry<String, String> entry : replacements.entrySet()) {
+            RemovalRule rule = new RemovalRule();
+            rule.action = Action.REMOVE;
+            rule.items = new HashSet<>(Collections.singletonList(entry.getKey()));
+            rule.replaceWith = entry.getValue();
+            rules.add(rule);
+        }
+        registerDynamicRules(sourceId, rules);
     }
 }
