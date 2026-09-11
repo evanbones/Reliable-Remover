@@ -22,6 +22,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
@@ -169,6 +170,52 @@ public class RemovalRule {
         String stackItemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         for (String filter : itemFilters) {
             if (matchesItem(filter, stack, stackItemId)) return true;
+        }
+        return false;
+    }
+
+    public boolean matchesAnyEnchantment(ItemStack stack) {
+        if (this.enchantments == null || this.enchantments.isEmpty() || stack == null || stack.isEmpty()) return false;
+
+        ItemEnchantments enchs = stack.get(DataComponents.ENCHANTMENTS);
+        if (enchs != null && !enchs.isEmpty()) {
+            for (Holder<Enchantment> holder : enchs.keySet()) {
+                if (matchesEnchantmentHolder(holder)) return true;
+            }
+        }
+
+        ItemEnchantments stored = stack.get(DataComponents.STORED_ENCHANTMENTS);
+        if (stored != null && !stored.isEmpty()) {
+            for (Holder<Enchantment> holder : stored.keySet()) {
+                if (matchesEnchantmentHolder(holder)) return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean matchesEnchantmentHolder(Holder<Enchantment> holder) {
+        if (holder == null) return false;
+        String id = holder.unwrapKey().map(k -> k.location().toString()).orElse(null);
+
+        for (String filter : this.enchantments) {
+            if (filter.startsWith("#")) {
+                String cleanTagId = filter.substring(1);
+                ResourceLocation tagLocation = ResourceLocation.tryParse(cleanTagId);
+                if (tagLocation != null) {
+                    if (compiledEnchTags == null) {
+                        synchronized (this) {
+                            if (compiledEnchTags == null) compiledEnchTags = new ConcurrentHashMap<>();
+                        }
+                    }
+                    TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
+                    if (holder.is(tagKey)) return true;
+                }
+            } else if (id != null) {
+                if (filter.equals(id)) return true;
+                ResourceLocation filterLoc = ResourceLocation.tryParse(filter);
+                if (filterLoc != null && filterLoc.toString().equals(id)) return true;
+            }
         }
         return false;
     }
@@ -324,6 +371,18 @@ public class RemovalRule {
             }
 
             return false;
+        }
+
+        if (hasEnchFilter) {
+            if (!matchesAnyEnchantment(stack)) return false;
+            boolean hasOtherItemFilter = (items != null && !items.isEmpty()) ||
+                    (blocks != null && !blocks.isEmpty()) ||
+                    (fluids != null && !fluids.isEmpty()) ||
+                    (effects != null && !effects.isEmpty()) ||
+                    hasTagFilter ||
+                    hasPattern ||
+                    hasPatternList;
+            if (!hasOtherItemFilter) return true;
         }
 
         if (items != null && !items.isEmpty()) {

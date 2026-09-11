@@ -25,6 +25,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -304,6 +305,10 @@ public class RuleManager {
                 (rule.registry == null || rule.registry.isEmpty()) &&
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
                 (rule.advancements == null || rule.advancements.isEmpty()) &&
+                (rule.enchantments == null || rule.enchantments.isEmpty()) &&
+                (rule.effects == null || rule.effects.isEmpty()) &&
+                (rule.blocks == null || rule.blocks.isEmpty()) &&
+                (rule.fluids == null || rule.fluids.isEmpty()) &&
                 rule.not == null &&
                 (rule.replaceWith == null || rule.replaceWith.isEmpty()) &&
                 rule.items != null && !rule.items.isEmpty() &&
@@ -577,13 +582,16 @@ public class RuleManager {
 
     public static boolean isLootBlocked(ItemStack stack, LootParams context) {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return false;
-        if (isHidden(stack)) return true;
+        String dim = context != null ? context.getLevel().dimension().location().toString() : null;
+        Entity entity = context != null ? context.getParamOrNull(LootContextParams.THIS_ENTITY) : null;
+        Level level = context != null ? context.getLevel() : null;
+        if (isHidden(stack, level, entity, "loot")) return true;
         if (getLootReplacement(stack, context) != null) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         if (isInChestFill()) {
-            if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot")) return true;
+            if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot")) return true;
         }
-        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
+        return checkRules(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
     }
 
     public static boolean isInventoryBlocked(ItemStack stack) {
@@ -698,11 +706,13 @@ public class RuleManager {
     public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return null;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = context != null ? context.getLevel().dimension().location().toString() : null;
+        Entity entity = context != null ? context.getParamOrNull(LootContextParams.THIS_ENTITY) : null;
         RemovalRule rule = null;
         if (isInChestFill())
-            rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot");
-        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
-        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, null, null, null, "item");
+            rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, dim, entity, null, "item");
 
         if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
             ResourceLocation replacementId = ResourceLocation.tryParse(rule.replaceWith);

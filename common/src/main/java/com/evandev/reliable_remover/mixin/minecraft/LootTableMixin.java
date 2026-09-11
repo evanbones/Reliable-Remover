@@ -3,8 +3,11 @@ package com.evandev.reliable_remover.mixin.minecraft;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.mixin.minecraft.accessor.LootContextAccessor;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -64,6 +67,13 @@ public abstract class LootTableMixin {
                 if (replacement != null) {
                     finalItems.add(replacement);
                 } else if (!RuleManager.isLootBlocked(stack, params)) {
+                    RuleManager.stripBlockedEnchantments(stack, context.getLevel());
+                    if (stack.is(Items.ENCHANTED_BOOK)) {
+                        ItemEnchantments stored = stack.get(DataComponents.STORED_ENCHANTMENTS);
+                        if (stored == null || stored.isEmpty()) {
+                            stack = new ItemStack(Items.BOOK, stack.getCount());
+                        }
+                    }
                     finalItems.add(stack);
                 } else {
                     anyBlocked = true;
