@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 @SuppressWarnings("unused")
 public class RuleManager {
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
-    static final ThreadLocal<Boolean> SKIP_ADVANCEMENT_CHECK = ThreadLocal.withInitial(() -> false);
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
     private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
     public static boolean MOD_INIT_PHASE = true;
@@ -45,8 +44,6 @@ public class RuleManager {
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
-    private static volatile Set<String> TRACKED_ADVANCEMENTS = ConcurrentHashMap.newKeySet();
-    private static volatile boolean HAS_ADVANCEMENT_RULES = false;
 
     public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
         if (rules == null || rules.isEmpty()) {
@@ -132,14 +129,6 @@ public class RuleManager {
         GLOBALLY_BANNED_ITEMS = newBanned;
         GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
         CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
-        Set<String> newTrackedAdv = ConcurrentHashMap.newKeySet();
-        newRules.values().stream().flatMap(List::stream).forEach(r -> {
-            if (r.advancements != null && !r.advancements.isEmpty()) {
-                newTrackedAdv.addAll(r.advancements);
-            }
-        });
-        TRACKED_ADVANCEMENTS = newTrackedAdv;
-        HAS_ADVANCEMENT_RULES = !newTrackedAdv.isEmpty();
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -180,10 +169,6 @@ public class RuleManager {
         IN_CHEST_FILL.set(value);
     }
 
-    public static boolean isAdvancementTracked(ResourceLocation id) {
-        return TRACKED_ADVANCEMENTS.contains(id.toString());
-    }
-
     private static void generateDefaultConfig(Path configDir) {
         String defaultJson = """
                 [
@@ -200,24 +185,6 @@ public class RuleManager {
             Constants.LOG.info("Created example config at config/reliable_remover/removal_example.json.disabled");
         } catch (Exception e) {
             Constants.LOG.error("Failed to generate default rule", e);
-        }
-    }
-
-    public static boolean isLootBlockedIgnoringAdvancements(ItemStack stack, LootParams context) {
-        SKIP_ADVANCEMENT_CHECK.set(true);
-        try {
-            return isLootBlocked(stack, context);
-        } finally {
-            SKIP_ADVANCEMENT_CHECK.set(false);
-        }
-    }
-
-    public static ItemStack getLootReplacementIgnoringAdvancements(ItemStack stack, LootParams context) {
-        SKIP_ADVANCEMENT_CHECK.set(true);
-        try {
-            return getLootReplacement(stack, context);
-        } finally {
-            SKIP_ADVANCEMENT_CHECK.set(false);
         }
     }
 
@@ -304,7 +271,6 @@ public class RuleManager {
                 (rule.nbt == null || rule.nbt.isEmpty()) &&
                 (rule.registry == null || rule.registry.isEmpty()) &&
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
-                (rule.advancements == null || rule.advancements.isEmpty()) &&
                 (rule.enchantments == null || rule.enchantments.isEmpty()) &&
                 (rule.effects == null || rule.effects.isEmpty()) &&
                 (rule.blocks == null || rule.blocks.isEmpty()) &&
@@ -321,16 +287,6 @@ public class RuleManager {
 
     public static void setCnmCascadeRemoved(Set<String> items) {
         CNM_CASCADE_REMOVED = items;
-    }
-
-    public static boolean isSkippingAdvancementCheck() {
-        return SKIP_ADVANCEMENT_CHECK.get() ||
-                com.evandev.reliable_recipes.recipe.RecipeModifier.isModifyingJson() ||
-                com.evandev.reliable_recipes.tag.TagModifier.isApplyingTags();
-    }
-
-    public static boolean hasAdvancementRules() {
-        return HAS_ADVANCEMENT_RULES;
     }
 
     public static boolean isFluidHidden(String fluidId) {
@@ -654,24 +610,6 @@ public class RuleManager {
         if (stack == null || stack.isEmpty()) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         return checkRules(stack, id, Action.REMOVE_INFO, null, player, null, "info");
-    }
-
-    public static boolean isCreativeBlockedIgnoringAdvancements(ItemStack stack) {
-        SKIP_ADVANCEMENT_CHECK.set(true);
-        try {
-            return isCreativeBlocked(stack);
-        } finally {
-            SKIP_ADVANCEMENT_CHECK.set(false);
-        }
-    }
-
-    public static boolean isInfoBlockedIgnoringAdvancements(ItemStack stack) {
-        SKIP_ADVANCEMENT_CHECK.set(true);
-        try {
-            return isInfoBlocked(stack);
-        } finally {
-            SKIP_ADVANCEMENT_CHECK.set(false);
-        }
     }
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {

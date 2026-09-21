@@ -85,8 +85,8 @@ public class EmiRegistryImplMixin {
         ItemStack stack = emiStack.getItemStack();
         if (stack == null || stack.isEmpty()) return false;
 
-        return RuleManager.isCreativeBlockedIgnoringAdvancements(stack)
-                || (isInfoTab && RuleManager.isInfoBlockedIgnoringAdvancements(stack));
+        return RuleManager.isCreativeBlocked(stack)
+                || (isInfoTab && RuleManager.isInfoBlocked(stack));
     }
 
     @Unique
@@ -96,8 +96,8 @@ public class EmiRegistryImplMixin {
         ItemStack stack = emiStack.getItemStack();
         if (stack == null || stack.isEmpty()) return false;
 
-        return (ModConfig.get().removeItemsFromInfoTabs && RuleManager.isCreativeBlockedIgnoringAdvancements(stack))
-                || RuleManager.isInfoBlockedIgnoringAdvancements(stack);
+        return (ModConfig.get().removeItemsFromInfoTabs && RuleManager.isCreativeBlocked(stack))
+                || RuleManager.isInfoBlocked(stack);
     }
 
     @Inject(method = "addEmiStack", at = @At("HEAD"), cancellable = true)
@@ -107,7 +107,7 @@ public class EmiRegistryImplMixin {
         try {
             if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) {
                 ci.cancel();
-            } else if (stack.getItemStack() != null && !stack.getItemStack().isEmpty() && RuleManager.isCreativeBlockedIgnoringAdvancements(stack.getItemStack())) {
+            } else if (stack.getItemStack() != null && !stack.getItemStack().isEmpty() && RuleManager.isCreativeBlocked(stack.getItemStack())) {
                 ci.cancel();
             }
         } catch (Throwable t) {

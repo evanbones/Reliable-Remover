@@ -115,7 +115,6 @@ public class RuleParser {
         copy.tags = original.tags != null ? new HashSet<>(original.tags) : new HashSet<>();
         copy.registry = original.registry != null ? new HashSet<>(original.registry) : new HashSet<>();
         copy.tagType = original.tagType != null ? new HashSet<>(original.tagType) : new HashSet<>();
-        copy.advancements = original.advancements != null ? new HashSet<>(original.advancements) : new HashSet<>();
         copy.pattern = original.pattern;
         copy.patterns = original.patterns != null ? new ArrayList<>(original.patterns) : new ArrayList<>();
         copy.nbt = original.nbt != null ? new ArrayList<>(original.nbt) : new ArrayList<>();

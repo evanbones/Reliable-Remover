@@ -1,3 +1,3 @@
-### Added
+### Removed
 
-- Enchantment removal now supports filtering by context (like `remove_loot`).
+- Removed advancement-based filtering/removal (retired in favor of EMI Discovery).

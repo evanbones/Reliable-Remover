@@ -40,7 +40,6 @@
     "minecraft.accessor.LootContextAccessor"
   ],
   "client": [
-    "client.ClientAdvancementsMixin",
     "client.MultiPlayerGameModeMixin",
     "client.ScreenMixin",
     "minecraft.ClientPacketListenerMixin",
