@@ -5,60 +5,290 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.3.2] - 2026-09-07
+## [3.2.0] - 2026-09-20
 
-### Fixed
+### Removed
 
-- Fixed issues with Penchant's Randomized Librarians only selling unenchanted books.
+- Removed advancement-based filtering/removal (retired in favor of EMI Discovery).
 
-## [3.3.1] - 2026-08-15
-
-### Fixed
-
-- Fixed crash.
-- Fixed issues with tag-based removal.
-
-## [3.3.0] - 2026-08-12
-
-### Changed
-
-- Ported changes from 1.21 (improved enchantment removal and loot removal).
-
-## [3.2.0] - 2026-06-02
-
-### Fixed
-
-- Fixed potions not being removed from RRV.
-- Fixed `remove_creative` issues.
-- Fixed delete key not working when creative search is open.
-
-## [3.1.1] - 2026-05-05
-
-### Fixed
-
-- Fixed potion brewing on 1.21.1+.
-
-## [3.1.0] - 2026-05-02
+## [3.1.1] - 2026-09-10
 
 ### Added
 
-- Added `/rremover folder` command to open the config folder.
+- Enchantment removal now supports filtering by context (like `remove_loot`).
+
+## [3.1.0] - 2026-09-08
+
+### Fixed
+
+- Enchantment removal now supports filtering by item (such as with `not` filters).
+
+### Changed
+
+- Bumped version number for parity with the 1.20.1 version.
+- `/enchant` now blocks banned enchantments.
+
+## [2.12.1] - 2026-08-14
+
+### Fixed
+
+- Creative tab removal now supports hot reloading.
+
+## [2.12.0] - 2026-08-14
+
+### Changed
+
+- Updated API.
+
+## [2.11.3] - 2026-08-04
+
+### Fixed
+
+- Fixed certain `remove_interactions` rules not working.
+
+## [2.11.2] - 2026-08-02
+
+### Fixed
+
+- Fixed EMI info entries covering several items being removed entirely when only some of those
+  items were removed.
+- Fixed errors while filtering EMI.
+- Fixed a race between tag rule expansion and EMI reloading.
+
+## [2.11.1] - 2026-07-30
+
+### Fixed
+
+- Fixed more issues with `remove_interactions`.
+
+## [2.11.0] - 2026-07-30
+
+### Changed
+
+- `remove_effect` and `remove_potion` now function separately.
+- Vastly improved `remove_enchantment` system.
+
+### Fixed
+
+- Fixed issues with `remove_interactions` in certain contexts.
+
+## [2.10.9] - 2026-07-29
+
+### Changed
+
+- Removal rules now support arrays in actions.
+
+## [2.10.8] - 2026-07-27
+
+### Fixed
+
+- Fixed certain recipes being removed from EMI entirely when the recipe's placeholder preview item
+  was hidden.
+- Fixed issues with configs not saving while actively open.
+
+## [2.10.7] - 2026-07-26
+
+### Fixed
+
+- Fixed issues with EMI's armor trim recipes.
+
+## [2.10.6] - 2026-07-26
+
+### Fixed
+
+- Fixed issues with JEED.
+
+## [2.10.5] - 2026-07-24
+
+### Changed
+
+- Updated Reliable Recipes version.
+
+## [2.10.4] - 2026-07-24
+
+### Fixed
+
+- Fixed Clutter No More integration.
+
+## [2.10.3] - 2026-07-22
+
+### Fixed
+
+- Fixed server crash.
+
+## [2.10.2] - 2026-07-21
+
+### Fixed
+
+- Fixed `remove_effect` not working with `remove_creative`.
+- Improved JEED integration.
+
+## [2.10.1] - 2026-07-21
+
+### Added
+
+- Added `remove_effect` action (separate from `remove_potion`) to specifically block status effect applications.
+
+## [2.10.0] - 2026-07-21
+
+### Added
+
+- Status effects are now properly blocked from applying when removed.
+- Added support for right-click interaction removal on in-world blocks (such as anvils, beds, crafting tables, chests,
+  levers, etc.) via `remove_interactions`.
+- Added dedicated `blocks`, `fluids`, and `effects` options in rule definitions.
+
+### Fixed
+
+- Fixed crash when removing/saving items in the blacklist config screen on the main menu.
+- Fixed rare startup crash.
+
+## [2.9.5] - 2026-07-19
+
+### Fixed
+
+- Fixed issues with fluid/effect removal.
+
+## [2.9.4] - 2026-07-17
+
+### Fixed
+
+- Made `pattern` parsing more lenient.
+- Fixed issues with chest loot specific removal.
+
+## [2.9.3] - 2026-07-13
+
+### Fixed
+
+- Fixed tag-based filtering not removing items properly.
+
+## [2.9.2] - 2026-07-11
+
+### Fixed
+
+- Fixed issues with invalid IDs not properly being logged.
+
+## [2.9.1] - 2026-07-08
+
+### Fixed
+
+- Fixed incompatibility with Crafttweaker.
+
+## [2.9.0] - 2026-07-02
+
+### Changed
+
+- Switched from Cloth Config to YACLv3.
+    - Existing configs should still work fine.
+
+### Fixed
+
+- Improved performance with advancement-based filters.
+- Fixed config on-disk changes being reset when saving via the in-game config.
+
+## [2.8.6] - 2026-06-27
+
+### Fixed
+
+- Fixed issues with the remove from inventory config option.
+
+## [2.8.5] - 2026-06-24
+
+### Fixed
+
+- Improvements to advancement-based filtering.
+
+## [2.8.4] - 2026-06-22
+
+### Fixed
+
+- Fixed crash with certain mods that modify creative mode tabs.
+
+## [2.8.3] - 2026-06-19
+
+### Fixed
+
+- Fixed items not being removed from Create Simulated tabs.
+
+## [2.8.2] - 2026-06-19
+
+### Fixed
+
+- Improved loot table removal.
+
+## [2.8.1] - 2026-06-17
+
+### Fixed
+
+- Fixed issues with fluid removal rules.
+
+## [2.8.0] - 2026-06-11
+
+### Added
+
+- Effects and fluids can now be hidden using Reliable Remover.
+
+## [2.7.0] - 2026-06-11
+
+### Added
+
+- Added the ability to remove items based on advancements that haven't been unlocked yet.
+    - Syntax: ```"advancements": [
+      "minecraft:nether/root",
+      "minecraft:end/root"
+      ]```
+    - See the "advancement-rules" page on the wiki for more information.
+- Added a config option to propagate Clutter No More removals to child shapes (default true).
+
+## [2.6.0] - 2026-06-09
+
+### Added
+
+- Added optional Clutter No More integration for item removals.
+    - Removed items will be removed from shape maps.
+
+## [2.5.1] - 2026-06-03
+
+### Fixed
+
+- Fixed issues with certain items in tags still showing up in EMI.
+
+## [2.5.0] - 2026-05-16
+
+### Changed
+
+- Update Reliable Recipes dependency.
+
+### Fixed
+
+- Improved `replace_with` to properly catch all item contexts.
+
+## [2.4.0] - 2026-05-10
+
+### Changed
+
+- Reliable Recipes is **no longer bundled with Reliable Remover**. Instead, it's marked as a required dependency and
+  will be automatically downloaded.
+
+### Fixed
+
+- Fixed incompatibility with latest EMI.
+
+## [2.3.1] - 2026-05-10
+
+### Fixed
+
+- Fixed early loading crash.
+
+## [2.3.0] - 2026-05-02
 
 ### Fixed
 
 - Fixed removed potions still being brewable.
 
-## [3.0.1] - 2026-04-25
-
-### Fix
-
-- Hotfix for RRV plugin not loading on 26.1.
-
-## [3.0.0] - 2026-04-25
-
 ### Changed
 
-- (26.1) Now requires latest version of RRV for the item viewer integration.
+- Update Reliable Recipes version.
 
 ## [2.2.4] - 2026-04-23
 
