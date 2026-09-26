@@ -120,16 +120,40 @@ This rule uses the `patterns` list to block the swing animation for all shovels 
 
 ```
 
-## NBT & Data
+## Fluids & Effects
+
+### Remove Fluids by ID
+
+Removes Water and Lava fluids from recipe viewers.
+
+```json
+{
+  "action": "remove",
+  "fluids": ["minecraft:water", "minecraft:lava"]
+}
+
+```
 
 ### Remove Potions by Effect
 
-Removes any potion (Splash, Lingering, or Drinkable) that contains the `minecraft:night_vision` effect.
+Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect from Creative Tabs and recipe viewers.
 
 ```json
 {
   "action": "remove_potion",
-  "items": ["minecraft:night_vision"]
+  "effects": ["minecraft:night_vision"]
+}
+
+```
+
+### Prevent Status Effect Application (`remove_effect`)
+
+Prevents entities from gaining the `minecraft:poison` status effect from any source (potions, mob attacks, beacons, etc.).
+
+```json
+{
+  "action": "remove_effect",
+  "effects": ["minecraft:poison"]
 }
 
 ```
@@ -142,8 +166,8 @@ Removes any item containing the text `"CustomModelData":1` or `"CustomModelData"
 {
   "action": "remove",
   "nbt": [
-    ".*\"CustomModelData\":1.*",
-    ".*\"CustomModelData\":2.*"
+    "/.*\"CustomModelData\":1.*/",
+    "/.*\"CustomModelData\":2.*/"
   ]
 }
 
@@ -157,7 +181,7 @@ This uses a Regex match against the item's NBT string.
 {
   "action": "remove",
   "items": ["minecraft:enchanted_book"],
-  "nbt": ["/{.*StoredEnchantments.*}/"]
+  "nbt": ["/.*StoredEnchantments.*/"]
 }
 
 ```
