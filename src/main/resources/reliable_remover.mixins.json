@@ -5,13 +5,17 @@
   "plugin": "com.moulberry.mixinconstraints.ConstraintsMixinPlugin",
   "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
+    "clutternomore.ShapeMapMixin",
     "emi.EmiRegistryImplMixin",
     "emi.EmiStackListMixin",
     "emi.EmiTagsMixin",
+    "emi.LootTableParserMixin",
     "minecraft.AnvilMenuMixin",
     "minecraft.BlockStateBaseMixin",
     "minecraft.CreativeModeTabMixin",
+    "minecraft.EnchantCommandMixin",
     "minecraft.EnchantmentHelperMixin",
+    "minecraft.EntityMixin",
     "minecraft.GiveCommandMixin",
     "minecraft.ItemEntityMixin",
     "minecraft.ItemStackMixin",
@@ -24,6 +28,7 @@
     "minecraft.ReloadableServerResourcesMixin",
     "minecraft.ServerPlayerGameModeMixin",
     "minecraft.ServerPlayerMixin",
+    "minecraft.accessor.CreativeModeTabsAccessor",
     "minecraft.accessor.LootContextAccessor",
     "minecraft.loot.EnchantRandomlyFunctionMixin",
     "minecraft.loot.EnchantWithLevelsFunctionMixin",
@@ -34,8 +39,10 @@
     "rrv.AbstractRrvItemListOverlayMixin"
   ],
   "client": [
+    "client.MultiPlayerGameModeMixin",
     "client.ScreenMixin",
     "emi.EmiScreenManagerMixin",
+    "jeed.JeedMixin",
     "minecraft.ClientPacketListenerMixin",
     "minecraft.MinecraftMixin",
     "rrv.ScreenRrvMixin"

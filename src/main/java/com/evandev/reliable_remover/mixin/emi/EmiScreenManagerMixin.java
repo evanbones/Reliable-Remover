@@ -3,6 +3,7 @@ package com.evandev.reliable_remover.mixin.emi;
 //? if <=1.21.1 {
 /*import com.evandev.reliable_recipes.client.SharedToastOverlay;
 import com.evandev.reliable_remover.client.Keybinds;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
@@ -40,7 +41,7 @@ public class EmiScreenManagerMixin {
                         Minecraft mc = Minecraft.getInstance();
                         if (mc.player != null) {
                             if (!mc.player.hasPermissions(2)) {
-                                mc.player.displayClientMessage(Component.translatable("toast.reliable_remover.permission_denied"), true);
+                                PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.permission_denied"));
                             } else {
                                 mc.player.connection.sendCommand("rremover remove " + id);
 

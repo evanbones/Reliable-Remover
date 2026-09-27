@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -27,7 +28,7 @@ public abstract class MinecraftMixin {
 
         if (RuleManager.isHandSwingBlocked(this.player.getMainHandItem(), this.player.level())) {
             if (ModConfig.get().showHandSwingMessage) {
-                this.player.sendSystemMessage(Component.translatable("message.reliable_remover.swing_disabled"));
+                PlayerMessages.actionBar(this.player, Component.translatable("message.reliable_remover.swing_disabled"));
             }
             cir.setReturnValue(false);
             return;
@@ -37,7 +38,7 @@ public abstract class MinecraftMixin {
             EntityHitResult entityHit = (EntityHitResult) this.hitResult;
             if (RuleManager.isAttackBlocked(this.player.getMainHandItem(), this.player.level(), entityHit.getEntity())) {
                 if (ModConfig.get().showAttackMessage) {
-                    this.player.sendSystemMessage(Component.translatable("message.reliable_remover.attack_disabled"));
+                    PlayerMessages.actionBar(this.player, Component.translatable("message.reliable_remover.attack_disabled"));
                 }
                 cir.setReturnValue(false);
             }

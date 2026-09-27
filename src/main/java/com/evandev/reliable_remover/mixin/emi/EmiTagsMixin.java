@@ -28,7 +28,7 @@ public class EmiTagsMixin {
 
     @Inject(method = "getValues", at = @At("RETURN"), cancellable = true)
     private static void reliable_remover$filterEmiTags(EmiTagKey<?> key, CallbackInfoReturnable<List<EmiStack>> cir) {
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         List<EmiStack> original = cir.getReturnValue();
         if (original == null || original.isEmpty()) return;
@@ -44,7 +44,7 @@ public class EmiTagsMixin {
 
     @Inject(method = "getIngredient", at = @At("RETURN"), cancellable = true)
     private static <T> void reliable_remover$filterIngredientResult(Class<T> clazz, List<EmiStack> stacks, long amount, CallbackInfoReturnable<EmiIngredient> cir) {
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         EmiIngredient result = cir.getReturnValue();
         if (result == null || result.getClass() != ListEmiIngredient.class) return;

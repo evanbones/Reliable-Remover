@@ -107,7 +107,7 @@ public class EmiRegistryImplMixin {
 
     @Inject(method = "addEmiStack", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$filterAddedEmiStacks(EmiStack stack, CallbackInfo ci) {
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         try {
             if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) {
@@ -122,7 +122,7 @@ public class EmiRegistryImplMixin {
 
     @Inject(method = "addRecipe", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$filterEmiRecipes(EmiRecipe recipe, CallbackInfo ci) {
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         try {
             if (reliable_remover$shouldHideRecipe(recipe)) ci.cancel();

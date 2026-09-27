@@ -225,6 +225,19 @@ public class ReliableRemoverCommands {
         String itemId = id.toString();
 
         if (RuleConfigIO.addRemovalRule(itemId)) {
+            //? if <26.1 {
+            /*if (ModConfig.get().showEmiChatMessages) {
+                Component undoButton = Component.translatable("toast.reliable_remover.undo")
+                        .withStyle(Style.EMPTY
+                                .withColor(ChatFormatting.GOLD)
+                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rremover undo " + itemId))
+                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to restore item"))));
+
+                context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.deleted", itemId)
+                        .append(" ").append(undoButton), true);
+            }
+            *///?}
+
             if (ModConfig.get().reloadAfterRemoval) {
                 context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
             }

@@ -78,6 +78,13 @@ repositories {
         }
     }
     maven {
+        name = "BlameJared (JEI)"
+        url = uri("https://maven.blamejared.com/")
+        content {
+            includeGroupAndSubgroups("mezz.jei")
+        }
+    }
+    maven {
         name = "Modrinth"
         url = uri("https://api.modrinth.com/maven")
         content {
@@ -115,6 +122,12 @@ dependencies {
         modLocalRuntime("dev.emi:emi-fabric:${property("deps.emi")}")
     }
 
+    // Compat (JEI, Clutter No More, JEED, EMI Loot)
+    modCompileOnly("mezz.jei:jei-${property("deps.minecraft")}-fabric-api:${property("deps.jei")}")
+    modCompileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+    findProperty("deps.jeed")?.let { modCompileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
+    findProperty("deps.emi_loot")?.let { modCompileOnly("maven.modrinth:emi-loot:$it") }
+
     // Mixin Constraints
     include(implementation("com.moulberry:mixinconstraints:${property("deps.mixin_constraints")}")!!)
 }
@@ -124,24 +137,15 @@ tasks {
         exclude("**/neoforge.mods.toml", "**/mods.toml", "**/*.neoforge.mixins.json")
     }
 
+    jar {
+        dependsOn("postProcessMainResources")
+    }
+
     register<Copy>("buildAndCollect") {
         group = "build"
         from(loomx.modJar.map { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
         dependsOn("build")
-    }
-
-    withType<JavaExec>().configureEach {
-        jvmArgs("-Dkotlinx.coroutines.debug=off")
-    }
-}
-
-loom {
-    runs {
-        named("client") {
-            vmArg("-Dkotlinx.coroutines.debug=off")
-            vmArg("-Dfabric.indigo.disabled=true")
-        }
     }
 }
 

@@ -1,11 +1,14 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.evandev.reliable_remover.util.PlayerMessages;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
@@ -36,13 +40,21 @@ public abstract class LivingEntityMixin {
         }
     }
 
+    @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$preventBlockedEffect(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
+        LivingEntity entity = (LivingEntity) (Object) this;
+        if (effectInstance != null && RuleManager.isEffectBlocked(effectInstance.getEffect(), entity.level(), entity)) {
+            cir.setReturnValue(false);
+        }
+    }
+
     //? if >=26.3 {
     /*@Inject(method = "swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z", at = @At("HEAD"), cancellable = true)
     private void reliable_remover$cancelSwing(InteractionHand hand, net.minecraft.world.item.component.SwingAnimation animation, boolean sendToSwingingEntity, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof ServerPlayer player)) return;
         if (RuleManager.isHandSwingBlocked(player.getMainHandItem(), player.level())) {
             if (ModConfig.get().showHandSwingMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.swing_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.swing_disabled"));
             }
             cir.setReturnValue(false);
         }

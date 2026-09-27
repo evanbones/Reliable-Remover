@@ -4,6 +4,7 @@ import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
+import com.evandev.reliable_remover.mixin.minecraft.accessor.CreativeModeTabsAccessor;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -16,6 +17,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -25,6 +27,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,6 +43,23 @@ public class RuleManager {
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
+    private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
+    public static boolean MOD_INIT_PHASE = true;
+
+    public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
+        if (rules == null || rules.isEmpty()) {
+            DYNAMIC_RULES.remove(sourceId);
+        } else {
+            DYNAMIC_RULES.put(sourceId, new ArrayList<>(rules));
+        }
+        load();
+    }
+
+    public static void unregisterDynamicRules(String sourceId) {
+        if (DYNAMIC_RULES.remove(sourceId) != null) {
+            load();
+        }
+    }
 
     public static boolean isInChestFill() {
         return IN_CHEST_FILL.get();
@@ -76,15 +96,72 @@ public class RuleManager {
 
         if (!hasFiles) generateDefaultConfig(configDir);
 
-        validateRules(newRules);
+        if (!MOD_INIT_PHASE) {
+            validateRules(newRules);
+            if (ModConfig.get().blacklistedItems != null) {
+                List<String> validBlacklist = new ArrayList<>(ModConfig.get().blacklistedItems);
+                validBlacklist.removeIf(itemId -> {
+                    if (itemId.startsWith("#")) return false;
+                    Identifier id = Identifier.tryParse(itemId);
+                    if (id == null) {
+                        Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item ID '{}'.", itemId);
+                        return true;
+                    }
+                    if (!BuiltInRegistries.ITEM.containsKey(id)
+                            && !BuiltInRegistries.BLOCK.containsKey(id)
+                            && !BuiltInRegistries.FLUID.containsKey(id)
+                            && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                        Constants.LOG.warn("Reliable Remover: Skipping invalid blacklisted item/block/fluid/effect ID '{}'.", itemId);
+                        return true;
+                    }
+                    return false;
+                });
+                ModConfig.get().blacklistedItems = validBlacklist;
+            }
+        }
+
+        for (List<RemovalRule> dynList : DYNAMIC_RULES.values()) {
+            for (RemovalRule rule : dynList) {
+                if (rule.actions != null && !rule.actions.isEmpty()) {
+                    for (Action act : rule.actions) {
+                        newRules.computeIfAbsent(act, a -> new ArrayList<>()).add(rule);
+                    }
+                } else {
+                    Action act = rule.action != null ? rule.action : Action.REMOVE;
+                    newRules.computeIfAbsent(act, a -> new ArrayList<>()).add(rule);
+                }
+            }
+        }
+
         optimizeRules(newRules, newBanned);
 
         RULES_BY_ACTION = newRules;
         GLOBALLY_BANNED_ITEMS = newBanned;
         GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
+        CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
+
+        ReliableRecipesAPI.clearItemReplacements();
+        for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
+            for (RemovalRule rule : rules) {
+                if (rule.replaceWith != null && !rule.replaceWith.isEmpty() && rule.items != null) {
+                    for (String item : rule.items) {
+                        ReliableRecipesAPI.registerItemReplacement(item, rule.replaceWith);
+                    }
+                }
+            }
+        }
+
+        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+
+        if (Services.PLATFORM.isPhysicalClient()) {
+            try {
+                CreativeModeTabsAccessor.setCachedParameters(null);
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     private static void generateDefaultConfig(Path configDir) {
@@ -119,18 +196,33 @@ public class RuleManager {
                             return true;
                         }
 
-                        if (rule.action == Action.REMOVE_POTION) {
-                            if (!BuiltInRegistries.POTION.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid potion ID '{}'.", itemId);
+                        if (rule.action == Action.REMOVE_POTION || rule.action == Action.REMOVE_EFFECT) {
+                            if (!BuiltInRegistries.POTION.containsKey(id) && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid potion/effect ID '{}'.", itemId);
                                 return true;
                             }
                         } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
                             return false;
                         } else {
-                            if (!BuiltInRegistries.ITEM.containsKey(id)) {
-                                Constants.LOG.warn("Reliable Remover: Skipping invalid item ID '{}'.", itemId);
+                            if (!BuiltInRegistries.ITEM.containsKey(id)
+                                    && !BuiltInRegistries.BLOCK.containsKey(id)
+                                    && !BuiltInRegistries.FLUID.containsKey(id)
+                                    && !BuiltInRegistries.MOB_EFFECT.containsKey(id)) {
+                                Constants.LOG.warn("Reliable Remover: Skipping invalid item/block/fluid/effect ID '{}'.", itemId);
                                 return true;
                             }
+                        }
+                        return false;
+                    });
+                }
+
+                if (rule.enchantments != null) {
+                    rule.enchantments.removeIf(enchId -> {
+                        if (enchId.startsWith("#")) return false;
+                        Identifier id = Identifier.tryParse(enchId);
+                        if (id == null) {
+                            Constants.LOG.warn("Reliable Remover: Skipping invalid enchantment ID '{}'.", enchId);
+                            return true;
                         }
                         return false;
                     });
@@ -176,6 +268,10 @@ public class RuleManager {
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
                 rule.not == null &&
                 (rule.replaceWith == null || rule.replaceWith.isEmpty()) &&
+                (rule.enchantments == null || rule.enchantments.isEmpty()) &&
+                (rule.effects == null || rule.effects.isEmpty()) &&
+                (rule.blocks == null || rule.blocks.isEmpty()) &&
+                (rule.fluids == null || rule.fluids.isEmpty()) &&
                 rule.items != null && !rule.items.isEmpty() &&
                 rule.items.stream().noneMatch(id -> id.startsWith("#"));
     }
@@ -186,6 +282,10 @@ public class RuleManager {
 
     public static boolean isHidden(ItemStack stack) {
         return isHidden(stack, null, null, "item");
+    }
+
+    public static boolean isHidden(ItemStack stack, String context) {
+        return isHidden(stack, null, null, context);
     }
 
     public static boolean isHidden(ItemStack stack, Level level) {
@@ -203,6 +303,7 @@ public class RuleManager {
         String id = itemId.toString();
 
         if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
 
         if (BuiltInRegistries.ITEM.containsKey(itemId)) {
             String dim = level != null ? level.dimension().identifier().toString() : null;
@@ -215,7 +316,7 @@ public class RuleManager {
                 if (enchantments != null && !enchantments.isEmpty()) {
                     boolean allBlocked = true;
                     for (var entry : enchantments.entrySet()) {
-                        if (!isEnchantmentBlocked(entry.getKey())) {
+                        if (!isEnchantmentBlocked(stack, entry.getKey())) {
                             allBlocked = false;
                             break;
                         }
@@ -228,8 +329,20 @@ public class RuleManager {
         if (stack.has(DataComponents.POTION_CONTENTS)) {
             PotionContents contents = stack.get(DataComponents.POTION_CONTENTS);
             if (contents != null) {
+                String dim = level != null ? level.dimension().identifier().toString() : null;
                 String potionId = contents.potion().flatMap(Holder::unwrapKey).map(key -> key.identifier().toString()).orElse(null);
-                return potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, null, holder, null, context);
+                if (potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, dim, holder, null, context))
+                    return true;
+                for (MobEffectInstance effectInst : contents.getAllEffects()) {
+                    Holder<MobEffect> effectHolder = effectInst.getEffect();
+                    Identifier loc = BuiltInRegistries.MOB_EFFECT.getKey(effectHolder.value());
+                    if (loc != null) {
+                        String effectId = loc.toString();
+                        if (checkRules(null, effectId, Action.REMOVE_POTION, dim, holder, effectHolder, context))
+                            return true;
+                    }
+                    if (isEffectBlocked(effectHolder, level, holder)) return true;
+                }
             }
         }
         return false;
@@ -257,7 +370,7 @@ public class RuleManager {
                 ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
 
                 for (var entry : enchantments.entrySet()) {
-                    if (isEnchantmentBlocked(entry.getKey())) {
+                    if (isEnchantmentBlocked(stack, entry.getKey())) {
                         changed = true;
                     } else {
                         validEnchantments.set(entry.getKey(), entry.getIntValue());
@@ -290,7 +403,7 @@ public class RuleManager {
                 ItemEnchantments.Mutable validEnchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
 
                 for (var entry : enchantments.entrySet()) {
-                    if (isEnchantmentBlocked(entry.getKey())) {
+                    if (isEnchantmentBlocked(stack, entry.getKey())) {
                         changed = true;
                     } else {
                         validEnchantments.set(entry.getKey(), entry.getIntValue());
@@ -298,7 +411,12 @@ public class RuleManager {
                 }
 
                 if (changed) {
-                    stack.set(DataComponents.ENCHANTMENTS, validEnchantments.toImmutable());
+                    ItemEnchantments result = validEnchantments.toImmutable();
+                    if (result.isEmpty()) {
+                        stack.remove(DataComponents.ENCHANTMENTS);
+                    } else {
+                        stack.set(DataComponents.ENCHANTMENTS, result);
+                    }
                 }
             }
         }
@@ -374,14 +492,28 @@ public class RuleManager {
 
     public static boolean isLootBlocked(ItemStack stack, LootParams context) {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return false;
-        if (isHidden(stack)) return true;
+        String dim = context != null ? context.getLevel().dimension().identifier().toString() : null;
+        Entity entity = getLootEntity(context);
+        Level level = context != null ? context.getLevel() : null;
+        if (isHidden(stack, level, entity, "loot")) return true;
         if (getLootReplacement(stack, context) != null) return false;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
 
         if (isInChestFill()) {
-            if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot")) return true;
+            if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot")) return true;
         }
-        return checkRules(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
+        return checkRules(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
+    }
+
+    private static Entity getLootEntity(LootParams context) {
+        if (context == null) return null;
+        //? if >=26.3 {
+        /*return context.contextMap().get(LootContextParams.THIS_ENTITY);
+        *///?} else if >=26.1 {
+        return context.contextMap().getOptional(LootContextParams.THIS_ENTITY);
+        //?} else {
+        /*return context.getParamOrNull(LootContextParams.THIS_ENTITY);
+        *///?}
     }
 
     public static boolean isInventoryBlocked(ItemStack stack) {
@@ -467,9 +599,13 @@ public class RuleManager {
     //?}
 
     public static boolean isEnchantmentBlocked(Holder<Enchantment> enchantment) {
+        return isEnchantmentBlocked(null, enchantment);
+    }
+
+    public static boolean isEnchantmentBlocked(ItemStack stack, Holder<Enchantment> enchantment) {
         if (enchantment == null) return false;
         String id = enchantment.unwrapKey().map(key -> key.identifier().toString()).orElse("");
-        return checkRules(null, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
+        return checkRules(stack, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
     }
 
     public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {
@@ -497,11 +633,13 @@ public class RuleManager {
     public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return null;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        String dim = context != null ? context.getLevel().dimension().identifier().toString() : null;
+        Entity entity = getLootEntity(context);
         RemovalRule rule = null;
         if (isInChestFill())
-            rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot");
-        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, null, null, null, "loot");
-        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, null, null, null, "item");
+            rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
+        if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, dim, entity, null, "item");
 
         if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
             Identifier replacementId = Identifier.tryParse(rule.replaceWith);
@@ -544,6 +682,8 @@ public class RuleManager {
                 .mapToInt(rule -> rule.items != null ? rule.items.size() : 0)
                 .sum();
         Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
+
+        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
     }
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
@@ -567,7 +707,10 @@ public class RuleManager {
         Identifier loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
         if (loc == null) return false;
         String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
         String dim = level != null ? level.dimension().identifier().toString() : null;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, dim, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, dim, entity, effectHolder, "effect");
     }
 
@@ -581,6 +724,10 @@ public class RuleManager {
         Identifier loc = BuiltInRegistries.MOB_EFFECT.getKey(effect);
         if (loc == null) return false;
         String id = loc.toString();
+        if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
+        if (CNM_CASCADE_REMOVED.contains(id)) return true;
+        if (checkRules(null, id, Action.REMOVE_CREATIVE, null, entity, effectHolder, "creative")) return true;
+        if (checkRules(null, id, Action.REMOVE_EFFECT, null, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, null, entity, effectHolder, "effect");
     }
 

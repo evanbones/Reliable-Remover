@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -31,7 +32,7 @@ public class ItemStackMixin {
 
         if (RuleManager.isInteractionBlocked(stack, level, null)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.FAIL);
             return;
@@ -39,7 +40,7 @@ public class ItemStackMixin {
 
         if (RuleManager.isPlacementBlocked(stack, level, player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.placement_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.placement_disabled"));
             }
             cir.setReturnValue(InteractionResult.FAIL);
             return;
@@ -47,7 +48,7 @@ public class ItemStackMixin {
 
         if (!(stack.getItem() instanceof BlockItem) && RuleManager.isBlockInteractionBlocked(level.getBlockState(context.getClickedPos()), level, context.getClickedPos(), player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.FAIL);
         }
@@ -57,7 +58,7 @@ public class ItemStackMixin {
     private void reliable_remover$blockUse(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, level, player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.FAIL);
         }
@@ -67,7 +68,7 @@ public class ItemStackMixin {
     private void reliable_remover$entityInteraction(Player player, LivingEntity target, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, player.level(), target)) {
             if (ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.FAIL);
         }

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = ClientPacketListener.class, priority = 900)
+@Mixin(value = ClientPacketListener.class, priority = 1100)
 public abstract class ClientPacketListenerMixin {
 
     @Final

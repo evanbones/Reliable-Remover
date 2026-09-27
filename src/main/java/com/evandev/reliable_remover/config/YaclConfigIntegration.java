@@ -26,12 +26,8 @@ public class YaclConfigIntegration {
         generalCategory.option(createBoolOption("show_attack_message", true, () -> config.showAttackMessage, val -> config.showAttackMessage = val));
         generalCategory.option(createBoolOption("show_hand_swing_message", true, () -> config.showHandSwingMessage, val -> config.showHandSwingMessage = val));
         generalCategory.option(createBoolOption("remove_creative_tab_items", true, () -> config.removeItemsFromCreativeTabs, val -> config.removeItemsFromCreativeTabs = val));
-        //? if >=26.1 {
-        generalCategory.option(createBoolOption("remove_rrv_items", true, () -> config.removeItemsFromRrv, val -> config.removeItemsFromRrv = val));
-        //?} else {
-        /*generalCategory.option(createBoolOption("remove_emi_items", true, () -> config.removeItemsFromEmi, val -> config.removeItemsFromEmi = val));
+        generalCategory.option(createBoolOption("remove_recipe_viewer_items", true, () -> config.removeItemsFromRecipeViewers, val -> config.removeItemsFromRecipeViewers = val));
         generalCategory.option(createBoolOption("remove_cnm_children", true, () -> config.removeCnmChildren, val -> config.removeCnmChildren = val));
-        *///?}
         generalCategory.option(createBoolOption("remove_inventory_items", true, () -> config.removeItemsFromInventories, val -> config.removeItemsFromInventories = val));
         generalCategory.option(createBoolOption("remove_on_inventory_open", true, () -> config.removeItemsOnInventoryOpen, val -> config.removeItemsOnInventoryOpen = val));
         generalCategory.option(createBoolOption("remove_dropped_items", true, () -> config.removeDroppedItems, val -> config.removeDroppedItems = val));

@@ -18,7 +18,7 @@ public class AbstractRrvItemListOverlayMixin {
 
     @Inject(method = "updateSlots", at = @At("HEAD"))
     private void reliable_remover$filterRrvItems(CallbackInfo ci) {
-        if (!ModConfig.get().removeItemsFromRrv) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         AbstractRrvItemListOverlay overlay = (AbstractRrvItemListOverlay) (Object) this;
         if (overlay.availableItems() != null) {

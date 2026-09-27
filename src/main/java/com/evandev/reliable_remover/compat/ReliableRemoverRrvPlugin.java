@@ -11,6 +11,7 @@ import cc.cassian.rrv.common.recipe.ItemViewRecipes;
 import cc.cassian.rrv.common.recipe.inventory.SlotContent;
 import com.evandev.reliable_recipes.client.SharedToastOverlay;
 import com.evandev.reliable_remover.client.Keybinds;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.evandev.reliable_remover.config.RuleManager;
@@ -32,7 +33,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
             ModConfig.get();
             RuleManager.load();
 
-            if (!ModConfig.get().removeItemsFromRrv) return;
+            if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
             BuiltInRegistries.ITEM.forEach(item -> {
                 if (RuleManager.isCreativeBlocked(item.getDefaultInstance()) || RuleManager.isHidden(item.getDefaultInstance())) {
@@ -67,7 +68,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
         if (mc.player == null) return false;
 
         if (!mc.player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
-            mc.player.sendSystemMessage(Component.translatable("toast.reliable_remover.permission_denied"));
+            PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.permission_denied"));
             return true;
         }
 

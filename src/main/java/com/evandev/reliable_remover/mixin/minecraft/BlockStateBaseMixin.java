@@ -1,6 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -28,7 +29,7 @@ public abstract class BlockStateBaseMixin {
     private void reliable_remover$onUseItemOn(ItemStack itemStack, Level level, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
             if (player != null && itemStack.isEmpty() && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.TRY_WITH_EMPTY_HAND);
         }
@@ -38,7 +39,7 @@ public abstract class BlockStateBaseMixin {
     private void reliable_remover$onUseWithoutItem(Level level, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.sendSystemMessage(Component.translatable("message.reliable_remover.interaction_disabled"));
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.PASS);
         }
@@ -57,7 +58,7 @@ public abstract class BlockStateBaseMixin {
     private void reliable_remover$onUseItemOn(ItemStack stack, Level level, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<ItemInteractionResult> cir) {
         if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
             if (player != null && stack.isEmpty() && ModConfig.get().showRemovalMessage) {
-                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION);
         }
@@ -67,7 +68,7 @@ public abstract class BlockStateBaseMixin {
     private void reliable_remover$onUseWithoutItem(Level level, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
-                player.displayClientMessage(Component.translatable("message.reliable_remover.interaction_disabled"), true);
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.PASS);
         }

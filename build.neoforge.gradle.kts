@@ -73,6 +73,13 @@ repositories {
         }
     }
     maven {
+        name = "BlameJared (JEI)"
+        url = uri("https://maven.blamejared.com/")
+        content {
+            includeGroupAndSubgroups("mezz.jei")
+        }
+    }
+    maven {
         name = "Modrinth"
         url = uri("https://api.modrinth.com/maven")
         content {
@@ -115,6 +122,10 @@ tasks {
         exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml", "**/*.fabric.mixins.json")
     }
 
+    jar {
+        dependsOn("postProcessMainResources")
+    }
+
     named("createMinecraftArtifacts") {
         dependsOn("stonecutterGenerate")
     }
@@ -154,6 +165,12 @@ dependencies {
         compileOnly("dev.emi:emi-neoforge:${property("deps.emi")}")
         "localRuntime"("dev.emi:emi-neoforge:${property("deps.emi")}")
     }
+
+    // Compat (JEI, Clutter No More, JEED, EMI Loot)
+    compileOnly("mezz.jei:jei-${property("deps.minecraft")}-neoforge-api:${property("deps.jei")}")
+    compileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+    findProperty("deps.jeed")?.let { compileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
+    findProperty("deps.emi_loot")?.let { compileOnly("maven.modrinth:emi-loot:$it") }
 
     // Mixin Constraints
     compileOnly("com.moulberry:mixinconstraints:${property("deps.mixin_constraints")}")

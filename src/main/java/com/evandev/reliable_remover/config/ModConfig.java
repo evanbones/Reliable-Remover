@@ -4,6 +4,7 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.platform.Services;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 import java.io.File;
 import java.io.FileReader;
@@ -22,8 +23,8 @@ public class ModConfig {
     public boolean showHandSwingMessage = true;
     public boolean showRemovalMessage = true;
     public boolean removeItemsFromCreativeTabs = true;
-    public boolean removeItemsFromRrv = true;
-    public boolean removeItemsFromEmi = true;
+    @SerializedName(value = "removeItemsFromRecipeViewers", alternate = {"removeItemsFromRrv", "removeItemsFromEmi"})
+    public boolean removeItemsFromRecipeViewers = true;
     public boolean removeItemsFromInventories = true;
     public boolean removeItemsOnInventoryOpen = true;
     public boolean removeDroppedItems = true;
@@ -54,14 +55,29 @@ public class ModConfig {
     public static void load() {
         if (CONFIG_FILE.exists()) {
             try (FileReader reader = new FileReader(CONFIG_FILE)) {
-                INSTANCE = GSON.fromJson(reader, ModConfig.class);
+                ModConfig loaded = GSON.fromJson(reader, ModConfig.class);
+                if (loaded != null) {
+                    if (loaded.blacklistedItems == null) {
+                        loaded.blacklistedItems = new ArrayList<>();
+                    } else {
+                        loaded.blacklistedItems = new ArrayList<>(loaded.blacklistedItems);
+                    }
+                    INSTANCE = loaded;
+                } else if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
+                }
             } catch (Exception e) {
-                Constants.LOG.error("Failed to load reliable_remover.json", e);
-                INSTANCE = new ModConfig();
+                Constants.LOG.error("Failed to load reliable_remover.json, keeping previous configuration", e);
+                if (INSTANCE == null) {
+                    INSTANCE = new ModConfig();
+                }
             }
-        } else {
+        } else if (INSTANCE == null) {
             INSTANCE = new ModConfig();
             save();
+        }
+        if (INSTANCE != null && INSTANCE.blacklistedItems == null) {
+            INSTANCE.blacklistedItems = new ArrayList<>();
         }
     }
 

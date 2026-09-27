@@ -23,7 +23,7 @@ public class EmiStackListMixin {
 
     @Inject(method = "reload", at = @At("RETURN"))
     private static void reliable_remover$forceRemoveItems(CallbackInfo ci) {
-        if (!ModConfig.get().removeItemsFromEmi) return;
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
 
         try {
             if (EmiStackList.stacks != null) {
