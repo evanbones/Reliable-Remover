@@ -103,29 +103,31 @@ dependencies {
     modImplementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-fabric")
 
     // YACL
-    if (stonecutter.eval(minecraft, ">=26.1")) {
-        modCompileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-        modLocalRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    } else {
-        modCompileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
-        modLocalRuntime("maven.modrinth:yacl:${property("deps.yacl")}")
-    }
+    modCompileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modLocalRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
 
     // Mod Menu
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")
 
-    // RRV or EMI
+    // RRV/EMI
     if (stonecutter.eval(minecraft, ">=26.1")) {
-        modImplementation("cc.cassian.rrv:reliable-recipe-viewer-fabric:${property("deps.rrv")}")
+        modCompileOnly("cc.cassian.rrv:reliable-recipe-viewer-fabric:${property("deps.rrv")}")
+        modRuntimeOnly("cc.cassian.rrv:reliable-recipe-viewer-fabric:${property("deps.rrv")}")
     } else {
         modCompileOnly("dev.emi:emi-fabric:${property("deps.emi")}")
         modLocalRuntime("dev.emi:emi-fabric:${property("deps.emi")}")
     }
 
-    // Compat (JEI, Clutter No More, JEED, EMI Loot)
+    // JEI
     modCompileOnly("mezz.jei:jei-${property("deps.minecraft")}-fabric-api:${property("deps.jei")}")
+
+    // Clutter No More
     modCompileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+
+    // JEED
     findProperty("deps.jeed")?.let { modCompileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
+
+    // EMI Loot
     findProperty("deps.emi_loot")?.let { modCompileOnly("maven.modrinth:emi-loot:$it") }
 
     // Mixin Constraints
@@ -201,6 +203,7 @@ publishMods {
         optional("yacl")
         optional("modmenu")
         optional("rrv")
+        optional("emi")
     }
 
     curseforge {
@@ -213,6 +216,7 @@ publishMods {
         optional("yacl")
         optional("modmenu")
         optional("rrv")
+        optional("emi")
         client = true
         server = true
     }

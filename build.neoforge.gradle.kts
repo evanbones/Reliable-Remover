@@ -150,26 +150,28 @@ dependencies {
     implementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-neoforge")
 
     // YACL
-    if (stonecutter.eval(minecraft, ">=26.1")) {
-        compileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-        localRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    } else {
-        compileOnly("maven.modrinth:yacl:${property("deps.yacl")}")
-        localRuntime("maven.modrinth:yacl:${property("deps.yacl")}")
-    }
+    compileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    localRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
 
-    // RRV or EMI
+    // RRV/EMI
     if (stonecutter.eval(minecraft, ">=26.1")) {
-        implementation("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${property("deps.rrv")}")
+        compileOnly("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${property("deps.rrv")}")
+        localRuntime("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${property("deps.rrv")}")
     } else {
         compileOnly("dev.emi:emi-neoforge:${property("deps.emi")}")
-        "localRuntime"("dev.emi:emi-neoforge:${property("deps.emi")}")
+        localRuntime("dev.emi:emi-neoforge:${property("deps.emi")}")
     }
 
-    // Compat (JEI, Clutter No More, JEED, EMI Loot)
+    // JEI
     compileOnly("mezz.jei:jei-${property("deps.minecraft")}-neoforge-api:${property("deps.jei")}")
+
+    // Clutter No More
     compileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+
+    // JEED
     findProperty("deps.jeed")?.let { compileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
+
+    // EMI Loot
     findProperty("deps.emi_loot")?.let { compileOnly("maven.modrinth:emi-loot:$it") }
 
     // Mixin Constraints
@@ -233,6 +235,7 @@ publishMods {
         requires("reliable-recipes")
         optional("yacl")
         optional("rrv")
+        optional("emi")
     }
 
     curseforge {
@@ -243,6 +246,7 @@ publishMods {
         requires("reliable-recipes")
         optional("yacl")
         optional("rrv")
+        optional("emi")
         client = true
         server = true
     }
