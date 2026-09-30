@@ -17,7 +17,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(targets = "net.minecraft.world.item.alchemy.PotionBrewing")
 public abstract class PotionBrewingMixin {
 
-    //? if <=26.2 {
+    //? if <1.21 {
+    /*@Inject(method = "hasMix", at = @At("RETURN"), cancellable = true)
+    private static void reliable_remover$preventHiddenBrewing(ItemStack source, ItemStack ingredient, CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValueZ()) {
+            ItemStack result = PotionBrewing.mix(ingredient, source);
+
+            if (result.isEmpty() || result == source || RuleManager.isHidden(result)) {
+                cir.setReturnValue(false);
+            }
+        }
+    }
+
+    @Inject(method = "mix", at = @At("RETURN"), cancellable = true)
+    private static void reliable_remover$filterMixedPotion(ItemStack ingredient, ItemStack source, CallbackInfoReturnable<ItemStack> cir) {
+        ItemStack result = cir.getReturnValue();
+
+        if (!result.isEmpty() && RuleManager.isHidden(result)) {
+            cir.setReturnValue(source);
+        }
+    }
+    *///?} else if <=26.2 {
     @Shadow
     public abstract ItemStack mix(ItemStack ingredient, ItemStack source);
 

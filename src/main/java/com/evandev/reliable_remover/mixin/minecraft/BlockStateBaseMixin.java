@@ -45,7 +45,7 @@ public abstract class BlockStateBaseMixin {
         }
     }
 }
-//?} else {
+//?} else if >=1.21 {
 /*import net.minecraft.world.ItemInteractionResult;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
@@ -68,6 +68,23 @@ public abstract class BlockStateBaseMixin {
     private void reliable_remover$onUseWithoutItem(Level level, Player player, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
         if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
+                PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
+            }
+            cir.setReturnValue(InteractionResult.PASS);
+        }
+    }
+}
+*///?} else {
+/*@Mixin(BlockBehaviour.BlockStateBase.class)
+public abstract class BlockStateBaseMixin {
+
+    @Shadow
+    protected abstract BlockState asState();
+
+    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$onUse(Level level, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
+        if (RuleManager.isBlockInteractionBlocked(asState(), level, hitResult.getBlockPos(), player)) {
+            if (player != null && player.getItemInHand(hand).isEmpty() && ModConfig.get().showRemovalMessage) {
                 PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
             cir.setReturnValue(InteractionResult.PASS);

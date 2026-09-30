@@ -3,12 +3,12 @@ package com.evandev.reliable_remover.data;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
@@ -17,14 +17,32 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+//? if >=1.21 {
+import com.mojang.brigadier.StringReader;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.flag.FeatureFlags;
+//?}
+//? if >=1.21 {
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+//?} else {
+/*import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+*///?}
 
 public class RemovalRule {
     public Action action;
@@ -75,50 +93,124 @@ public class RemovalRule {
     public RemovalRule not;
 
     private transient volatile List<Pattern> compiledPatterns;
-    private transient volatile List<Pattern> compiledComponentRegex;
+    private transient volatile List<Predicate<ItemStack>> compiledNbtMatchers;
     private transient volatile Map<String, TagKey<Item>> compiledItemTags;
     private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
 
-    public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Holder<?> registryHolder, String context) {
-        return matches(stack, itemId, dimension, entityId, null, registryHolder, context);
-    }
-
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Holder<?> registryHolder, String context) {
-        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context)) return false;
+        if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context))
+            return false;
 
         if (nbt != null && !nbt.isEmpty()) {
             if (stack == null || stack.isEmpty()) return false;
 
-            if (compiledComponentRegex == null) {
-                synchronized (this) {
-                    if (compiledComponentRegex == null) {
-                        List<Pattern> list = new ArrayList<>();
-                        for (String p : nbt) {
-                            Pattern compiled = compile(p);
-                            if (compiled != null) list.add(compiled);
-                        }
-                        compiledComponentRegex = list;
-                    }
-                }
-            }
+            List<Predicate<ItemStack>> matchers = getNbtMatchers();
+            if (matchers == null) return false;
 
-            if (compiledComponentRegex.isEmpty()) return false;
-
-            String componentsStr = stack.getComponents().toString();
-            String customDataStr = stack.has(DataComponents.CUSTOM_DATA)
-                    ? Objects.requireNonNull(stack.get(DataComponents.CUSTOM_DATA)).copyTag().toString()
-                    : "";
-
-            for (Pattern p : compiledComponentRegex) {
-                if (p.matcher(componentsStr).matches() || (!customDataStr.isEmpty() && p.matcher(customDataStr).matches())) {
-                    return true;
-                }
+            for (Predicate<ItemStack> matcher : matchers) {
+                if (matcher.test(stack)) return true;
             }
             return false;
         }
 
         return true;
+    }
+
+    private List<Predicate<ItemStack>> getNbtMatchers() {
+        if (compiledNbtMatchers == null) {
+            synchronized (this) {
+                if (compiledNbtMatchers == null) {
+                    //? if >=1.21 {
+                    HolderLookup.Provider registries = RuleManager.getRegistries();
+                    if (registries == null) return null;
+                    CommandBuildContext buildContext = CommandBuildContext.simple(registries, FeatureFlags.REGISTRY.allFlags());
+                    //?}
+                    List<Predicate<ItemStack>> list = new ArrayList<>();
+                    for (String entry : nbt) {
+                        //? if >=1.21 {
+                        Predicate<ItemStack> matcher = compileNbtMatcher(entry, buildContext);
+                        //?} else {
+                        /*Predicate<ItemStack> matcher = compileNbtMatcher(entry);
+                         *///?}
+                        if (matcher != null) list.add(matcher);
+                    }
+                    compiledNbtMatchers = list;
+                }
+            }
+        }
+        return compiledNbtMatchers;
+    }
+
+    //? if >=1.21 {
+    private Predicate<ItemStack> compileNbtMatcher(String entry, CommandBuildContext buildContext) {
+        String trimmed = entry.trim();
+        if (isSlashRegex(trimmed)) return componentRegexMatcher(entry, compileQuietly(trimmed));
+
+        if (trimmed.startsWith("{")) {
+            Constants.LOG.error("Reliable Remover: SNBT filter '{}' is not supported on Minecraft 1.21+. Use item component syntax instead, e.g. '[custom_data~{key:value}]'.", entry);
+            return null;
+        }
+
+        String predicate = trimmed.startsWith("[") ? "*" + trimmed : trimmed;
+        try {
+            StringReader reader = new StringReader(predicate);
+            ItemPredicateArgument.Result result = new ItemPredicateArgument(buildContext).parse(reader);
+            if (!reader.canRead()) return result;
+        } catch (CommandSyntaxException ignored) {
+        }
+
+        Pattern legacyRegex = compileQuietly(trimmed);
+        if (legacyRegex == null) {
+            Constants.LOG.error("Reliable Remover: Invalid component filter '{}'. Expected item component syntax (e.g. '[damage=0]') or a /regex/.", entry);
+            return null;
+        }
+        return componentRegexMatcher(entry, legacyRegex);
+    }
+
+    private static Predicate<ItemStack> componentRegexMatcher(String entry, Pattern pattern) {
+        if (pattern == null) {
+            Constants.LOG.error("Reliable Remover: Invalid regex pattern found in config: '{}'. Skipping this pattern.", entry);
+            return null;
+        }
+        return stack -> {
+            if (pattern.matcher(stack.getComponents().toString()).matches()) return true;
+            var customData = stack.get(DataComponents.CUSTOM_DATA);
+            return customData != null && pattern.matcher(customData.copyTag().toString()).matches();
+        };
+    }
+    //?} else {
+    /*/
+    private Predicate<ItemStack> compileNbtMatcher(String entry) {
+        String trimmed = entry.trim();
+        if (!isSlashRegex(trimmed)) {
+            try {
+                CompoundTag required = TagParser.parseTag(trimmed);
+                return stack -> stack.getTag() != null && NbtUtils.compareNbt(required, stack.getTag(), true);
+            } catch (CommandSyntaxException ignored) {
+            }
+        }
+
+        Pattern pattern = compileQuietly(trimmed);
+        if (pattern == null) {
+            Constants.LOG.error("Reliable Remover: Invalid NBT filter '{}'. Expected SNBT (e.g. '{Damage:0}') or a /regex/.", entry);
+            return null;
+        }
+        return stack -> stack.getTag() != null && pattern.matcher(stack.getTag().toString()).matches();
+    }
+    *///?}
+
+    private static boolean isSlashRegex(String value) {
+        return value.length() > 1 && value.startsWith("/") && value.endsWith("/");
+    }
+
+    private static Pattern compileQuietly(String regex) {
+        String p = isSlashRegex(regex) ? regex.substring(1, regex.length() - 1) : regex;
+        try {
+            return Pattern.compile(p);
+        } catch (PatternSyntaxException e) {
+            return null;
+        }
     }
 
     private boolean matchesItem(String filter, ItemStack stack, String stackItemId) {
@@ -150,6 +242,7 @@ public class RemovalRule {
     public boolean matchesAnyEnchantment(ItemStack stack) {
         if (this.enchantments == null || this.enchantments.isEmpty() || stack == null || stack.isEmpty()) return false;
 
+        //? if >=1.21 {
         ItemEnchantments enchs = stack.get(DataComponents.ENCHANTMENTS);
         if (enchs != null && !enchs.isEmpty()) {
             for (Holder<Enchantment> holder : enchs.keySet()) {
@@ -163,6 +256,19 @@ public class RemovalRule {
                 if (matchesEnchantmentHolder(holder)) return true;
             }
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null) return false;
+        for (String key : List.of("Enchantments", "StoredEnchantments")) {
+            ListTag list = tag.getList(key, Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                Identifier enchId = EnchantmentHelper.getEnchantmentId(list.getCompound(i));
+                if (enchId == null) continue;
+                Holder<Enchantment> holder = BuiltInRegistries.ENCHANTMENT.getHolder(net.minecraft.resources.ResourceKey.create(Registries.ENCHANTMENT, enchId)).orElse(null);
+                if (matchesEnchantmentHolder(holder)) return true;
+            }
+        }
+        *///?}
 
         return false;
     }
@@ -386,9 +492,11 @@ public class RemovalRule {
     private static <T> Optional<Holder.Reference<T>> getRegistryHolder(Registry<T> registry, Identifier id) {
         //? if >=26.1 {
         return registry.get(id);
-        //?} else {
+        //?} else if >=1.21 {
         /*return registry.getHolder(id);
-        *///?}
+         *///?} else {
+        /*return registry.getHolder(net.minecraft.resources.ResourceKey.create(registry.key(), id));
+         *///?}
     }
 
     private boolean checkTag(String tagId, Identifier itemLocation, ItemStack stack, Action currentAction, Holder<?> registryHolder) {
@@ -518,6 +626,8 @@ public class RemovalRule {
         if (this.not != null) {
             this.not.expandTags(registries);
         }
+
+        this.compiledNbtMatchers = null;
 
         if (this.tags == null || this.tags.isEmpty()) return;
 

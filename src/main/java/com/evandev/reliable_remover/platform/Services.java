@@ -4,6 +4,12 @@ package com.evandev.reliable_remover.platform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 //?}
+//? if forge {
+/*import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.fml.loading.FMLPaths;
+*///?}
 //? if neoforge {
 /*import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
@@ -20,6 +26,9 @@ public class Services {
         //? if fabric {
         return "Fabric";
         //?}
+        //? if forge {
+        /*return "Forge";
+        *///?}
         //? if neoforge {
         /*return "NeoForge";
         *///?}
@@ -29,7 +38,7 @@ public class Services {
         //? if fabric {
         return FabricLoader.getInstance().isModLoaded(modId);
         //?}
-        //? if neoforge {
+        //? if forge || neoforge {
         /*return ModList.get().isLoaded(modId);
         *///?}
     }
@@ -38,6 +47,9 @@ public class Services {
         //? if fabric {
         return FabricLoader.getInstance().isDevelopmentEnvironment();
         //?}
+        //? if forge {
+        /*return !FMLLoader.isProduction();
+        *///?}
         //? if neoforge {
         /*//? if >=26.1 {
         /^return !FMLLoader.getCurrent().isProduction();^/
@@ -55,7 +67,7 @@ public class Services {
         //? if fabric {
         return FabricLoader.getInstance().getConfigDir();
         //?}
-        //? if neoforge {
+        //? if forge || neoforge {
         /*return FMLPaths.CONFIGDIR.get();
         *///?}
     }
@@ -64,6 +76,9 @@ public class Services {
         //? if fabric {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
         //?}
+        //? if forge {
+        /*return FMLLoader.getDist() == Dist.CLIENT;
+        *///?}
         //? if neoforge {
         /*//? if >=26.1 {
         /^return FMLLoader.getCurrent().getDist() == Dist.CLIENT;^/

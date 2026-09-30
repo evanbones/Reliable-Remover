@@ -55,12 +55,20 @@ public class ItemStackMixin {
     }
 
     @Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    //? if >=1.21.2 {
     private void reliable_remover$blockUse(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+    //?} else {
+    /*private void reliable_remover$blockUse(Level level, Player player, InteractionHand hand, CallbackInfoReturnable<net.minecraft.world.InteractionResultHolder<ItemStack>> cir) {
+    *///?}
         if (RuleManager.isInteractionBlocked((ItemStack) (Object) this, level, player)) {
             if (player != null && ModConfig.get().showRemovalMessage) {
                 PlayerMessages.actionBar(player, Component.translatable("message.reliable_remover.interaction_disabled"));
             }
+            //? if >=1.21.2 {
             cir.setReturnValue(InteractionResult.FAIL);
+            //?} else {
+            /*cir.setReturnValue(net.minecraft.world.InteractionResultHolder.fail((ItemStack) (Object) this));
+            *///?}
         }
     }
 
@@ -75,7 +83,11 @@ public class ItemStackMixin {
     }
 
     @Inject(method = "getTooltipLines", at = @At("RETURN"))
+    //? if >=1.21 {
     private void reliable_remover$addTooltip(Item.TooltipContext context, Player player, TooltipFlag tooltipFlag, CallbackInfoReturnable<List<Component>> cir) {
+    //?} else {
+    /*private void reliable_remover$addTooltip(Player player, TooltipFlag tooltipFlag, CallbackInfoReturnable<List<Component>> cir) {
+    *///?}
         if (RuleManager.isHidden((ItemStack) (Object) this, player != null ? player.level() : null)) {
             cir.getReturnValue().add(Component.translatable("tooltip.reliable_remover.item_disabled"));
         }

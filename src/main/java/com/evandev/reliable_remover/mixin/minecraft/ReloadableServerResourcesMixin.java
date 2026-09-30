@@ -1,7 +1,9 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.RuleManager;
+//? if >=1.21 {
 import net.minecraft.server.ReloadableServerRegistries;
+//?}
 import net.minecraft.server.ReloadableServerResources;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,7 +23,7 @@ public abstract class ReloadableServerResourcesMixin {
         RuleManager.expandTagRules(this.fullRegistries().lookup());
     }
 }
-//?} else {
+//?} else if >=1.21 {
 /*@Mixin(value = ReloadableServerResources.class, priority = 1100)
 public abstract class ReloadableServerResourcesMixin {
 
@@ -37,6 +39,23 @@ public abstract class ReloadableServerResourcesMixin {
     )
     private void reliableRemover$onTagsLoaded(CallbackInfo ci) {
         RuleManager.expandTagRules(this.fullRegistries().get());
+    }
+}
+*///?} else {
+/*import net.minecraft.core.RegistryAccess;
+
+@Mixin(value = ReloadableServerResources.class, priority = 1100)
+public abstract class ReloadableServerResourcesMixin {
+
+    @Inject(
+            method = "updateRegistryTags(Lnet/minecraft/core/RegistryAccess;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/level/block/Blocks;rebuildCache()V"
+            )
+    )
+    private void reliableRemover$onTagsLoaded(RegistryAccess registryAccess, CallbackInfo ci) {
+        RuleManager.expandTagRules(registryAccess);
     }
 }
 *///?}

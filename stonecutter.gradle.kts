@@ -2,6 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter")
     id("net.fabricmc.fabric-loom") version "1.18.2" apply false
     id("net.neoforged.moddev") version "2.0.147" apply false
+    id("net.neoforged.moddev.legacyforge") version "2.0.147" apply false
     id("dev.kikugie.postprocess.jsonlang") version "2.1-beta.4" apply false
     id("me.modmuss50.mod-publish-plugin") version "2.2.1" apply false
 }
@@ -9,7 +10,7 @@ plugins {
 stonecutter active "26.2-fabric"
 
 stonecutter parameters {
-    constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "neoforge")
+    constants.match(node.metadata.project.substringAfterLast('-'), "fabric", "forge", "neoforge")
     filters.include("**/*.fsh", "**/*.vsh")
     replacements {
         string(eval(node.metadata.version, ">=26.1")) {

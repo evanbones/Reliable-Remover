@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "${neoforge_loader_version_range}"
+loaderVersion = "${forge_loader_version_range}"
 license = "${license}"
 issueTrackerURL = "https://github.com/evanbones/Reliable-Remover/issues"
 
@@ -7,50 +7,42 @@ issueTrackerURL = "https://github.com/evanbones/Reliable-Remover/issues"
 modId = "${mod_id}"
 version = "${version}"
 displayName = "${mod_name}"
-iconFile = "${mod_id}.png"
 logoFile = "${mod_id}.png"
 credits = "${credits}"
 authors = "${mod_author}"
 description = '''${description}'''
-rrv_client = "com.evandev.reliable_remover.compat.ReliableRemoverRrvPlugin"
-
-[[mixins]]
-config = "${mod_id}.mixins.json"
-
-[[mixins]]
-config = "${mod_id}.neoforge.mixins.json"
 
 [[dependencies.${mod_id}]]
-modId = "neoforge"
-type = "required"
-versionRange = "[${neoforge_version},)"
+modId = "forge"
+mandatory = true
+versionRange = "[${forge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
 modId = "minecraft"
-type = "required"
+mandatory = true
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
-modId = "rrv"
-type = "optional"
-versionRange = "[8.0.0,)"
-ordering = "AFTER"
-side = "BOTH"
-
-[[dependencies.${mod_id}]]
 modId = "reliable_recipes"
-type = "required"
+mandatory = true
 versionRange = "[3.3.0,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
+modId = "emi"
+mandatory = false
+versionRange = "[1.1.23,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
 modId = "yet_another_config_lib_v3"
-type = "optional"
+mandatory = false
 versionRange = "[${yacl_version},)"
 ordering = "NONE"
 side = "CLIENT"

@@ -19,10 +19,47 @@ In Reliable Remover, you define an action and then add filters to the action.
 | `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
 | `entities` | List of entity IDs (for interaction, attack, and equipment removal rules). | `["minecraft:villager"]` |
 | `patterns` | A list of Regex patterns to match multiple item/block/fluid/effect IDs. | `["/.*_sword/", "/.*_helmet/"]` |
-| `nbt` | Matches NBT tags (or Data Components in 1.21+). Provide strict SNBT format for a subset match (e.g., `"{Damage:0}"`), or wrap the string in slashes to use Regex (e.g., `"/{.*Damage.*}/"`). |
+| `nbt` / `components` | Matches item data. On **1.21+**, use vanilla item component syntax (the same syntax as `/clear` and `/execute if items`), or wrap the string in slashes to use Regex. On **1.20.1**, use SNBT for a subset match, or wrap the string in slashes to use Regex. See [Matching Item Data](#matching-item-data). | 1.21+: `["[damage=0]"]`<br/>1.20.1: `["{Damage:0}"]` |
 | `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
 | `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
 | `replace_with` | Replaces the removed item in all recipes with this specified item ID. | `"minecraft:copper_ingot"` |
+
+### Matching Item Data
+
+The `nbt` field (also accepted as `components`) matches an item's data. A rule matches if **any** entry in the list matches.
+The syntax depends on your Minecraft version, because 1.21 replaced item NBT with Data Components.
+
+#### 1.21 and newer
+
+Entries use vanilla's item predicate syntax, the same one used by the `/clear` and `/execute if items` commands.
+The item part is optional, so `[damage=0]` is the same as `*[damage=0]`.
+
+| Entry | Matches |
+| :--- | :--- |
+| `"[damage=0]"` | Items whose `damage` component is exactly `0`. |
+| `"[custom_data~{my_pack:{banned:true}}]"` | Items whose custom data *contains* `{my_pack:{banned:true}}` (partial match). |
+| `"[stored_enchantments]"` | Items that have the `stored_enchantments` component at all. |
+| `"[!enchantments]"` | Items that do **not** have the `enchantments` component. |
+| `"[enchantments~[{enchantments:\"minecraft:sharpness\"}]]"` | Items enchanted with Sharpness (any level). |
+| `"minecraft:diamond_sword[damage=0]"` | Undamaged Diamond Swords only. |
+| `"/.*custom_model_data.*/"` | Regex against the item's full component string. |
+
+`=` checks that a component is exactly equal, while `~` checks against a component predicate (a partial match).
+Multiple conditions can be combined with `,` (and) or `|` (or), e.g. `"[damage=0,!enchantments]"`.
+
+> **Note:** SNBT such as `"{Damage:0}"` is **not** supported on 1.21+, because items no longer store their data as NBT.
+> Rules using it will log an error and be skipped. Use the component syntax above instead.
+
+#### 1.20.1
+
+Entries are SNBT and match if the item's NBT *contains* the given data (a subset match), or Regex when wrapped in slashes.
+
+| Entry | Matches |
+| :--- | :--- |
+| `"{Damage:0}"` | Items with a `Damage` tag of `0`. |
+| `"{CustomModelData:1}"` | Items with a `CustomModelData` of `1`. |
+| `"{StoredEnchantments:[{id:\"minecraft:mending\"}]}"` | Enchanted books containing Mending (any level). |
+| `"/.*StoredEnchantments.*/"` | Regex against the item's full NBT string. |
 
 ### Logic (`not`)
 

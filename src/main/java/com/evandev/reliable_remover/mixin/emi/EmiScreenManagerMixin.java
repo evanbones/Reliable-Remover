@@ -35,7 +35,7 @@ public class EmiScreenManagerMixin {
             if (hovered != null && !hovered.isEmpty()) {
                 EmiIngredient ingredient = hovered.getStack();
                 if (ingredient != null && !ingredient.getEmiStacks().isEmpty()) {
-                    EmiStack emiStack = ingredient.getEmiStacks().getFirst();
+                    EmiStack emiStack = ingredient.getEmiStacks().get(0);
                     Identifier id = emiStack.getId();
                     if (id != null) {
                         Minecraft mc = Minecraft.getInstance();

@@ -1,10 +1,14 @@
 package com.evandev.reliable_remover.mixin.minecraft.loot;
 
 import com.evandev.reliable_remover.config.RuleManager;
+//? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+//?} else {
+/*import net.minecraft.world.item.EnchantedBookItem;
+*///?}
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,8 +27,12 @@ public class EnchantRandomlyFunctionMixin {
         RuleManager.stripBlockedEnchantments(stack, context != null ? context.getLevel() : null);
 
         if (stack.is(Items.ENCHANTED_BOOK)) {
+            //? if >=1.21 {
             ItemEnchantments stored = stack.get(DataComponents.STORED_ENCHANTMENTS);
             if (stored == null || stored.isEmpty()) {
+            //?} else {
+            /*if (EnchantedBookItem.getEnchantments(stack).isEmpty()) {
+            *///?}
                 cir.setReturnValue(new ItemStack(Items.BOOK, stack.getCount()));
             }
         }

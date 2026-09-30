@@ -1,5 +1,7 @@
+import org.gradle.jvm.tasks.Jar
+
 plugins {
-    id("net.neoforged.moddev")
+    id("net.neoforged.moddev.legacyforge")
     id("dev.kikugie.postprocess.jsonlang")
     id("me.modmuss50.mod-publish-plugin")
     id("maven-publish")
@@ -7,6 +9,10 @@ plugins {
 
 val minecraft = stonecutter.current.version
 val mcVersion = stonecutter.current.project.substringBeforeLast('-')
+
+val modId = property("mod.id") as String
+val refmap = "$modId.refmap.json"
+val mixinConfigs = listOf("$modId.mixins.json", "$modId.forge.mixins.json")
 
 tasks.named<ProcessResources>("processResources") {
     fun prop(name: String) = project.property(name) as String
@@ -20,22 +26,28 @@ tasks.named<ProcessResources>("processResources") {
         this["mod_author"] = prop("mod.author")
         this["credits"] = prop("mod.credits")
         this["license"] = prop("mod.license")
-        this["neoforge_loader_version_range"] = prop("deps.neoforge_loader_version_range")
-        this["neoforge_version"] = prop("deps.neoforge")
+        this["forge_loader_version_range"] = prop("deps.forge_loader_version_range")
+        this["forge_version"] = prop("deps.forge")
         this["java_version"] = prop("deps.java_version")
         this["yacl_version"] = prop("deps.yacl").substringBefore('+')
     }
+    inputs.properties(props)
 
-    filesMatching(listOf("neoforge.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml", "*.mixins.json")) {
+    filesMatching(listOf("META-INF/mods.toml", "*.mixins.json")) {
         expand(props)
+    }
+
+    val refmapEntry = "\"refmap\": \"$refmap\",\n  \"package\":"
+    filesMatching(mixinConfigs) {
+        filter { line -> line.replace("\"package\":", refmapEntry) }
     }
 }
 
-version = "${property("mod.version")}+${property("deps.minecraft")}-neoforge"
-base.archivesName = property("mod.id") as String
+version = "${property("mod.version")}+${property("deps.minecraft")}-forge"
+base.archivesName = modId
 
 jsonlang {
-    languageDirectories = listOf("assets/${property("mod.id")}/lang")
+    languageDirectories = listOf("assets/$modId/lang")
     prettyPrint = true
 }
 
@@ -66,13 +78,6 @@ repositories {
         }
     }
     maven {
-        name = "Cassian's Maven"
-        url = uri("https://maven.cassian.cc/")
-        content {
-            includeGroupAndSubgroups("cc.cassian")
-        }
-    }
-    maven {
         name = "BlameJared (JEI)"
         url = uri("https://maven.blamejared.com/")
         content {
@@ -86,18 +91,31 @@ repositories {
             includeGroupAndSubgroups("maven.modrinth")
         }
     }
+    maven {
+        name = "ParchmentMC"
+        url = uri("https://maven.parchmentmc.org")
+        content {
+            includeGroupAndSubgroups("org.parchmentmc")
+        }
+    }
 }
 
-neoForge {
-    enable {
-        version = property("deps.neoforge") as String
-        isDisableRecompilation = true
-    }
+mixin {
+    add(sourceSets["main"], refmap)
+    mixinConfigs.forEach(::config)
+}
+
+legacyForge {
+    version = "${property("deps.minecraft")}-${property("deps.forge")}"
     validateAccessTransformers = true
+
+    parchment {
+        minecraftVersion = property("deps.minecraft") as String
+        mappingsVersion = property("deps.parchment") as String
+    }
 
     runs {
         configureEach {
-            systemProperty("neoforge.warnings.onlyin.hide", "true")
             systemProperty("kotlinx.coroutines.debug", "off")
         }
         register("client") {
@@ -111,7 +129,7 @@ neoForge {
     }
 
     mods {
-        register(property("mod.id") as String) {
+        register(modId) {
             sourceSet(sourceSets["main"])
         }
     }
@@ -119,11 +137,13 @@ neoForge {
 
 tasks {
     processResources {
-        exclude("**/fabric.mod.json", "**/*.accesswidener", "**/mods.toml", "**/*.fabric.mixins.json", "**/*.forge.mixins.json")
+        exclude("**/fabric.mod.json", "**/*.accesswidener", "**/neoforge.mods.toml", "**/*.fabric.mixins.json", "**/*.neoforge.mixins.json")
     }
 
     jar {
         dependsOn("postProcessMainResources")
+        finalizedBy("reobfJar")
+        manifest.attributes("MixinConfigs" to mixinConfigs.joinToString(","))
     }
 
     named("createMinecraftArtifacts") {
@@ -132,7 +152,7 @@ tasks {
 
     register<Copy>("buildAndCollect") {
         group = "build"
-        from(jar.map { it.archiveFile })
+        from(named<Jar>("reobfJar").map { it.archiveFile })
         into(rootProject.layout.buildDirectory.file("libs/${project.property("mod.version")}"))
         dependsOn("build")
     }
@@ -142,37 +162,32 @@ tasks {
     }
 }
 
-val localRuntime: Configuration by configurations.creating
-configurations.runtimeClasspath { extendsFrom(localRuntime) }
-
 dependencies {
+    annotationProcessor("org.spongepowered:mixin:0.8.5:processor")
+
     // Reliable Recipes
-    implementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-neoforge")
+    modImplementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-forge")
 
     // YACL
-    compileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    localRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modCompileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    modRuntimeOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
 
-    // RRV/EMI
-    if (stonecutter.eval(minecraft, ">=26.1")) {
-        compileOnly("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${property("deps.rrv")}")
-        localRuntime("cc.cassian.rrv:reliable-recipe-viewer-neoforge:${property("deps.rrv")}")
-    } else {
-        compileOnly("dev.emi:emi-neoforge:${property("deps.emi")}")
-        localRuntime("dev.emi:emi-neoforge:${property("deps.emi")}")
-    }
+    // EMI
+    modCompileOnly("dev.emi:emi-forge:${property("deps.emi")}")
+    modRuntimeOnly("dev.emi:emi-forge:${property("deps.emi")}")
 
     // JEI
-    compileOnly("mezz.jei:jei-${property("deps.minecraft")}-neoforge-api:${property("deps.jei")}")
+    modCompileOnly("mezz.jei:jei-${property("deps.minecraft")}-common-api:${property("deps.jei")}")
+    modCompileOnly("mezz.jei:jei-${property("deps.minecraft")}-forge-api:${property("deps.jei")}")
 
     // Clutter No More
-    compileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+    findProperty("deps.cnm")?.let { modCompileOnly("maven.modrinth:clutter-no-more:$it") }
 
     // JEED
-    findProperty("deps.jeed")?.let { compileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
+    findProperty("deps.jeed")?.let { modCompileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
 
     // EMI Loot
-    findProperty("deps.emi_loot")?.let { compileOnly("maven.modrinth:emi-loot:$it") }
+    findProperty("deps.emi_loot")?.let { modCompileOnly("maven.modrinth:emi-loot:$it") }
 
     // Mixin Constraints
     compileOnly("com.moulberry:mixinconstraints:${property("deps.mixin_constraints")}")
@@ -202,7 +217,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = property("mod.group") as String
-            artifactId = "${property("mod.id")}-neoforge"
+            artifactId = "$modId-forge"
             version = "${property("mod.version")}+${property("deps.minecraft")}"
 
             from(components["java"])
@@ -218,14 +233,14 @@ val additionalVersions: List<String> = additionalVersionsStr
     ?: emptyList()
 
 publishMods {
-    file = tasks.jar.map { it.archiveFile.get() }
-    additionalFiles.from(tasks.named<org.gradle.jvm.tasks.Jar>("sourcesJar").map { it.archiveFile.get() })
+    file = tasks.named<Jar>("reobfJar").flatMap { it.archiveFile }
+    additionalFiles.from(tasks.named<Jar>("sourcesJar").map { it.archiveFile.get() })
 
     type = STABLE
-    displayName = "${property("mod.name")} NeoForge ${stonecutter.current.project.substringBeforeLast('-')} - ${property("mod.version")}"
-    version = "${property("mod.version")}+${property("deps.minecraft")}-neoforge"
+    displayName = "${property("mod.name")} Forge $mcVersion - ${property("mod.version")}"
+    version = "${property("mod.version")}+${property("deps.minecraft")}-forge"
     changelog = provider { rootProject.file("CHANGELOG-LATEST.md").readText() }
-    modLoaders.add("neoforge")
+    modLoaders.add("forge")
 
     modrinth {
         projectId = property("publish.modrinth") as String
@@ -234,7 +249,6 @@ publishMods {
         minecraftVersions.addAll(additionalVersions)
         requires("reliable-recipes")
         optional("yacl")
-        optional("rrv")
         optional("emi")
     }
 
@@ -245,7 +259,6 @@ publishMods {
         minecraftVersions.addAll(additionalVersions)
         requires("reliable-recipes")
         optional("yacl")
-        optional("rrv")
         optional("emi")
         client = true
         server = true

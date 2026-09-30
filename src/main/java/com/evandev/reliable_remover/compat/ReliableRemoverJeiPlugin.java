@@ -20,7 +20,11 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
 
     @Override
     public Identifier getPluginUid() {
+        //? if >=1.21 {
         return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "jei_plugin");
+        //?} else {
+        /*return new Identifier(Constants.MOD_ID, "jei_plugin");
+        *///?}
     }
 
     @Override

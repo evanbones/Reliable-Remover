@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 @Mixin(EnchantmentHelper.class)
 public class EnchantmentHelperMixin {
 
+    //? if >=1.21 {
     @Inject(method = "getAvailableEnchantmentResults", at = @At("RETURN"))
     private static void reliable_remover$filterEnchantments(
             int value,
@@ -29,4 +30,18 @@ public class EnchantmentHelperMixin {
             list.removeIf(instance -> RuleManager.isEnchantmentBlocked(itemStack, instance.enchantment()));
         }
     }
+    //?} else {
+    /*@Inject(method = "getAvailableEnchantmentResults", at = @At("RETURN"))
+    private static void reliable_remover$filterEnchantments(
+            int value,
+            ItemStack itemStack,
+            boolean allowTreasure,
+            CallbackInfoReturnable<List<EnchantmentInstance>> cir
+    ) {
+        List<EnchantmentInstance> list = cir.getReturnValue();
+        if (list != null) {
+            list.removeIf(instance -> RuleManager.isEnchantmentBlocked(itemStack, instance.enchantment));
+        }
+    }
+    *///?}
 }

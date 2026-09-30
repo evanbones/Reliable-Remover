@@ -104,7 +104,7 @@ public class ReliableRemoverCommands {
             //? if >=26.1 {
             ItemStack offhand = inventory.player.getOffhandItem();
             //?} else {
-            /*ItemStack offhand = inventory.offhand.getFirst();
+            /*ItemStack offhand = inventory.offhand.get(0);
             *///?}
             if (!offhand.isEmpty()) {
                 items.add(getItemId(offhand));

@@ -32,9 +32,11 @@ public class AbstractRrvItemListOverlayMixin {
 /*import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Pseudo;
 
 @IfMinecraftVersion(minVersion = "26.1")
 @IfModLoaded("rrv")
+@Pseudo
 @Mixin(targets = "cc.cassian.rrv.common.overlay.itemlist.AbstractRrvItemListOverlay", remap = false)
 public class AbstractRrvItemListOverlayMixin {
 }

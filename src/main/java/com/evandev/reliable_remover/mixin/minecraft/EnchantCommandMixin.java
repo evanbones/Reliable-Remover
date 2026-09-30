@@ -23,7 +23,11 @@ import java.util.Collection;
 public class EnchantCommandMixin {
     @Unique
     private static final DynamicCommandExceptionType ERROR_INCOMPATIBLE = new DynamicCommandExceptionType(
+            //? if >=1.21 {
             item -> Component.translatableEscape("commands.enchant.failed.incompatible", item)
+            //?} else {
+            /*item -> Component.translatable("commands.enchant.failed.incompatible", item)
+            *///?}
     );
 
     @Inject(method = "enchant", at = @At("HEAD"))

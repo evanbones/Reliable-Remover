@@ -10,7 +10,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+//? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
+//?}
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -20,10 +22,22 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+//? if >=1.21 {
 import net.minecraft.world.item.alchemy.PotionContents;
+//?} else {
+/*import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+*///?}
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.enchantment.Enchantment;
+//? if >=1.21 {
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+//?}
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -45,6 +59,7 @@ public class RuleManager {
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
     private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
     public static boolean MOD_INIT_PHASE = true;
+    private static volatile HolderLookup.Provider REGISTRIES = null;
 
     public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
         if (rules == null || rules.isEmpty()) {
@@ -310,6 +325,7 @@ public class RuleManager {
             if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) return true;
         }
 
+        //? if >=1.21 {
         if (id.equals("minecraft:enchanted_book")) {
             if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
                 ItemEnchantments enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
@@ -345,6 +361,42 @@ public class RuleManager {
                 }
             }
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null) return false;
+
+        if (id.equals("minecraft:enchanted_book")) {
+            ListTag enchantments = tag.getList("StoredEnchantments", Tag.TAG_COMPOUND);
+            if (!enchantments.isEmpty()) {
+                boolean allBlocked = true;
+                for (int i = 0; i < enchantments.size(); i++) {
+                    if (!isEnchantmentBlocked(stack, getEnchantmentHolder(enchantments.getCompound(i)))) {
+                        allBlocked = false;
+                        break;
+                    }
+                }
+                if (allBlocked) return true;
+            }
+        }
+
+        if (tag.contains("Potion") || tag.contains("CustomPotionEffects")) {
+            String dim = level != null ? level.dimension().identifier().toString() : null;
+            Potion potion = PotionUtils.getPotion(stack);
+            String potionId = potion == Potions.EMPTY ? null : BuiltInRegistries.POTION.getKey(potion).toString();
+            if (potionId != null && checkRules(null, potionId, Action.REMOVE_POTION, dim, holder, null, context))
+                return true;
+            for (MobEffectInstance effectInst : PotionUtils.getMobEffects(stack)) {
+                Holder<MobEffect> effectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effectInst.getEffect());
+                Identifier loc = BuiltInRegistries.MOB_EFFECT.getKey(effectHolder.value());
+                if (loc != null) {
+                    String effectId = loc.toString();
+                    if (checkRules(null, effectId, Action.REMOVE_POTION, dim, holder, effectHolder, context))
+                        return true;
+                }
+                if (isEffectBlocked(effectHolder, level, holder)) return true;
+            }
+        }
+        *///?}
         return false;
     }
 
@@ -363,6 +415,7 @@ public class RuleManager {
     public static void stripBlockedEnchantments(ItemStack stack, RegistryAccess registryAccess, RandomSource random) {
         if (stack == null || stack.isEmpty()) return;
 
+        //? if >=1.21 {
         if (stack.has(DataComponents.STORED_ENCHANTMENTS)) {
             ItemEnchantments enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
             if (enchantments != null) {
@@ -420,6 +473,43 @@ public class RuleManager {
                 }
             }
         }
+        //?} else {
+        /*CompoundTag tag = stack.getTag();
+        if (tag == null) return;
+
+        if (tag.contains("StoredEnchantments", Tag.TAG_LIST)) {
+            ListTag enchantments = tag.getList("StoredEnchantments", Tag.TAG_COMPOUND);
+            ListTag validEnchantments = filterBlockedEnchantments(stack, enchantments);
+
+            if (validEnchantments.size() != enchantments.size()) {
+                if (validEnchantments.isEmpty() && registryAccess != null) {
+                    Holder<Enchantment> rerolled = getRandomAllowedEnchantment(registryAccess, random, null);
+                    if (rerolled != null) {
+                        int level = Mth.nextInt(random, rerolled.value().getMinLevel(), rerolled.value().getMaxLevel());
+                        validEnchantments.add(EnchantmentHelper.storeEnchantment(EnchantmentHelper.getEnchantmentId(rerolled.value()), level));
+                    }
+                }
+                if (validEnchantments.isEmpty()) {
+                    stack.removeTagKey("StoredEnchantments");
+                } else {
+                    tag.put("StoredEnchantments", validEnchantments);
+                }
+            }
+        }
+
+        if (tag.contains("Enchantments", Tag.TAG_LIST)) {
+            ListTag enchantments = tag.getList("Enchantments", Tag.TAG_COMPOUND);
+            ListTag validEnchantments = filterBlockedEnchantments(stack, enchantments);
+
+            if (validEnchantments.size() != enchantments.size()) {
+                if (validEnchantments.isEmpty()) {
+                    stack.removeTagKey("Enchantments");
+                } else {
+                    tag.put("Enchantments", validEnchantments);
+                }
+            }
+        }
+        *///?}
     }
 
     public static Holder<Enchantment> getRandomAllowedEnchantment(RegistryAccess registryAccess, RandomSource random, Predicate<Holder<Enchantment>> extraFilter) {
@@ -441,6 +531,37 @@ public class RuleManager {
         if (candidates.isEmpty()) return null;
         return candidates.get(random.nextInt(candidates.size()));
     }
+
+    //? if <1.21 {
+    /*private static ListTag filterBlockedEnchantments(ItemStack stack, ListTag enchantments) {
+        ListTag valid = new ListTag();
+        for (int i = 0; i < enchantments.size(); i++) {
+            CompoundTag entry = enchantments.getCompound(i);
+            if (!isEnchantmentBlocked(stack, getEnchantmentHolder(entry))) {
+                valid.add(entry);
+            }
+        }
+        return valid;
+    }
+
+    public static Holder<Enchantment> getEnchantmentHolder(CompoundTag enchantmentTag) {
+        Identifier id = EnchantmentHelper.getEnchantmentId(enchantmentTag);
+        if (id == null) return null;
+        return BuiltInRegistries.ENCHANTMENT.getHolder(net.minecraft.resources.ResourceKey.create(Registries.ENCHANTMENT, id)).orElse(null);
+    }
+
+    public static boolean isEnchantmentBlocked(ItemStack stack, Enchantment enchantment) {
+        return isEnchantmentBlocked(stack, BuiltInRegistries.ENCHANTMENT.wrapAsHolder(enchantment));
+    }
+
+    public static boolean isEffectBlocked(MobEffect effect, Level level, Entity entity) {
+        return isEffectBlocked(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), level, entity);
+    }
+
+    public static boolean isEffectCreativeBlocked(MobEffect effect, Entity entity) {
+        return isEffectCreativeBlocked(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), entity);
+    }
+    *///?}
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
         if (stack == null || stack.isEmpty()) return false;
@@ -622,12 +743,20 @@ public class RuleManager {
                 var itemOpt = BuiltInRegistries.ITEM.getOptional(replacementId);
                 if (itemOpt.isPresent()) {
                     ItemStack replacement = new ItemStack(itemOpt.get(), stack.getCount());
-                    replacement.applyComponents(stack.getComponentsPatch());
+                    copyData(stack, replacement);
                     return replacement;
                 }
             }
         }
         return null;
+    }
+
+    private static void copyData(ItemStack from, ItemStack to) {
+        //? if >=1.21 {
+        to.applyComponents(from.getComponentsPatch());
+        //?} else {
+        /*if (from.getTag() != null) to.setTag(from.getTag().copy());
+        *///?}
     }
 
     public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
@@ -647,7 +776,7 @@ public class RuleManager {
                 var itemOpt = BuiltInRegistries.ITEM.getOptional(replacementId);
                 if (itemOpt.isPresent()) {
                     ItemStack replacement = new ItemStack(itemOpt.get(), stack.getCount());
-                    replacement.applyComponents(stack.getComponentsPatch());
+                    copyData(stack, replacement);
                     return replacement;
                 }
             }
@@ -670,7 +799,12 @@ public class RuleManager {
         return null;
     }
 
+    public static HolderLookup.Provider getRegistries() {
+        return REGISTRIES;
+    }
+
     public static void expandTagRules(HolderLookup.Provider registries) {
+        REGISTRIES = registries;
         RuleManager.load();
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {

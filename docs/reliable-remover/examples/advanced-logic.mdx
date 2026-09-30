@@ -158,33 +158,64 @@ Prevents entities from gaining the `minecraft:poison` status effect from any sou
 
 ```
 
-### Remove Items with Specific NBT
+### Remove Items with Specific Data (1.21+)
 
-Removes any item containing the text `"CustomModelData":1` or `"CustomModelData":2` in its NBT tag.
+Removes any item whose custom data contains `{my_pack:{banned:true}}`, as well as any undamaged Diamond Sword.
+Entries use vanilla's item component syntax. See [Matching Item Data](/project/reliable-remover/latest/docs/reliable-remover/filtering#matching-item-data) for the full syntax.
 
 ```json
 {
   "action": "remove",
-  "nbt": [
-    "/.*\"CustomModelData\":1.*/",
-    "/.*\"CustomModelData\":2.*/"
+  "components": [
+    "[custom_data~{my_pack:{banned:true}}]",
+    "minecraft:diamond_sword[damage=0]"
   ]
 }
 
 ```
 
-### Remove All Enchanted Books
+### Remove Items with Specific NBT (1.20.1)
 
-This uses a Regex match against the item's NBT string.
+Removes any item with a `CustomModelData` of `1` or `2`. SNBT entries match if the item's NBT contains the given data.
+
+```json
+{
+  "action": "remove",
+  "nbt": [
+    "{CustomModelData:1}",
+    "{CustomModelData:2}"
+  ]
+}
+
+```
+
+### Remove Enchanted Books with Mending
+
+Removes enchanted books that contain Mending, while leaving other enchanted books alone.
+
+1.21+:
 
 ```json
 {
   "action": "remove",
   "items": ["minecraft:enchanted_book"],
-  "nbt": ["/.*StoredEnchantments.*/"]
+  "components": ["[stored_enchantments~[{enchantments:\"minecraft:mending\"}]]"]
 }
 
 ```
+
+1.20.1:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:enchanted_book"],
+  "nbt": ["{StoredEnchantments:[{id:\"minecraft:mending\"}]}"]
+}
+
+```
+
+> To remove an enchantment everywhere (including from books, loot, and trades), the `remove_enchantment` action is usually a better fit.
 
 ## Entity Equipment
 

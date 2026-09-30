@@ -27,7 +27,11 @@ public class ReliableRemoverMod implements ModInitializer {
     private static class FabricReloadListener extends ReloadListener implements IdentifiableResourceReloadListener {
         @Override
         public Identifier getFabricId() {
+            //? if >=1.21 {
             return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "reload_listener");
+            //?} else {
+            /*return new Identifier(Constants.MOD_ID, "reload_listener");
+            *///?}
         }
     }
 }

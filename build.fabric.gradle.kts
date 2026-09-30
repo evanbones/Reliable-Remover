@@ -122,7 +122,7 @@ dependencies {
     modCompileOnly("mezz.jei:jei-${property("deps.minecraft")}-fabric-api:${property("deps.jei")}")
 
     // Clutter No More
-    modCompileOnly("maven.modrinth:clutter-no-more:${property("deps.cnm")}")
+    findProperty("deps.cnm")?.let { modCompileOnly("maven.modrinth:clutter-no-more:$it") }
 
     // JEED
     findProperty("deps.jeed")?.let { modCompileOnly("maven.modrinth:just-enough-effect-descriptions-jeed:$it") }
@@ -136,7 +136,7 @@ dependencies {
 
 tasks {
     processResources {
-        exclude("**/neoforge.mods.toml", "**/mods.toml", "**/*.neoforge.mixins.json")
+        exclude("**/neoforge.mods.toml", "**/mods.toml", "**/*.neoforge.mixins.json", "**/*.forge.mixins.json")
     }
 
     jar {

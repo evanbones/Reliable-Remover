@@ -24,7 +24,11 @@ public abstract class CreativeModeTabMixin {
     @Shadow
     private Set<ItemStack> displayItemsSearchTab;
 
+    //? if >=1.21 {
     @Inject(method = "buildContents", at = @At(value = "RETURN"))
+    //?} else {
+    /*@Inject(method = "buildContents", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/CreativeModeTab;rebuildSearchTree()V"))
+    *///?}
     private void reliable_remover$filterCreativeTabs(CreativeModeTab.ItemDisplayParameters parameters, CallbackInfo ci) {
         if (!Services.PLATFORM.isPhysicalClient()) return;
 
@@ -32,7 +36,11 @@ public abstract class CreativeModeTabMixin {
 
         // Rebuild safely instead of relying on modifying potentially unmodifiable collections
         if (this.displayItems != null) {
+            //? if >=1.21 {
             Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndComponentsSet();
+            //?} else {
+            /*Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndTagSet();
+            *///?}
             for (ItemStack stack : this.displayItems) {
                 if (!RuleManager.isCreativeBlocked(stack)) {
                     filtered.add(stack);
@@ -42,7 +50,11 @@ public abstract class CreativeModeTabMixin {
         }
 
         if (this.displayItemsSearchTab != null) {
+            //? if >=1.21 {
             Set<ItemStack> filteredSearch = ItemStackLinkedSet.createTypeAndComponentsSet();
+            //?} else {
+            /*Set<ItemStack> filteredSearch = ItemStackLinkedSet.createTypeAndTagSet();
+            *///?}
             for (ItemStack stack : this.displayItemsSearchTab) {
                 if (!RuleManager.isCreativeBlocked(stack)) {
                     filteredSearch.add(stack);
