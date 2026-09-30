@@ -180,7 +180,7 @@ public class RemovalRule {
         };
     }
     //?} else {
-    /*/
+    /*
     private Predicate<ItemStack> compileNbtMatcher(String entry) {
         String trimmed = entry.trim();
         if (!isSlashRegex(trimmed)) {
