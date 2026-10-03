@@ -4,7 +4,6 @@ import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
-import com.evandev.reliable_remover.mixin.minecraft.accessor.CreativeModeTabsAccessor;
 import com.evandev.reliable_remover.platform.Services;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -47,6 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -55,6 +55,7 @@ public class RuleManager {
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
+    private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
     private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
@@ -172,11 +173,12 @@ public class RuleManager {
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
 
         if (Services.PLATFORM.isPhysicalClient()) {
-            try {
-                CreativeModeTabsAccessor.setCachedParameters(null);
-            } catch (Throwable ignored) {
-            }
+            CREATIVE_TABS_DIRTY.set(true);
         }
+    }
+
+    public static boolean consumeCreativeTabsDirty() {
+        return CREATIVE_TABS_DIRTY.getAndSet(false);
     }
 
     private static void generateDefaultConfig(Path configDir) {
