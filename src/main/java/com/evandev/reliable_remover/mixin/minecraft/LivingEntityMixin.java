@@ -18,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import com.evandev.reliable_remover.util.PlayerMessages;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
@@ -41,9 +40,19 @@ public abstract class LivingEntityMixin {
     }
 
     @Inject(method = "addEffect(Lnet/minecraft/world/effect/MobEffectInstance;Lnet/minecraft/world/entity/Entity;)Z", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$preventBlockedEffect(MobEffectInstance effectInstance, Entity source, CallbackInfoReturnable<Boolean> cir) {
+    private void reliable_remover$preventBlockedEffect(MobEffectInstance newEffect, Entity source, CallbackInfoReturnable<Boolean> cir) {
         LivingEntity entity = (LivingEntity) (Object) this;
-        if (effectInstance != null && RuleManager.isEffectBlocked(effectInstance.getEffect(), entity.level(), entity)) {
+        if (newEffect == null) return;
+
+        var replacement = RuleManager.getEffectReplacement(newEffect.getEffect(), entity.level(), entity);
+        if (replacement != null) {
+            //? if >=1.21 {
+            MobEffectInstance replaced = new MobEffectInstance(replacement, newEffect.getDuration(), newEffect.getAmplifier(), newEffect.isAmbient(), newEffect.isVisible(), newEffect.showIcon());
+            //?} else {
+            /*MobEffectInstance replaced = new MobEffectInstance(replacement.value(), newEffect.getDuration(), newEffect.getAmplifier(), newEffect.isAmbient(), newEffect.isVisible(), newEffect.showIcon());
+            *///?}
+            cir.setReturnValue(entity.addEffect(replaced, source));
+        } else if (RuleManager.isEffectBlocked(newEffect.getEffect(), entity.level(), entity)) {
             cir.setReturnValue(false);
         }
     }

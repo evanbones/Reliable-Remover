@@ -73,3 +73,19 @@ Removes Diamonds from the game completely, but replaces them with Emeralds in al
 }
 
 ```
+
+### Replace an Item with a Modified Item (1.21+)
+
+Replaces Netherite Swords with a half-broken Diamond Sword that has its enchantments removed.
+The components use the same syntax as the `/give` command. See [Modifying the Replacement Item](/project/reliable-remover/latest/docs/reliable-remover/filtering#modifying-the-replacement-item) for details.
+
+```json
+{
+  "action": "remove",
+  "items": [
+    "minecraft:netherite_sword"
+  ],
+  "replace_with": "minecraft:diamond_sword[damage=500,!enchantments]"
+}
+
+```

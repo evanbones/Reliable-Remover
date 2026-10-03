@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-10-03
+
+### Added
+
+- `replace_with` can now modify the replacement item's components (1.21+) or NBT (1.20.1), either inline (e.g.
+  `"minecraft:diamond_sword[damage=100]"`) or through the new `replace_components` field.
+- `replace_with` now works with effects: a `remove_effect` rule can swap the removed effect for another one, keeping its
+  duration and amplifier.
+
+### Changed
+
+- Removed effects now have their related effect tooltips removed as well.
+
 ## [3.3.1] - 2026-10-02
 
 ### Fixed

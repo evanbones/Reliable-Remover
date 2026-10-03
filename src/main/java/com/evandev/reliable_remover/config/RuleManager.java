@@ -162,9 +162,9 @@ public class RuleManager {
         ReliableRecipesAPI.clearItemReplacements();
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {
-                if (rule.replaceWith != null && !rule.replaceWith.isEmpty() && rule.items != null) {
+                if (rule.hasReplacement() && rule.items != null) {
                     for (String item : rule.items) {
-                        ReliableRecipesAPI.registerItemReplacement(item, rule.replaceWith);
+                        ReliableRecipesAPI.registerItemReplacement(item, rule.getReplacementItemId());
                     }
                 }
             }
@@ -284,7 +284,7 @@ public class RuleManager {
                 (rule.registry == null || rule.registry.isEmpty()) &&
                 (rule.tagType == null || rule.tagType.isEmpty()) &&
                 rule.not == null &&
-                (rule.replaceWith == null || rule.replaceWith.isEmpty()) &&
+                !rule.hasReplacement() &&
                 (rule.enchantments == null || rule.enchantments.isEmpty()) &&
                 (rule.effects == null || rule.effects.isEmpty()) &&
                 (rule.blocks == null || rule.blocks.isEmpty()) &&
@@ -563,6 +563,10 @@ public class RuleManager {
     public static boolean isEffectCreativeBlocked(MobEffect effect, Entity entity) {
         return isEffectCreativeBlocked(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), entity);
     }
+
+    public static Holder<MobEffect> getEffectReplacement(MobEffect effect, Level level, Entity entity) {
+        return getEffectReplacement(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect), level, entity);
+    }
     *///?}
 
     public static boolean isAttackBlocked(ItemStack stack, Level level, Entity target) {
@@ -739,26 +743,7 @@ public class RuleManager {
         if (rule == null && action != Action.REMOVE)
             rule = getMatchingRule(stack, id, Action.REMOVE, dim, holder, null, context);
 
-        if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
-            Identifier replacementId = Identifier.tryParse(rule.replaceWith);
-            if (replacementId != null) {
-                var itemOpt = BuiltInRegistries.ITEM.getOptional(replacementId);
-                if (itemOpt.isPresent()) {
-                    ItemStack replacement = new ItemStack(itemOpt.get(), stack.getCount());
-                    copyData(stack, replacement);
-                    return replacement;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static void copyData(ItemStack from, ItemStack to) {
-        //? if >=1.21 {
-        to.applyComponents(from.getComponentsPatch());
-        //?} else {
-        /*if (from.getTag() != null) to.setTag(from.getTag().copy());
-        *///?}
+        return rule != null ? rule.createReplacement(stack) : null;
     }
 
     public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
@@ -772,18 +757,7 @@ public class RuleManager {
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, dim, entity, null, "item");
 
-        if (rule != null && rule.replaceWith != null && !rule.replaceWith.isEmpty()) {
-            Identifier replacementId = Identifier.tryParse(rule.replaceWith);
-            if (replacementId != null) {
-                var itemOpt = BuiltInRegistries.ITEM.getOptional(replacementId);
-                if (itemOpt.isPresent()) {
-                    ItemStack replacement = new ItemStack(itemOpt.get(), stack.getCount());
-                    copyData(stack, replacement);
-                    return replacement;
-                }
-            }
-        }
-        return null;
+        return rule != null ? rule.createReplacement(stack) : null;
     }
 
     private static boolean checkRules(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
@@ -845,9 +819,39 @@ public class RuleManager {
         String id = loc.toString();
         if (GLOBALLY_BANNED_ITEMS.contains(id)) return true;
         if (CNM_CASCADE_REMOVED.contains(id)) return true;
+        if (getEffectReplacement(effectHolder, level, entity) != null) return false;
         String dim = level != null ? level.dimension().identifier().toString() : null;
         if (checkRules(null, id, Action.REMOVE_EFFECT, dim, entity, effectHolder, "effect")) return true;
         return checkRules(null, id, Action.REMOVE, dim, entity, effectHolder, "effect");
+    }
+
+    /**
+     * Resolves the effect a removed effect should be swapped for via {@code replace_with}, following
+     * chains (A -> B -> C). Returns null when there is no replacement or the chain loops back on itself.
+     */
+    public static Holder<MobEffect> getEffectReplacement(Holder<MobEffect> effectHolder, Level level, Entity entity) {
+        if (effectHolder == null) return null;
+        String dim = level != null ? level.dimension().identifier().toString() : null;
+        Set<String> seen = new HashSet<>();
+        Holder<MobEffect> current = effectHolder;
+        Holder<MobEffect> replacement = null;
+        while (true) {
+            Identifier loc = BuiltInRegistries.MOB_EFFECT.getKey(current.value());
+            if (loc == null) return replacement;
+            String id = loc.toString();
+            if (!seen.add(id)) return null;
+
+            RemovalRule rule = getMatchingRule(null, id, Action.REMOVE_EFFECT, dim, entity, current, "effect");
+            if (rule == null) rule = getMatchingRule(null, id, Action.REMOVE, dim, entity, current, "effect");
+            if (rule == null || !rule.hasReplacement()) return replacement;
+
+            Identifier replacementId = Identifier.tryParse(rule.replaceWith.trim());
+            if (replacementId == null) return replacement;
+            Holder<MobEffect> next = RemovalRule.getRegistryHolder(BuiltInRegistries.MOB_EFFECT, replacementId).orElse(null);
+            if (next == null) return replacement;
+            replacement = next;
+            current = next;
+        }
     }
 
     public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level) {

@@ -158,6 +158,20 @@ Prevents entities from gaining the `minecraft:poison` status effect from any sou
 
 ```
 
+### Replace a Status Effect
+
+Whenever an entity would gain `minecraft:poison`, it gets `minecraft:slowness` with the same duration and amplifier instead.
+Potions and tipped arrows that apply Poison will show Slowness in their tooltips.
+
+```json
+{
+  "action": "remove_effect",
+  "effects": ["minecraft:poison"],
+  "replace_with": "minecraft:slowness"
+}
+
+```
+
 ### Remove Items with Specific Data (1.21+)
 
 Removes any item whose custom data contains `{my_pack:{banned:true}}`, as well as any undamaged Diamond Sword.

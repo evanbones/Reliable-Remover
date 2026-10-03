@@ -40,6 +40,7 @@
   ],
   "client": [
     "client.MultiPlayerGameModeMixin",
+    "client.PotionTooltipMixin",
     "client.ScreenMixin",
     "emi.EmiScreenManagerMixin",
     "jeed.JeedMixin",

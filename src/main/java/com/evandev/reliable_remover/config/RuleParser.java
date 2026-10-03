@@ -119,6 +119,7 @@ public class RuleParser {
         copy.patterns = original.patterns != null ? new ArrayList<>(original.patterns) : new ArrayList<>();
         copy.nbt = original.nbt != null ? new ArrayList<>(original.nbt) : new ArrayList<>();
         copy.replaceWith = original.replaceWith;
+        copy.replaceComponents = original.replaceComponents;
         copy.not = original.not;
         return copy;
     }

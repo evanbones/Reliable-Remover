@@ -3,7 +3,9 @@ package com.evandev.reliable_remover.data;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.commands.arguments.item.ItemParser;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -22,14 +24,16 @@ import net.minecraft.world.level.material.Fluid;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 //? if >=1.21 {
-import com.mojang.brigadier.StringReader;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.flag.FeatureFlags;
 //?}
@@ -90,6 +94,9 @@ public class RemovalRule {
     @SerializedName(value = "replace_with", alternate = {"replacement"})
     public String replaceWith;
 
+    @SerializedName(value = "replace_components", alternate = {"replacement_components", "replace_nbt", "replacement_nbt"})
+    public String replaceComponents;
+
     public RemovalRule not;
 
     private transient volatile List<Pattern> compiledPatterns;
@@ -97,6 +104,16 @@ public class RemovalRule {
     private transient volatile Map<String, TagKey<Item>> compiledItemTags;
     private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
     private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
+    private transient volatile ParsedReplacement compiledReplacement;
+    private transient volatile boolean replacementInvalid;
+
+    //? if >=1.21 {
+    private record ParsedReplacement(Item item, DataComponentPatch components) {
+    }
+    //?} else {
+    /*private record ParsedReplacement(Item item, CompoundTag nbt) {
+    }
+    *///?}
 
     public boolean matches(ItemStack stack, String itemId, String dimension, String entityId, Entity targetEntity, Holder<?> registryHolder, String context) {
         if (!matchesLogic(stack, itemId, dimension, entityId, targetEntity, this.action, registryHolder, context))
@@ -199,6 +216,107 @@ public class RemovalRule {
         return stack -> stack.getTag() != null && pattern.matcher(stack.getTag().toString()).matches();
     }
     *///?}
+
+    public boolean hasReplacement() {
+        return replaceWith != null && !replaceWith.isBlank();
+    }
+
+    /**
+     * The item ID portion of {@code replace_with}, without any inline components/NBT.
+     */
+    public String getReplacementItemId() {
+        if (!hasReplacement()) return null;
+        String value = replaceWith.trim();
+        int end = value.length();
+        int bracket = value.indexOf('[');
+        int brace = value.indexOf('{');
+        if (bracket >= 0) end = bracket;
+        if (brace >= 0) end = Math.min(end, brace);
+        return value.substring(0, end).trim();
+    }
+
+    /**
+     * Builds the replacement for {@code original}: the {@code replace_with} item carrying over the original's
+     * data, with the rule's components ({@code replace_with} suffix and/or {@code replace_components}) applied on top.
+     */
+    public ItemStack createReplacement(ItemStack original) {
+        ParsedReplacement parsed = getParsedReplacement();
+        if (parsed == null) return null;
+        ItemStack replacement = new ItemStack(parsed.item(), original.getCount());
+        //? if >=1.21 {
+        replacement.applyComponents(original.getComponentsPatch());
+        replacement.applyComponents(parsed.components());
+        //?} else {
+        /*if (original.getTag() != null) replacement.setTag(original.getTag().copy());
+        if (parsed.nbt() != null) replacement.getOrCreateTag().merge(parsed.nbt().copy());
+        *///?}
+        return replacement;
+    }
+
+    private ParsedReplacement getParsedReplacement() {
+        if (!hasReplacement() || replacementInvalid) return null;
+        ParsedReplacement cached = compiledReplacement;
+        if (cached != null) return cached;
+
+        String itemId = getReplacementItemId();
+        String input = replaceWith.trim() + (replaceComponents != null ? replaceComponents.trim() : "");
+        if (input.length() == itemId.length()) {
+            Identifier id = Identifier.tryParse(itemId);
+            Item item = id != null ? BuiltInRegistries.ITEM.getOptional(id).orElse(null) : null;
+            if (item == null) return null;
+            //? if >=1.21 {
+            return compiledReplacement = new ParsedReplacement(item, DataComponentPatch.EMPTY);
+            //?} else {
+            /*return compiledReplacement = new ParsedReplacement(item, null);
+            *///?}
+        }
+
+        //? if >=1.21 {
+        HolderLookup.Provider registries = RuleManager.getRegistries();
+        if (registries == null) {
+            Identifier id = Identifier.tryParse(itemId);
+            Item item = id != null ? BuiltInRegistries.ITEM.getOptional(id).orElse(null) : null;
+            return item != null ? new ParsedReplacement(item, DataComponentPatch.EMPTY) : null;
+        }
+        //?}
+        try {
+            StringReader reader = new StringReader(input);
+            //? if >=1.21 {
+            AtomicReference<Holder<Item>> item = new AtomicReference<>();
+            DataComponentPatch.Builder components = DataComponentPatch.builder();
+            new ItemParser(registries).parse(reader, new ItemParser.Visitor() {
+                @Override
+                public void visitItem(Holder<Item> holder) {
+                    item.set(holder);
+                }
+
+                @Override
+                public <T> void visitComponent(DataComponentType<T> type, T value) {
+                    components.set(type, value);
+                }
+
+                @Override
+                public <T> void visitRemovedComponent(DataComponentType<T> type) {
+                    components.remove(type);
+                }
+            });
+            ParsedReplacement parsed = new ParsedReplacement(item.get().value(), components.build());
+            //?} else {
+            /*ItemParser.ItemResult result = ItemParser.parseForItem(BuiltInRegistries.ITEM.asLookup(), reader);
+            ParsedReplacement parsed = new ParsedReplacement(result.item().value(), result.nbt());
+            *///?}
+            if (reader.canRead()) {
+                Constants.LOG.error("Reliable Remover: Unexpected trailing input in replacement '{}' at position {}.", input, reader.getCursor());
+                replacementInvalid = true;
+                return null;
+            }
+            return compiledReplacement = parsed;
+        } catch (CommandSyntaxException e) {
+            Constants.LOG.error("Reliable Remover: Invalid replacement '{}': {}", input, e.getMessage());
+            replacementInvalid = true;
+            return null;
+        }
+    }
 
     private static boolean isSlashRegex(String value) {
         return value.length() > 1 && value.startsWith("/") && value.endsWith("/");
@@ -489,7 +607,7 @@ public class RemovalRule {
         return compiledPatterns;
     }
 
-    private static <T> Optional<Holder.Reference<T>> getRegistryHolder(Registry<T> registry, Identifier id) {
+    public static <T> Optional<Holder.Reference<T>> getRegistryHolder(Registry<T> registry, Identifier id) {
         //? if >=26.1 {
         return registry.get(id);
         //?} else if >=1.21 {

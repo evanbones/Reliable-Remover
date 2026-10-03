@@ -22,7 +22,8 @@ In Reliable Remover, you define an action and then add filters to the action.
 | `nbt` / `components` | Matches item data. On **1.21+**, use vanilla item component syntax (the same syntax as `/clear` and `/execute if items`), or wrap the string in slashes to use Regex. On **1.20.1**, use SNBT for a subset match, or wrap the string in slashes to use Regex. See [Matching Item Data](#matching-item-data). | 1.21+: `["[damage=0]"]`<br/>1.20.1: `["{Damage:0}"]` |
 | `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
 | `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
-| `replace_with` | Replaces the removed item in all recipes with this specified item ID. | `"minecraft:copper_ingot"` |
+| `replace_with` | Replaces the removed item in all recipes with this specified item ID. Item IDs can carry components (1.21+) or NBT (1.20.1) to modify the replacement item, see [Modifying the Replacement Item](#modifying-the-replacement-item). On `remove_effect` rules targeting `effects`, swaps the removed effect for this effect ID instead, keeping its duration and amplifier. | `"minecraft:copper_ingot"`<br/>`"minecraft:iron_sword[damage=100]"`<br/>`"minecraft:slowness"` |
+| `replace_components` | Components (1.21+) or NBT (1.20.1) applied to the `replace_with` item. An alternative to writing them directly after the item ID. | 1.21+: `"[rarity=epic]"`<br/>1.20.1: `"{Damage:100}"` |
 
 ### Matching Item Data
 
@@ -60,6 +61,34 @@ Entries are SNBT and match if the item's NBT *contains* the given data (a subset
 | `"{CustomModelData:1}"` | Items with a `CustomModelData` of `1`. |
 | `"{StoredEnchantments:[{id:\"minecraft:mending\"}]}"` | Enchanted books containing Mending (any level). |
 | `"/.*StoredEnchantments.*/"` | Regex against the item's full NBT string. |
+
+### Modifying the Replacement Item
+
+When an item is replaced through `replace_with`, the replacement keeps the original item's data (damage, enchantments, name, etc.).
+You can change the replacement's data further by adding components (1.21+) or NBT (1.20.1) after the item ID, using the same syntax as the `/give` command.
+These are applied on top of the copied data, so they override anything the original item had.
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:netherite_sword"],
+  "replace_with": "minecraft:diamond_sword[damage=500,rarity=rare]"
+}
+```
+
+The components can also be put in a separate `replace_components` field, which is equivalent:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:netherite_sword"],
+  "replace_with": "minecraft:diamond_sword",
+  "replace_components": "[damage=500,rarity=rare]"
+}
+```
+
+On **1.21+**, prefix a component with `!` to remove it from the replacement, e.g. `"[!enchantments]"` to strip any enchantments copied over from the original item.
+On **1.20.1**, use SNBT instead, e.g. `"minecraft:diamond_sword{Damage:100}"`. The given NBT is merged into the copied NBT.
 
 ### Logic (`not`)
 

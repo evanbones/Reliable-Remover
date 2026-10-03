@@ -189,6 +189,18 @@ Prevents active status effects from being applied to living entities from any so
 
 ```
 
+Add `replace_with` with an effect ID to swap the removed effect for another one instead of blocking it outright.
+The replacement keeps the original's duration, amplifier and particle settings, and potion tooltips show the replacement effect.
+
+```json
+{
+  "action": "remove_effect",
+  "effects": ["minecraft:poison"],
+  "replace_with": "minecraft:slowness"
+}
+
+```
+
 ### `remove_hand_swing`
 
 Prevents the player from swinging their hand while holding the specified item.

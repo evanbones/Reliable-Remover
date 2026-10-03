@@ -173,7 +173,7 @@ public class ReliableRemoverAPI {
      * Helper to register item replacements programmatically.
      *
      * @param sourceId     A unique ID for the provider mod/feature.
-     * @param replacements Map of original item ID -> replacement item ID.
+     * @param replacements Map of original item ID -> replacement item ID, optionally with components or NBT (1.20.1).
      */
     public static void registerDynamicReplacements(String sourceId, Map<String, String> replacements) {
         if (replacements == null || replacements.isEmpty()) {
