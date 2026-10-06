@@ -1,7 +1,7 @@
 {
   "basic-removal.mdx": "Basic Removal",
   "interaction-blocking.mdx": "Blocking Interactions",
-  "combat-restrictions.mdx": "Combat Restrictions",
+  "combat-restrictions.mdx": "Combat & Mobs",
   "dimension-rules.mdx": "Dimension Rules",
-  "advanced-logic.mdx": "Advanced Logic & NBT"
+  "advanced-logic.mdx": "Effects, Enchantments & Item Data"
 }

@@ -3,14 +3,21 @@ title: Features
 hide_meta: true
 ---
 
-* Disable only specific actions, such as attacking or interacting (right-clicking) with an item.
-* Remove items by ID, mod ID, tag, regex patterns, or item data (Data Components on 1.21+, NBT on 1.20.1).
-* Configure global settings via [YACL](https://modrinth.com/mod/yacl) to toggle messages, removal behavior, and more.
-* Restrict items or interactions only in specific dimensions (e.g., make an item usable only in the Nether).
-* Automatically hides items from:
-    * Creative mode tabs.
-    * [EMI](https://modrinth.com/mod/emi)/[JEI](https://modrinth.com/mod/jei)/[RRV](https://modrinth.com/mod/rrv) (including Info tabs).
-    * Player inventories.
-    * Villager trades.
-    * Loot tables.
-    * Mob equipment (armor and held items).
+**Remove items completely.** A removed item disappears from:
+
+* Creative tabs
+* [EMI](https://modrinth.com/mod/emi), [JEI](https://modrinth.com/mod/jei) and [RRV](https://modrinth.com/mod/rrv), including info pages
+* Recipes and tags (through [Reliable Recipes](https://modrinth.com/mod/reliable-recipes))
+* Player inventories, chests, and items on the ground
+* Loot tables and villager trades
+* Mob armor and held items
+
+**Or only block certain things.** Keep the item, but stop players from right-clicking it, attacking with it, placing it, and [more](/project/reliable-remover/latest/docs/reliable-remover/removal-actions).
+
+**Pick items however you want.** By ID, by tag, by mod, by regex, or by item data like damage or enchantments.
+
+**Add conditions.** Only in the Nether, only on zombies, everything from a mod except one item.
+
+**Remove enchantments, potions and status effects**, or swap them for something else.
+
+**Edit in-game.** Settings screen via [YACL](https://modrinth.com/mod/yacl), and a dev mode that lets you delete items straight from EMI or RRV.

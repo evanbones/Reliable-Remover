@@ -1,7 +1,9 @@
 {
+  "usage.mdx": "Getting Started",
+  "removal-actions.mdx": "Actions",
+  "filtering.mdx": "Filters",
+  "commands.mdx": "Commands",
+  "settings.mdx": "Settings",
   "features.mdx": "Features",
-  "usage.mdx": "Usage",
-  "removal-actions": "Removal Actions",
-  "filtering.mdx": "Filtering",
-  "commands.mdx": "Commands"
+  "examples": "Examples"
 }

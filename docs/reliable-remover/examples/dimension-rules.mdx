@@ -3,39 +3,54 @@ title: Dimension Rules
 hide_meta: true
 ---
 
-You can restrict items to specific dimensions using the `dimensions` filter.
+Use `dimensions` to make a rule only apply in certain dimensions. Put it inside `not` to make it apply everywhere **except** those dimensions.
 
-### Dimension Blacklist (Ban in Nether)
-Removes Water Buckets only if the player is in the Nether.
+The vanilla dimensions are `minecraft:overworld`, `minecraft:the_nether` and `minecraft:the_end`.
+
+### No water buckets in the Nether
 
 ```json
 {
   "action": "remove",
-  "items": [
-    "minecraft:water_bucket"
-  ],
-  "dimensions": [
-    "minecraft:the_nether"
-  ]
+  "items": ["minecraft:water_bucket"],
+  "dimensions": ["minecraft:the_nether"]
 }
-
 ```
 
-### Dimension Whitelist (Only Allow in Nether)
-
-This prevents Flint and Steel from being used anywhere *except* the Nether. We use the `not` logic filter to achieve this.
+### Flint and steel only works in the Nether
 
 ```json
 {
   "action": "remove_interactions",
-  "items": [
-    "minecraft:flint_and_steel"
-  ],
+  "items": ["minecraft:flint_and_steel"],
   "not": {
-    "dimensions": [
-      "minecraft:the_nether"
-    ]
+    "dimensions": ["minecraft:the_nether"]
   }
 }
+```
 
+### Ender pearls only work in the End
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:ender_pearl"],
+  "not": {
+    "dimensions": ["minecraft:the_end"]
+  }
+}
+```
+
+### No beds outside the Overworld
+
+Beds can still be placed, but not slept in:
+
+```json
+{
+  "action": "remove_interactions",
+  "blocks": ["#minecraft:beds"],
+  "not": {
+    "dimensions": ["minecraft:overworld"]
+  }
+}
 ```

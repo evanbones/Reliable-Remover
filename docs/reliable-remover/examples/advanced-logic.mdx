@@ -1,167 +1,24 @@
 ---
-title: Advanced Logic & NBT
+title: Effects, Enchantments & Item Data
 hide_meta: true
 ---
 
-### Ban All Swords from Minecraft Only
+## Effects and potions
 
-Uses the `mod` filter to limit the scope of the Regex pattern. It will remove `minecraft:diamond_sword` but keep `othermod:copper_sword`.
+### No poison, from anything
 
-```json
-{
-  "action": "remove",
-  "mod": ["minecraft"],
-  "pattern": "/.*_sword/"
-}
-
-```
-
-### Ban All Spawn Eggs
-
-Uses a Regex pattern to match any item ending in `_spawn_egg` across all mods.
-
-```json
-{
-  "action": "remove",
-  "pattern": "/.*_spawn_egg/"
-}
-
-```
-
-## Inverted Logic (Whitelists)
-
-### Ban a Mod, Keep Specific Items
-
-Removes everything from `ae2` except for the Certus Quartz Crystal.
-
-```json
-{
-  "action": "remove",
-  "mod": ["ae2"],
-  "not": {
-    "items": ["ae2:certus_quartz_crystal"]
-  }
-}
-
-```
-
-### Allow Elytra ONLY in the End
-
-Prevents the Elytra from being used (right-clicked) in any dimension except The End.
-
-```json
-{
-  "action": "remove_interactions",
-  "items": ["minecraft:elytra"],
-  "not": {
-    "dimensions": ["minecraft:the_end"]
-  }
-}
-
-```
-
-## Interaction & Combat
-
-### Pacifist Mode (No Weapons)
-
-Prevents attacking with any item that has "sword" or "axe" in its ID.
-
-```json
-{
-  "action": "remove_attacks",
-  "patterns": [
-    "/.*_sword/",
-    "/.*_axe/"
-  ]
-}
-
-```
-
-### Protect Villagers & Golems
-
-Prevents players from attacking Villagers or Iron Golems with *any* item.
-
-```json
-{
-  "action": "remove_attacks",
-  "entities": [
-    "minecraft:villager",
-    "minecraft:iron_golem"
-  ]
-}
-
-```
-
-### Disable Shearing Sheep
-
-Prevents using Shears on Sheep, but allows using them on other things (like leaves or wool blocks).
-
-```json
-{
-  "action": "remove_interactions",
-  "items": ["minecraft:shears"],
-  "entities": ["minecraft:sheep"]
-}
-
-```
-
-### Disable Hand Swinging for Multiple Tools
-
-This rule uses the `patterns` list to block the swing animation for all shovels and pickaxes.
-
-```json
-{
-  "action": "remove_hand_swing",
-  "patterns": [
-    "/.*_shovel/",
-    "/.*_pickaxe/"
-  ]
-}
-
-```
-
-## Fluids & Effects
-
-### Remove Fluids by ID
-
-Removes Water and Lava fluids from recipe viewers.
-
-```json
-{
-  "action": "remove",
-  "fluids": ["minecraft:water", "minecraft:lava"]
-}
-
-```
-
-### Remove Potions by Effect
-
-Removes any potion (Splash, Lingering, or Drinkable) containing the `minecraft:night_vision` effect from Creative Tabs and recipe viewers.
-
-```json
-{
-  "action": "remove_potion",
-  "effects": ["minecraft:night_vision"]
-}
-
-```
-
-### Prevent Status Effect Application (`remove_effect`)
-
-Prevents entities from gaining the `minecraft:poison` status effect from any source (potions, mob attacks, beacons, etc.).
+Covers potions, cave spiders, `/effect`, and every other source:
 
 ```json
 {
   "action": "remove_effect",
   "effects": ["minecraft:poison"]
 }
-
 ```
 
-### Replace a Status Effect
+### Poison becomes slowness
 
-Whenever an entity would gain `minecraft:poison`, it gets `minecraft:slowness` with the same duration and amplifier instead.
-Potions and tipped arrows that apply Poison will show Slowness in their tooltips.
+Same duration and level. Potion tooltips show Slowness too:
 
 ```json
 {
@@ -169,43 +26,60 @@ Potions and tipped arrows that apply Poison will show Slowness in their tooltips
   "effects": ["minecraft:poison"],
   "replace_with": "minecraft:slowness"
 }
-
 ```
 
-### Remove Items with Specific Data (1.21+)
+### Hide night vision potions
 
-Removes any item whose custom data contains `{my_pack:{banned:true}}`, as well as any undamaged Diamond Sword.
-Entries use vanilla's item component syntax. See [Matching Item Data](/project/reliable-remover/latest/docs/reliable-remover/filtering#matching-item-data) for the full syntax.
+Removes drinkable, splash and lingering Night Vision potions, plus tipped arrows, from creative tabs, recipe viewers and loot. The effect itself still works (e.g. from commands):
 
 ```json
 {
-  "action": "remove",
-  "components": [
-    "[custom_data~{my_pack:{banned:true}}]",
-    "minecraft:diamond_sword[damage=0]"
-  ]
+  "action": "remove_potion",
+  "effects": ["minecraft:night_vision"]
 }
-
 ```
 
-### Remove Items with Specific NBT (1.20.1)
+## Enchantments
 
-Removes any item with a `CustomModelData` of `1` or `2`. SNBT entries match if the item's NBT contains the given data.
+### No Mending or curses anywhere
 
 ```json
 {
-  "action": "remove",
-  "nbt": [
-    "{CustomModelData:1}",
-    "{CustomModelData:2}"
-  ]
+  "action": "remove_enchantment",
+  "enchantments": ["minecraft:mending", "#minecraft:curse"]
 }
-
 ```
 
-### Remove Enchanted Books with Mending
+### Fortune only on golden pickaxes
 
-Removes enchanted books that contain Mending, while leaving other enchanted books alone.
+```json
+{
+  "action": "remove_enchantment",
+  "enchantments": ["minecraft:fortune"],
+  "not": {
+    "items": ["minecraft:golden_pickaxe"]
+  }
+}
+```
+
+### No Sharpness gear in loot
+
+Removes any loot item that comes enchanted with Sharpness:
+
+```json
+{
+  "action": "remove_loot",
+  "enchantments": ["minecraft:sharpness"]
+}
+```
+
+## Item data
+
+See [Item data](/project/reliable-remover/latest/docs/reliable-remover/filtering#item-data-components--nbt) for the full syntax.
+
+### Remove Mending books only
+
+Other enchanted books are left alone.
 
 1.21+:
 
@@ -215,7 +89,6 @@ Removes enchanted books that contain Mending, while leaving other enchanted book
   "items": ["minecraft:enchanted_book"],
   "components": ["[stored_enchantments~[{enchantments:\"minecraft:mending\"}]]"]
 }
-
 ```
 
 1.20.1:
@@ -226,94 +99,24 @@ Removes enchanted books that contain Mending, while leaving other enchanted book
   "items": ["minecraft:enchanted_book"],
   "nbt": ["{StoredEnchantments:[{id:\"minecraft:mending\"}]}"]
 }
-
 ```
 
-> To remove an enchantment everywhere (including from books, loot, and trades), the `remove_enchantment` action is usually a better fit.
+### Remove items your datapack marked as banned (1.21+)
 
-## Entity Equipment
-
-### Strip Specific Weapons from Mobs
-Because the `entities` filter can be tied to the `remove` action, you can selectively strip equipment from specific mobs without banning the item for players.
-
-This rule will actively delete Diamond Swords from Zombies, but players and other entities will still be able to use them:
-```json
-{
-  "action": "remove",
-  "items": ["minecraft:diamond_sword"],
-  "entities": ["minecraft:zombie"]
-}
-
-```
-
-### Strip All Armor from Skeletons
-Using regex patterns, you can completely prevent Skeletons from wearing any helmet.
+Any item given with `/give @s stick[custom_data={my_pack:{banned:true}}]` gets removed:
 
 ```json
 {
   "action": "remove",
-  "patterns": ["/.*_helmet/"],
-  "entities": ["minecraft:skeleton"]
+  "components": ["[custom_data~{my_pack:{banned:true}}]"]
 }
-
 ```
 
-## Registry & Tag Isolation
-
-### Tag-Type Isolation
-
-Tells Reliable Remover to hide the item from **item tags**, but completely ignore **block tags**. For example, removing `minecraft:oak_log` will strip it from `#minecraft:logs` for crafting, but the placed block will still behave normally when mined with an axe.
+### Remove items by custom model data (1.20.1)
 
 ```json
-[
-  {
-    "action": "remove",
-    "items": [
-      "minecraft:oak_log"
-    ],
-    "tag_type": [
-      "item"
-    ]
-  }
-]
-
-```
-
-### Registry Context
-
-Removes the item from the game as a dropped entity and hides it from standard item contexts, but leaves its placed block form alone. If a player mines a Diamond Ore with this rule active, the dropped diamond entity will immediately vanish.
-
-```json
-[
-  {
-    "action": "remove",
-    "items": [
-      "minecraft:diamond"
-    ],
-    "registry": [
-      "item",
-      "entity"
-    ]
-  }
-]
-
-```
-
-### Mod-Wide Removal
-
-Wipes a specific tag type for an entire mod without breaking the physical blocks of that mod. All item-form tags (e.g., `#forge:ingots/copper` for items) will have that mod's items stripped out, but the blocks will behave normally in the world.
-
-```json
-[
-  {
-    "action": "remove",
-    "mod": [
-      "examplemod"
-    ],
-    "tag_type": [
-      "item"
-    ]
-  }
-]
-
+{
+  "action": "remove",
+  "nbt": ["{CustomModelData:1}", "{CustomModelData:2}"]
+}
 ```

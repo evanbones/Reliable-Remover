@@ -1,25 +1,53 @@
 ---
-title: Removal Actions
+title: Actions
 hide_meta: true
 ---
 
-There are many actions you can apply to items.
+The `action` decides what happens to the items your rule matches.
+
+| Action | What it does |
+| :--- | :--- |
+| [`remove`](#remove) | Removes the item from the game entirely. |
+| [`remove_creative`](#remove_creative) | Hides it from creative tabs and recipe viewers. |
+| [`remove_recipe`](#remove_recipe) | Hides recipes that craft it. |
+| [`remove_info`](#remove_info) | Hides its info page in EMI/JEI/RRV. |
+| [`remove_inventory`](#remove_inventory) | Deletes it from player inventories. |
+| [`remove_storage`](#remove_storage) | Deletes it from chests, barrels, etc. when opened. |
+| [`remove_drops`](#remove_drops) | Deletes it when it's dropped on the ground. |
+| [`remove_equipment`](#remove_equipment) | Takes it away from mobs. |
+| [`remove_loot`](#remove_loot) | Stops it from coming from any loot table (chests, mobs, blocks, fishing). |
+| [`remove_chest_loot`](#remove_chest_loot) | Stops it from generating in loot chests only. |
+| [`remove_trade`](#remove_trade) | Removes villager trades that use it. |
+| [`remove_interactions`](#remove_interactions) | Stops players from right-clicking it. |
+| [`remove_placement`](#remove_placement) | Stops players from placing it. |
+| [`remove_attacks`](#remove_attacks) | Stops players from attacking with it. |
+| [`remove_hand_swing`](#remove_hand_swing) | Stops the swing animation when using it. |
+| [`remove_enchantment`](#remove_enchantment) | Removes an enchantment from loot, tables, trades and books. |
+| [`remove_potion`](#remove_potion) | Hides potions and tipped arrows with an effect. |
+| [`remove_effect`](#remove_effect) | Stops a status effect from being applied, or swaps it. |
+
+## Removing items
 
 ### `remove`
 
-The nuclear option.
-This completely scrubs the item from the game context based on your global config.
-Using `remove` is equivalent to applying **all** of the granular removal actions below simultaneously.
+Does everything: hides the item from creative tabs and recipe viewers, removes its recipes and tags, and deletes it from inventories, chests, the ground, loot, trades and mobs.
 
-* Removes from Creative Tabs, EMI/JEI/REI, Loot tables, player inventories, storage, world drops, and Villager trades.
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:tnt"]
+}
+```
 
-[View 'Basic Removal' Examples](/project/reliable-remover/docs/reliable-remover/examples/basic-removal)
+You can turn individual parts of this off (for example, keep removed items in recipe viewers) in [Settings](/project/reliable-remover/latest/docs/reliable-remover/settings).
+
+[More `remove` examples](/project/reliable-remover/latest/docs/reliable-remover/examples/basic-removal)
 
 ### `remove_creative`
 
-Hides the specified item or status effect from Creative Mode tabs and recipe/effect viewers like EMI, JEI, REI, and JEED.
+Hides the item from creative tabs and recipe viewers, but it still works normally. Good for items you give out with commands.
 
-* **Use Case**: You want an item or status effect to exist and be usable in-game (via commands, mob abilities, potions, etc.), but not visible to players in creative tabs or recipe viewers.
+Also works on status effects, which hides them from effect viewers like JEED.
 
 ```json
 {
@@ -29,11 +57,43 @@ Hides the specified item or status effect from Creative Mode tabs and recipe/eff
 }
 ```
 
+### `remove_recipe`
+
+Hides every recipe that makes the item. The item itself stays. Players just can't craft it.
+
+```json
+{
+  "action": "remove_recipe",
+  "items": ["minecraft:beacon"]
+}
+```
+
+### `remove_info`
+
+Hides the item's info page in EMI, JEI and RRV. The item itself stays visible.
+
+```json
+{
+  "action": "remove_info",
+  "items": ["quark:trowel"]
+}
+```
+
+## Deleting items from the world
+
+These four can also **swap** the item instead of deleting it. Add `replace_with`, and players who pick up a Netherite Sword get a Diamond Sword instead:
+
+```json
+{
+  "action": "remove_inventory",
+  "items": ["minecraft:netherite_sword"],
+  "replace_with": "minecraft:diamond_sword"
+}
+```
+
 ### `remove_inventory`
 
-Instantly removes the specified item from player inventories.
-
-* **Use Case**: Prevent players from ever holding or carrying a specific item, even if they obtain it.
+Deletes the item from player inventories as soon as they have it.
 
 ```json
 {
@@ -42,24 +102,9 @@ Instantly removes the specified item from player inventories.
 }
 ```
 
-### `remove_drops`
-
-Discards the specified item as soon as it is dropped in the world.
-
-* **Use Case**: Useful for preventing item spam or deleting certain items that shouldn't exist on the ground.
-
-```json
-{
-  "action": "remove_drops",
-  "items": ["minecraft:cobblestone"]
-}
-```
-
 ### `remove_storage`
 
-Clears the specified item from chests, barrels, shulker boxes, and other storage blocks when they are opened by a player.
-
-* **Use Case**: Scrub specific items from existing loot or player-placed storage.
+Deletes the item from chests, barrels, shulker boxes and other containers when a player opens them.
 
 ```json
 {
@@ -68,11 +113,20 @@ Clears the specified item from chests, barrels, shulker boxes, and other storage
 }
 ```
 
+### `remove_drops`
+
+Deletes the item the moment it lands on the ground. Good for cutting down item lag.
+
+```json
+{
+  "action": "remove_drops",
+  "items": ["minecraft:cobblestone"]
+}
+```
+
 ### `remove_equipment`
 
-Automatically removes the specified item from the hands or armor slots of mobs.
-
-* **Use Case**: Prevent certain mobs from spawning with or picking up overpowered equipment.
+Takes the item out of mobs' hands and armor slots, so they can't spawn with it or pick it up.
 
 ```json
 {
@@ -81,11 +135,31 @@ Automatically removes the specified item from the hands or armor slots of mobs.
 }
 ```
 
+## Loot and trades
+
+### `remove_loot`
+
+Removes the item from **every** loot table: chests, mob drops, fishing, archaeology, and also block drops. Removing diamonds this way means diamond ore stops dropping them too.
+
+```json
+{
+  "action": "remove_loot",
+  "items": ["minecraft:enchanted_golden_apple"]
+}
+```
+
+You can also remove any loot that comes with a certain enchantment:
+
+```json
+{
+  "action": "remove_loot",
+  "enchantments": ["minecraft:sharpness"]
+}
+```
+
 ### `remove_chest_loot`
 
-Prevents the specified item from generating as loot *only* in containers (Chests, Barrels, Shulker Boxes, etc.). This does not affect mob drops or other loot tables.
-
-* **Use Case**: Nerf modded structure loot without removing items from other sources.
+Like `remove_loot`, but only for chests, barrels and other containers. Mob drops and block drops are untouched.
 
 ```json
 {
@@ -94,12 +168,31 @@ Prevents the specified item from generating as loot *only* in containers (Chests
 }
 ```
 
+### `remove_trade`
+
+Removes any villager or wandering trader trade that buys or sells the item.
+
+```json
+{
+  "action": "remove_trade",
+  "items": ["minecraft:emerald"]
+}
+```
+
+## Restricting use
+
 ### `remove_interactions`
 
-Prevents the player from "using" an item or interacting with a placed block in the world (Right-Click).
+Stops players from right-clicking with the item.
 
-* **Use Case**: Useful if you want an item to exist for crafting but not be usable (e.g., banning a specific wand, tool, or bucket), or to disable right-click interactions on placed blocks (e.g., sleeping in beds, using anvils, opening chests).
-* **Tip**: Specifying `blocks` allows players to place the block from their hand, but disables right-clicking/interacting with the placed block in the world. If you want to prevent placing the block altogether, use `remove_placement`.
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:flint_and_steel", "minecraft:lava_bucket"]
+}
+```
+
+Use `blocks` instead to stop players from right-clicking a **placed** block. Players can still place it, they just can't use it. This lets you place beds and anvils but not sleep in or use them:
 
 ```json
 {
@@ -108,13 +201,11 @@ Prevents the player from "using" an item or interacting with a placed block in t
 }
 ```
 
-[View 'Interaction Blocking' Examples](/project/reliable-remover/docs/reliable-remover/examples/interaction-blocking)
+[More interaction examples](/project/reliable-remover/latest/docs/reliable-remover/examples/interaction-blocking)
 
 ### `remove_placement`
 
-Prevents the player from placing the specified block or item in the world.
-
-* **Use Case**: Allow players to craft, hold, or trade a block (e.g. TNT, Bedrock) while preventing them from placing it on the ground.
+Stops players from placing the block. They can still craft, hold and trade it.
 
 ```json
 {
@@ -125,72 +216,88 @@ Prevents the player from placing the specified block or item in the world.
 
 ### `remove_attacks`
 
-Prevents the player from attacking entities while holding the specified item.
+Stops players from attacking while holding the item.
 
-* **Use Case**: Disable specific weapons or protect specific entities from being hurt.
+```json
+{
+  "action": "remove_attacks",
+  "items": ["minecraft:stick"]
+}
+```
 
-[View 'Combat Restrictions' Examples](/project/reliable-remover/docs/reliable-remover/examples/combat-restrictions)
+[More combat examples](/project/reliable-remover/latest/docs/reliable-remover/examples/combat-restrictions)
+
+### `remove_hand_swing`
+
+Stops the hand swing animation when using the item.
+
+```json
+{
+  "action": "remove_hand_swing",
+  "items": ["minecraft:stick"]
+}
+```
+
+## Enchantments, potions and effects
 
 ### `remove_enchantment`
 
-Removes specific enchantments from item generation (loot tables, enchanting tables, villager trades, and item drops). If an enchanted book's enchantments are all removed, it will automatically reroll a valid allowed enchantment or convert into a standard `minecraft:book` item. Supports enchantment tags (such as `#minecraft:curse`).
-
-Also supports targeting specific `items` to allow or preserve enchantments on specific tools.
-
-* **Use Case**: Remove "Protection" or specific curses from loot, enchanting tables, villager trades, and books entirely, or remove an enchantment from all items except specific tools.
+Stops an enchantment from appearing anywhere: loot, enchanting tables, villager trades and drops. If an enchanted book ends up with nothing left on it, it gets a different allowed enchantment, or turns into a plain book.
 
 ```json
 {
   "action": "remove_enchantment",
-  "enchantments": ["minecraft:protection", "#minecraft:curse"]
+  "enchantments": ["minecraft:mending", "#minecraft:curse"]
 }
 ```
 
-#### Whitelisting Specific Items (`not`):
+Add `items` to only remove it from those items. Fortune is removed from pickaxes, but not from other tools:
+
+```json
+{
+  "action": "remove_enchantment",
+  "enchantments": ["minecraft:fortune"],
+  "items": ["#minecraft:pickaxes"]
+}
+```
+
+Or use `not` to keep it on certain items. Fortune is removed from everything except golden pickaxes:
 
 ```json
 {
   "action": "remove_enchantment",
   "enchantments": ["minecraft:fortune"],
   "not": {
-    "items": [
-      "minecraft:golden_pickaxe"
-    ]
+    "items": ["minecraft:golden_pickaxe"]
   }
 }
 ```
 
 ### `remove_potion`
 
-Hides any Potion, Splash Potion, Lingering Potion, or Tipped Arrow containing the specified Potion effect from Creative Tabs, EMI/JEI/REI, and loot.
-
-* **Use Case**: Remove "Poison" or "Invisibility" potion items from the game menus and loot tables.
+Hides every potion, splash potion, lingering potion and tipped arrow with the effect, in creative tabs, recipe viewers and loot.
 
 ```json
 {
   "action": "remove_potion",
   "effects": ["minecraft:poison", "minecraft:invisibility"]
 }
-
 ```
+
+This only hides the potion items. To stop the effect itself (from mobs, beacons, `/effect`, etc.), use `remove_effect`.
 
 ### `remove_effect`
 
-Prevents active status effects from being applied to living entities from any source (drinking potions, splash potions, mob attacks, beacons, environmental hazards, `/effect give`, etc.).
-
-* **Aliases**: `remove_effects`, `remove_status_effect`, `remove_status_effects`, `remove_mob_effect`
-* **Use Case**: Disable the "Poison" or "Blindness" status effect from affecting players or mobs without hiding unrelated items.
+Stops a status effect from being applied to anything, from any source: potions, mob attacks, beacons, `/effect give`, and so on.
 
 ```json
 {
   "action": "remove_effect",
-  "effects": ["minecraft:poison", "minecraft:blindness"]
+  "effects": ["minecraft:poison"]
 }
-
 ```
 
-Add `replace_with` with an effect ID to swap the removed effect for another one instead of blocking it outright.
-The replacement keeps the original's duration, amplifier and particle settings, and potion tooltips show the replacement effect.
+Add `replace_with` to swap it for a different effect instead. Here, anything that would give Poison gives Slowness with the same duration and level. Potion tooltips show Slowness too.
 
 ```json
 {
@@ -198,68 +305,8 @@ The replacement keeps the original's duration, amplifier and particle settings, 
   "effects": ["minecraft:poison"],
   "replace_with": "minecraft:slowness"
 }
-
 ```
 
-### `remove_hand_swing`
+## Alternate names
 
-Prevents the player from swinging their hand while holding the specified item.
-
-* **Use Case**: Useful for disabling the "swing" animation for items that shouldn't appear to be used as tools or weapons.
-
-```json
-{
-  "action": "remove_hand_swing",
-  "items": ["minecraft:stick"]
-}
-
-```
-
-### `remove_info`
-
-Hides the specified item's Information tab/recipe from EMI and JEI.
-Items hidden using the standard `remove` action are also removed from info tabs by default (configurable via `removeItemsFromInfoTabs`).
-
-* **Use Case**: You want an item to be visible and craftable, but you want to hide its specific tutorial, lore, or information page from recipe viewers.
-
-```json
-{
-  "action": "remove_info",
-  "items": ["quark:trowel"]
-}
-
-```
-
-### `remove_trade`
-
-Prevents the specified item from appearing in any Villager or Merchant trade (either as a cost or a result).
-* **Use Case**: Stop villagers from buying or selling specific overpowered items.
-
-```json
-{
-  "action": "remove_trade",
-  "items": ["minecraft:emerald"]
-}
-
-```
-
-### `remove_loot`
-
-Removes the specified item from *all* loot tables, including mob drops, chest loot, and gameplay loot (like fishing or archaeology).
-* **Use Case**: Completely wipe an item from the game's reward pools.
-
-```json
-{
-  "action": "remove_loot",
-  "items": ["minecraft:enchanted_golden_apple"]
-}
-```
-
-You can also target items generated with specific enchantments:
-
-```json
-{
-  "action": "remove_loot",
-  "enchantments": ["minecraft:sharpness"]
-}
-```
+Most actions accept a few spellings, so `remove_trades`, `remove_drop` and `remove_loot_table` all work. For example, `remove_effect` also accepts `remove_effects`, `remove_status_effect` and `remove_mob_effect`.

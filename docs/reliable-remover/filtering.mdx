@@ -1,111 +1,275 @@
 ---
-title: Filtering
+title: Filters
 hide_meta: true
 ---
 
-In Reliable Remover, you define an action and then add filters to the action.
+Filters pick which items a rule applies to.
 
-### Filter Options
+## All filters
 
-| Field | Description | Example |
+| Filter | What it matches | Example |
 | :--- | :--- | :--- |
-| `items` | List of specific item IDs. | `["minecraft:tnt"]` |
-| `blocks` | List of specific block IDs or block tags. | `["minecraft:anvil", "#minecraft:beds"]` |
-| `fluids` | List of specific fluid IDs or fluid tags. | `["minecraft:water"]` |
-| `effects` | List of status effect / potion IDs or effect tags. | `["minecraft:poison", "minecraft:blindness"]` |
-| `enchantments` | List of enchantment IDs or enchantment tags. Can be used with `remove_enchantment` or combined with actions like `remove_loot` to target items with specific enchantments. | `["minecraft:sharpness", "#minecraft:curse"]` |
-| `tags` | List of item/block/fluid/effect tags to remove. | `["minecraft:logs"]` |
-| `mod` | Target all items from a mod ID. | `"farmersdelight"` |
-| `dimensions` | List of dimensions where the rule applies. | `["minecraft:the_nether"]` |
-| `entities` | List of entity IDs (for interaction, attack, and equipment removal rules). | `["minecraft:villager"]` |
-| `patterns` | A list of Regex patterns to match multiple item/block/fluid/effect IDs. | `["/.*_sword/", "/.*_helmet/"]` |
-| `nbt` / `components` | Matches item data. On **1.21+**, use vanilla item component syntax (the same syntax as `/clear` and `/execute if items`), or wrap the string in slashes to use Regex. On **1.20.1**, use SNBT for a subset match, or wrap the string in slashes to use Regex. See [Matching Item Data](#matching-item-data). | 1.21+: `["[damage=0]"]`<br/>1.20.1: `["{Damage:0}"]` |
-| `registry` | Isolate removal to specific registries (e.g., hiding from the `item` registry but keeping block behavior, or removing `entity` drops). | `["item", "entity"]` |
-| `tag_type` | Isolate removal to specific tag types (e.g., removing from item tags but keeping block tags intact). | `["item"]` |
-| `replace_with` | Replaces the removed item in all recipes with this specified item ID. Item IDs can carry components (1.21+) or NBT (1.20.1) to modify the replacement item, see [Modifying the Replacement Item](#modifying-the-replacement-item). On `remove_effect` rules targeting `effects`, swaps the removed effect for this effect ID instead, keeping its duration and amplifier. | `"minecraft:copper_ingot"`<br/>`"minecraft:iron_sword[damage=100]"`<br/>`"minecraft:slowness"` |
-| `replace_components` | Components (1.21+) or NBT (1.20.1) applied to the `replace_with` item. An alternative to writing them directly after the item ID. | 1.21+: `"[rarity=epic]"`<br/>1.20.1: `"{Damage:100}"` |
+| `items` | Item IDs or item tags | `["minecraft:tnt", "#minecraft:logs"]` |
+| `blocks` | Block IDs or block tags | `["minecraft:anvil", "#minecraft:beds"]` |
+| `fluids` | Fluid IDs or tags | `["minecraft:lava"]` |
+| `effects` | Status effect IDs or tags | `["minecraft:poison"]` |
+| `enchantments` | Enchantment IDs or tags | `["minecraft:mending", "#minecraft:curse"]` |
+| `tags` | Tags (without the `#`) | `["minecraft:logs"]` |
+| `mod` | Everything from a mod | `["farmersdelight"]` |
+| `patterns` | Regex against the ID | `["/.*_sword/"]` |
+| `components` / `nbt` | Item data, like damage or enchantments | `["[damage=0]"]` (1.21+)<br/>`["{Damage:0}"]` (1.20.1) |
+| `dimensions` | Only in these dimensions | `["minecraft:the_nether"]` |
+| `entities` | Only on these mobs | `["minecraft:zombie"]` |
+| `not` | Exceptions | `{ "items": ["minecraft:stick"] }` |
+| `tag_type` | Only remove from item tags or block tags | `["item"]` |
+| `registry` | Only apply in certain places | `["loot"]` |
+| `replace_with` | What to swap the item for | `"minecraft:emerald"` |
 
-### Matching Item Data
+Any list with one entry can be written as a plain string, so `"items": "minecraft:tnt"` works too.
 
-The `nbt` field (also accepted as `components`) matches an item's data. A rule matches if **any** entry in the list matches.
-The syntax depends on your Minecraft version, because 1.21 replaced item NBT with Data Components.
+## How filters combine
 
-#### 1.21 and newer
+**These add more items** to the rule: `items`, `blocks`, `fluids`, `effects`, `tags`, `patterns`. This rule removes TNT, Bedrock **and** every log:
 
-Entries use vanilla's item predicate syntax, the same one used by the `/clear` and `/execute if items` commands.
-The item part is optional, so `[damage=0]` is the same as `*[damage=0]`.
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:tnt", "minecraft:bedrock"],
+  "tags": ["minecraft:logs"]
+}
+```
+
+**These narrow the rule down**: `mod`, `dimensions`, `entities`, `components`, and `enchantments` (except in `remove_enchantment`, where it picks the enchantment to remove). This rule removes swords, but **only** from Minecraft. Modded swords are left alone:
+
+```json
+{
+  "action": "remove",
+  "mod": ["minecraft"],
+  "patterns": ["/.*_sword/"]
+}
+```
+
+## Tags
+
+Put a `#` in front of a tag in `items`, `blocks`, `fluids`, `effects` or `enchantments`:
+
+```json
+{
+  "action": "remove",
+  "items": ["#minecraft:logs"]
+}
+```
+
+## Mods
+
+Everything from Farmer's Delight:
+
+```json
+{
+  "action": "remove",
+  "mod": ["farmersdelight"]
+}
+```
+
+The mod ID is the part before the `:` in an item ID (`farmersdelight:cabbage`).
+
+## Regex patterns
+
+Wrap the pattern in slashes. The pattern has to match the **whole** ID, including the `modid:` part.
+
+| Pattern | Matches |
+| :--- | :--- |
+| `/.*_sword/` | `minecraft:diamond_sword`, `othermod:copper_sword` |
+| `/minecraft:.*_sword/` | `minecraft:diamond_sword`, but not `othermod:copper_sword` |
+| `/.*_spawn_egg/` | Every spawn egg |
+| `/minecraft:.*_log/` | Every vanilla log |
+| `/_sword/` | **Nothing**. It doesn't cover the rest of the ID. Use `/.*_sword/`. |
+
+```json
+{
+  "action": "remove",
+  "patterns": ["/.*_spawn_egg/"]
+}
+```
+
+## Dimensions
+
+Only remove water buckets in the Nether:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:water_bucket"],
+  "dimensions": ["minecraft:the_nether"]
+}
+```
+
+[More dimension examples](/project/reliable-remover/latest/docs/reliable-remover/examples/dimension-rules)
+
+## Entities
+
+`entities` limits the rule to certain mobs. What that means depends on the action.
+
+Zombies can't hold diamond swords (players still can):
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond_sword"],
+  "entities": ["minecraft:zombie"]
+}
+```
+
+Players can't attack villagers with any item:
+
+```json
+{
+  "action": "remove_attacks",
+  "entities": ["minecraft:villager"]
+}
+```
+
+Players can't saddle pigs (horses are fine):
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:saddle"],
+  "entities": ["minecraft:pig"]
+}
+```
+
+## Exceptions with `not`
+
+Anything inside `not` is excluded from the rule. It accepts the same filters as a normal rule.
+
+Remove all of AE2 except Certus Quartz:
+
+```json
+{
+  "action": "remove",
+  "mod": ["ae2"],
+  "not": {
+    "items": ["ae2:certus_quartz_crystal"]
+  }
+}
+```
+
+Block Ender Pearls everywhere except the End:
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:ender_pearl"],
+  "not": {
+    "dimensions": ["minecraft:the_end"]
+  }
+}
+```
+
+## Item data (components / NBT)
+
+Use this to match items with specific data, like damage, enchantments or custom data. The rule applies if **any** entry matches. You can write `components` or `nbt`, they're the same field.
+
+The syntax depends on your Minecraft version.
+
+### 1.21 and newer
+
+Uses the same syntax as `/clear` and `/execute if items`.
 
 | Entry | Matches |
 | :--- | :--- |
-| `"[damage=0]"` | Items whose `damage` component is exactly `0`. |
-| `"[custom_data~{my_pack:{banned:true}}]"` | Items whose custom data *contains* `{my_pack:{banned:true}}` (partial match). |
-| `"[stored_enchantments]"` | Items that have the `stored_enchantments` component at all. |
-| `"[!enchantments]"` | Items that do **not** have the `enchantments` component. |
-| `"[enchantments~[{enchantments:\"minecraft:sharpness\"}]]"` | Items enchanted with Sharpness (any level). |
-| `"minecraft:diamond_sword[damage=0]"` | Undamaged Diamond Swords only. |
-| `"/.*custom_model_data.*/"` | Regex against the item's full component string. |
+| `"[damage=0]"` | Undamaged items |
+| `"minecraft:diamond_sword[damage=0]"` | Undamaged diamond swords only |
+| `"[enchantments~[{enchantments:\"minecraft:sharpness\"}]]"` | Items with Sharpness (any level) |
+| `"[stored_enchantments~[{enchantments:\"minecraft:mending\"}]]"` | Enchanted books with Mending |
+| `"[custom_data~{my_pack:{banned:true}}]"` | Items whose custom data includes `{my_pack:{banned:true}}` |
+| `"[damage=0,rarity=epic]"` | Undamaged **and** epic rarity |
+| `"/.*custom_model_data.*/"` | Regex against all of the item's components |
 
-`=` checks that a component is exactly equal, while `~` checks against a component predicate (a partial match).
-Multiple conditions can be combined with `,` (and) or `|` (or), e.g. `"[damage=0,!enchantments]"`.
+Use `=` for an exact match and `~` for a partial match.
 
-> **Note:** SNBT such as `"{Damage:0}"` is **not** supported on 1.21+, because items no longer store their data as NBT.
-> Rules using it will log an error and be skipped. Use the component syntax above instead.
+Old-style NBT like `"{Damage:0}"` does **not** work on 1.21+. Those entries are skipped and an error is logged.
 
-#### 1.20.1
+### 1.20.1
 
-Entries are SNBT and match if the item's NBT *contains* the given data (a subset match), or Regex when wrapped in slashes.
+Uses NBT. The item matches if its NBT **contains** what you write.
 
 | Entry | Matches |
 | :--- | :--- |
-| `"{Damage:0}"` | Items with a `Damage` tag of `0`. |
-| `"{CustomModelData:1}"` | Items with a `CustomModelData` of `1`. |
-| `"{StoredEnchantments:[{id:\"minecraft:mending\"}]}"` | Enchanted books containing Mending (any level). |
-| `"/.*StoredEnchantments.*/"` | Regex against the item's full NBT string. |
+| `"{Damage:0}"` | Undamaged items |
+| `"{CustomModelData:1}"` | Items with `CustomModelData` 1 |
+| `"{StoredEnchantments:[{id:\"minecraft:mending\"}]}"` | Enchanted books with Mending |
+| `"/.*StoredEnchantments.*/"` | Regex against the item's full NBT |
 
-### Modifying the Replacement Item
+### Example
 
-When an item is replaced through `replace_with`, the replacement keeps the original item's data (damage, enchantments, name, etc.).
-You can change the replacement's data further by adding components (1.21+) or NBT (1.20.1) after the item ID, using the same syntax as the `/give` command.
-These are applied on top of the copied data, so they override anything the original item had.
+Remove enchanted books with Mending, but leave other books alone:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:enchanted_book"],
+  "components": ["[stored_enchantments~[{enchantments:\"minecraft:mending\"}]]"]
+}
+```
+
+To get rid of Mending everywhere (tables, loot, trades), [`remove_enchantment`](/project/reliable-remover/latest/docs/reliable-remover/removal-actions#remove_enchantment) is usually easier.
+
+## Replacing items (`replace_with`)
+
+Removes the item, but swaps it into every recipe that used it. Here, any recipe that needed a diamond now needs an emerald:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond"],
+  "replace_with": "minecraft:emerald"
+}
+```
+
+The replacement keeps the original item's damage, enchantments and name. To change that, add components after the ID, the same way you would in `/give`. This turns Netherite Swords into half-broken Diamond Swords with no enchantments:
 
 ```json
 {
   "action": "remove",
   "items": ["minecraft:netherite_sword"],
-  "replace_with": "minecraft:diamond_sword[damage=500,rarity=rare]"
+  "replace_with": "minecraft:diamond_sword[damage=500,!enchantments]"
 }
 ```
 
-The components can also be put in a separate `replace_components` field, which is equivalent:
+On 1.20.1, use NBT instead: `"minecraft:diamond_sword{Damage:500}"`.
+
+You can also put the components in a separate `replace_components` field. This does the same thing:
 
 ```json
 {
   "action": "remove",
   "items": ["minecraft:netherite_sword"],
   "replace_with": "minecraft:diamond_sword",
-  "replace_components": "[damage=500,rarity=rare]"
+  "replace_components": "[damage=500,!enchantments]"
 }
 ```
 
-On **1.21+**, prefix a component with `!` to remove it from the replacement, e.g. `"[!enchantments]"` to strip any enchantments copied over from the original item.
-On **1.20.1**, use SNBT instead, e.g. `"minecraft:diamond_sword{Damage:100}"`. The given NBT is merged into the copied NBT.
+`replace_with` also works with [`remove_inventory`, `remove_storage`, `remove_drops` and `remove_equipment`](/project/reliable-remover/latest/docs/reliable-remover/removal-actions#deleting-items-from-the-world) (swap the item instead of deleting it) and [`remove_effect`](/project/reliable-remover/latest/docs/reliable-remover/removal-actions#remove_effect) (swap the effect).
 
-### Logic (`not`)
+## Tag type and registry
 
-You can use the `not` field to invert conditions.
-This is useful for creating exceptions (whitelists).
+These limit where `remove` applies.
+
+`registry` picks the places: for example `["loot"]` only removes the item from loot, and `["tag"]` only removes it from tags.
+
+`tag_type` picks which tags: `["item"]` or `["block"]`.
+
+Together, they let you take an item out of tags without removing it. Here, oak logs stay in the game but stop counting as `#minecraft:logs` in recipes. The placed block keeps its block tags, so axes still mine it quickly:
 
 ```json
 {
   "action": "remove",
-  "mod": ["examplemod"],
-  "not": {
-    "items": ["examplemod:safe_item"]
-  }
+  "items": ["minecraft:oak_log"],
+  "registry": ["tag"],
+  "tag_type": ["item"]
 }
-
 ```
 
-For complex logical examples, such as **"Ban Mod X except Item Y"** or **"Allow Item only in Dimension Z"**, please see the advanced examples page.
-
-[View 'Advanced Logic & NBT' Examples](/project/reliable-remover/latest/docs/reliable-remover/examples/advanced-logic)
+Without `registry`, the item would be removed everywhere, and `tag_type` would only keep it in block tags.

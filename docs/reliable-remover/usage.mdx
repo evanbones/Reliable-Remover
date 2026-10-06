@@ -1,47 +1,89 @@
 ---
-title: Usage
+title: Getting Started
 hide_meta: true
 ---
 
-The mod watches a specific folder in your instance for JSON files: `./config/reliable_remover/`.
-You can place as many JSON files as you like in this folder or in subfolders.
+## Your first rule
 
-If the folder is empty when the game starts, a `removal_example.json` file will be generated automatically to help you
-get started.
+1. Open your instance's `config/reliable_remover/` folder. (In-game, `/rremover folder` opens it for you.)
+2. Make a new file, e.g. `my_rules.json`. The name doesn't matter, as long as it ends in `.json`.
+3. Paste this in:
 
-### Global Configuration
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:tnt"]
+}
+```
 
-Global settings can be configured via the YACLv3 screen in-game or by editing `config/reliable_remover.json`.
-This includes toggling visibility messages and enabling Dev Mode for quick removals using EMI.
+4. Save, then run `/reload` in-game. TNT is now gone.
 
-### JSON Structure
+The first time you launch, the mod creates `removal_example.json.disabled` in this folder. Files ending in `.disabled` are ignored, so rename it to `.json` if you want to use it.
 
-You can define a single rule or **multiple rules** in a single JSON file. To define multiple rules, simply wrap them in
-a JSON Array `[...]`.
+## Getting item IDs
+
+Hold the item and run `/rremover hand`. Click the green text in chat to copy the ID.
+
+Need a lot of IDs at once? Put the items in your inventory and run `/rremover inventory`. You get a ready-to-paste list like `["minecraft:tnt", "minecraft:bedrock"]`. See [Commands](/project/reliable-remover/latest/docs/reliable-remover/commands).
+
+## How a rule works
+
+Every rule has an **action** (what to do) and **filters** (which items to do it to).
+
+```json
+{
+  "action": "remove_attacks",
+  "items": ["minecraft:stick"]
+}
+```
+
+Here the action is `remove_attacks` and the filter is `items`, so players can't attack with sticks.
+
+* [All actions](/project/reliable-remover/latest/docs/reliable-remover/removal-actions)
+* [All filters](/project/reliable-remover/latest/docs/reliable-remover/filtering)
+
+If you leave out `action`, the rule uses `remove`.
+
+## Several rules in one file
+
+Wrap them in `[ ]` and separate them with commas:
 
 ```json
 [
   {
     "action": "remove",
-    ...
+    "items": ["minecraft:tnt"]
   },
   {
     "action": "remove_attacks",
-    ...
+    "items": ["minecraft:stick"]
   }
 ]
-
 ```
 
-### EMI Integration
+You can also make as many files as you like, and put them in subfolders. For example:
 
-If EMI is installed and Dev Mode is enabled in the Reliable Remover config, you can manage removals directly from the EMI side panel:
+```text
+config/reliable_remover/
+├── vanilla.json
+├── create/
+│   └── nerfs.json
+└── farmersdelight/
+    └── removals.json
+```
 
-* Remove Item: Hover over any item in the EMI list and press Delete (or Backspace). This keybind is changable in Controls.
-* Automatic Reload: The mod can automatically trigger a full reload (/reload) after a removal to ensure the item is
-immediately hidden from all menus.
+## Several actions in one rule
 
-#### Dynamic Removals
+Use `actions` with a list to apply more than one action to the same items. With this rule, diamonds never show up in chests or villager trades, but you can still mine them:
 
-* When you remove an item via the EMI interface, the rule is saved to the blacklist in `config/reliable_remover.json`.
-You can manually edit this file, use the YACL config screen, or use the `/rremover undo <item_id>` command to revert changes.
+```json
+{
+  "actions": ["remove_chest_loot", "remove_trade"],
+  "items": ["minecraft:diamond"]
+}
+```
+
+## Next steps
+
+* [Examples](/project/reliable-remover/latest/docs/reliable-remover/examples/basic-removal): copy-paste rules for common setups.
+* [Settings](/project/reliable-remover/latest/docs/reliable-remover/settings): turn off parts of `remove`, chat messages, and dev mode.

@@ -3,89 +3,114 @@ title: Basic Removal
 hide_meta: true
 ---
 
-These examples use the `remove` action. This effectively deletes the item from the game, removing it from the creative tabs, recipe viewers, loot tables, and recipes/tags.
+All of these use `remove`, which takes the item out of the game completely: creative tabs, recipe viewers, recipes, tags, loot, trades, and inventories.
 
-### Remove Specific Items
-Removes TNT and Bedrock from the game completely.
+### Remove specific items
 
 ```json
 {
   "action": "remove",
-  "items": [
-    "minecraft:tnt",
-    "minecraft:bedrock"
-  ]
+  "items": ["minecraft:tnt", "minecraft:bedrock"]
 }
-
 ```
 
-### Remove an Entire Mod
-
-Removes all items belonging to `farmersdelight`.
+### Remove a whole mod
 
 ```json
 {
   "action": "remove",
-  "mod": [
-    "farmersdelight"
-  ]
+  "mod": ["farmersdelight"]
 }
-
 ```
 
-### Remove Items by Regex Pattern
+### Remove everything in a tag
 
-Removes all Swords from any mod.
+Every log, from every mod:
 
 ```json
 {
   "action": "remove",
-  "pattern": "/.*_sword/"
+  "items": ["#minecraft:logs"]
 }
-
 ```
 
-### Remove Items by Tag
+### Remove every sword
 
-Removes all logs from the game by targeting their item tag.
+Matches any ID ending in `_sword`, from any mod:
 
 ```json
 {
   "action": "remove",
-  "tags": [
-    "minecraft:logs"
-  ]
+  "patterns": ["/.*_sword/"]
 }
-
 ```
 
-### Remove an Item but Salvage its Recipes
-
-Removes Diamonds from the game completely, but replaces them with Emeralds in all crafting recipes, furnace recipes, and machine outputs.
+### Remove every spawn egg
 
 ```json
 {
   "action": "remove",
-  "items": [
-    "minecraft:diamond"
-  ],
+  "patterns": ["/.*_spawn_egg/"]
+}
+```
+
+### Remove only vanilla swords
+
+`mod` limits the pattern to Minecraft, so `minecraft:diamond_sword` is removed but `othermod:copper_sword` stays:
+
+```json
+{
+  "action": "remove",
+  "mod": ["minecraft"],
+  "patterns": ["/.*_sword/"]
+}
+```
+
+### Remove a mod, but keep one item
+
+Removes everything from AE2 except Certus Quartz:
+
+```json
+{
+  "action": "remove",
+  "mod": ["ae2"],
+  "not": {
+    "items": ["ae2:certus_quartz_crystal"]
+  }
+}
+```
+
+### Remove an item and fix the recipes that used it
+
+Diamonds are removed, and every recipe that needed a diamond now needs an emerald:
+
+```json
+{
+  "action": "remove",
+  "items": ["minecraft:diamond"],
   "replace_with": "minecraft:emerald"
 }
-
 ```
 
-### Replace an Item with a Modified Item (1.21+)
+### Swap an item for a weaker version (1.21+)
 
-Replaces Netherite Swords with a half-broken Diamond Sword that has its enchantments removed.
-The components use the same syntax as the `/give` command. See [Modifying the Replacement Item](/project/reliable-remover/latest/docs/reliable-remover/filtering#modifying-the-replacement-item) for details.
+Netherite Swords become half-broken Diamond Swords with no enchantments. Uses the same syntax as `/give`:
 
 ```json
 {
   "action": "remove",
-  "items": [
-    "minecraft:netherite_sword"
-  ],
+  "items": ["minecraft:netherite_sword"],
   "replace_with": "minecraft:diamond_sword[damage=500,!enchantments]"
 }
+```
 
+### Remove fluids
+
+Hides water and lava from recipe viewers:
+
+```json
+{
+  "action": "remove",
+  "fluids": ["minecraft:water", "minecraft:lava"]
+}
 ```

@@ -3,77 +3,46 @@ title: Commands
 hide_meta: true
 ---
 
-Reliable Remover includes a set of utility commands to help you quickly identify item IDs and generate JSON arrays for your configuration files.
+| Command | What it does |
+| :--- | :--- |
+| `/rremover hand` | Shows the ID of the item in your hand. |
+| `/rremover hotbar` | Shows the IDs of everything in your hotbar and offhand. |
+| `/rremover inventory` | Shows the IDs of everything in your inventory, including armor. |
+| `/rremover remove <id>` | Removes an item without editing any files. |
+| `/rremover undo <id>` | Brings back an item you removed with `/rremover remove`. |
+| `/rremover folder` | Opens the `config/reliable_remover/` folder. |
 
-## `/rremover`
+`remove`, `undo` and `folder` need operator permissions.
 
-The output of these commands is formatted as a JSON Array (e.g., `["minecraft:apple", "minecraft:stick"]`). You can click the output in the chat to **automatically copy it to your clipboard**.
+## Copying IDs
 
-### `... hand`
-
-Dumps the ID of the item currently held in your main hand.
-
-**Usage:**
-```text
-/rremover hand
-
-```
-
-### `... hotbar`
-
-Dumps the IDs of all items currently in your Hotbar and your Offhand.
-
-**Usage:**
+`hand`, `hotbar` and `inventory` print a list you can paste straight into a rule:
 
 ```text
 /rremover hotbar
-
+→ ["minecraft:tnt", "minecraft:bedrock", "minecraft:lava_bucket"]
 ```
 
-### `... inventory`
+Click the green text in chat to copy it.
 
-Dumps the IDs of every item in your player inventory, including the hotbar and armor slots.
+**Banning a bunch of items at once:**
 
-**Usage:**
-
-```text
-/rremover inventory
-
-```
-
-### `... remove <id>`
-
-Adds the specified item ID to the global blacklist and saves it to your config without needing to manually edit JSON files.
-
-**Usage:**
-
-```text
-/rremover remove minecraft:apple
-```
-
-### `... undo <id>`
-
-Removes the specified item ID from the global blacklist and restores it to the game.
-
-**Usage:**
-
-```text
-/rremover undo minecraft:apple
-```
-
----
-
-### Workflow Example
-
-1. Fill your inventory with the items you want to ban.
-2. Run `/rremover inventory`.
-3. Click the green text in the chat to copy.
-4. Paste directly into your `items` list in `config/reliable_remover/rules.json`.
+1. Put everything you want to ban in your inventory.
+2. Run `/rremover inventory` and click the result to copy it.
+3. Paste it into a rule:
 
 ```json
 {
   "action": "remove",
-  "items": ["PASTE_HERE"]
+  "items": ["minecraft:tnt", "minecraft:bedrock", "minecraft:lava_bucket"]
 }
-
 ```
+
+## Quick removals
+
+```text
+/rremover remove minecraft:apple
+/rremover undo minecraft:apple
+```
+
+These don't touch your rule files. The item goes into the `blacklistedItems` list in `config/reliable_remover.json` instead. Run `/reload` afterwards (or turn on **Reload After Removal** in [Settings](/project/reliable-remover/latest/docs/reliable-remover/settings)).

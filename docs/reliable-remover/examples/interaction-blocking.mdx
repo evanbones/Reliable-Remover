@@ -3,63 +3,66 @@ title: Blocking Interactions
 hide_meta: true
 ---
 
-These examples use the `remove_interactions` action. Items or blocks still exist, but cannot be "used" or right-clicked.
+These keep the item in the game, but stop players from using it.
 
-### Disable Item Usage
-Prevents players from using Lava Buckets or Flint and Steel.
-
-```json
-{
-  "action": "remove_interactions",
-  "items": [
-    "minecraft:lava_bucket",
-    "minecraft:flint_and_steel"
-  ]
-}
-
-```
-
-### Disable Block Interactions (Placeable but Not Usable)
-Prevents players from sleeping in beds or using anvils in the world, while still allowing them to place beds and anvils from their inventory.
+### Can't use lava buckets or flint and steel
 
 ```json
 {
   "action": "remove_interactions",
-  "blocks": [
-    "minecraft:anvil",
-    "#minecraft:beds"
-  ]
+  "items": ["minecraft:lava_bucket", "minecraft:flint_and_steel"]
 }
-
 ```
 
-### Disable Block Placement (`remove_placement`)
-Prevents players from placing TNT or Bedrock in the world.
+### Can place beds and anvils, but can't use them
+
+```json
+{
+  "action": "remove_interactions",
+  "blocks": ["minecraft:anvil", "#minecraft:beds"]
+}
+```
+
+### Can't place TNT
+
+Players can still craft, carry and trade it:
 
 ```json
 {
   "action": "remove_placement",
-  "blocks": [
-    "minecraft:tnt",
-    "minecraft:bedrock"
-  ]
+  "blocks": ["minecraft:tnt"]
 }
-
 ```
 
-### Prevent Interaction with Specific Entities
+### Can't saddle pigs
 
-Prevents players from using a Saddle on a Pig. Other interactions with Saddles (like on Horses) remain unaffected.
+Saddles still work on horses:
 
 ```json
 {
   "action": "remove_interactions",
-  "items": [
-    "minecraft:saddle"
-  ],
-  "entities": [
-    "minecraft:pig"
-  ]
+  "items": ["minecraft:saddle"],
+  "entities": ["minecraft:pig"]
 }
+```
 
+### Can't shear sheep
+
+Shears still work on leaves, vines, etc.:
+
+```json
+{
+  "action": "remove_interactions",
+  "items": ["minecraft:shears"],
+  "entities": ["minecraft:sheep"]
+}
+```
+
+### No swing animation for shovels and pickaxes
+
+```json
+{
+  "action": "remove_hand_swing",
+  "patterns": ["/.*_shovel/", "/.*_pickaxe/"]
+}
 ```

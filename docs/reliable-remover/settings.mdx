@@ -1,0 +1,57 @@
+---
+title: Settings
+hide_meta: true
+---
+
+Change settings in-game from the mod menu (needs [YACL](https://modrinth.com/mod/yacl)), or edit `config/reliable_remover.json`.
+
+## What `remove` does
+
+All of these are on by default. Turn one off to stop `remove` from doing that part. For example, set `removeItemsFromRecipeViewers` to `false` and removed items still show up in EMI/JEI/RRV.
+
+| Setting | Removes items from... |
+| :--- | :--- |
+| `removeItemsFromCreativeTabs` | Creative tabs |
+| `removeItemsFromRecipeViewers` | EMI, JEI and RRV |
+| `removeItemsFromInfoTabs` | Info pages in EMI, JEI and RRV |
+| `removeRecipes` | Recipes |
+| `removeItemsFromInventories` | Player inventories |
+| `removeItemsOnInventoryOpen` | Any container, whenever it's opened |
+| `removeItemsFromStorage` | Chests, barrels, shulker boxes, etc. |
+| `removeDroppedItems` | The ground |
+| `removeItemsFromLootChests` | Loot |
+| `removeItemsFromTrades` | Villager and wandering trader trades |
+| `removeMobEquipment` | Mob armor and held items |
+| `removeCnmChildren` | Clutter No More: also removes a removed block's slabs, stairs, walls, etc. |
+
+## Messages
+
+| Setting | Shows a message above the hotbar when... |
+| :--- | :--- |
+| `showRemovalMessage` | an item is removed from your inventory |
+| `showAttackMessage` | you try to attack with a blocked item |
+| `showHandSwingMessage` | you try to swing a blocked item |
+
+## Dev mode
+
+Dev mode lets you delete items straight from your recipe viewer: hover over an item and press **Delete**. You can change the key in Controls.
+
+* On 1.20.1 and 1.21.1, this works in **EMI**. Turn on `enableEmiRemoval`.
+* On 26.x, this works in **RRV**. Turn on `enableRrvRemoval`.
+
+Deleted items go into the `blacklistedItems` list in `config/reliable_remover.json`:
+
+```json
+"blacklistedItems": [
+  "minecraft:tnt",
+  "minecraft:bedrock"
+]
+```
+
+To bring an item back, remove it from that list, or run `/rremover undo minecraft:tnt`.
+
+| Setting | What it does |
+| :--- | :--- |
+| `reloadAfterRemoval` | Runs `/reload` after each deletion, so the item disappears everywhere immediately. |
+| `showEmiToast` / `showRrvToast` | Shows a popup after deleting an item. |
+| `showEmiChatMessages` / `showRrvChatMessages` | Shows a chat message with an **Undo** button after deleting an item. |
