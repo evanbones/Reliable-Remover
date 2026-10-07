@@ -1,10 +1,15 @@
 package com.evandev.reliable_remover.config;
 
 import com.evandev.reliable_recipes.api.ReliableRecipesAPI;
+import com.evandev.reliable_recipes.config.ConfigSync;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
 import com.evandev.reliable_remover.platform.Services;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -53,13 +58,16 @@ import java.util.stream.Stream;
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
+    private static volatile List<String> BLACKLISTED_ITEMS = List.of();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
+    private static volatile Runnable SYNCED_RULES_CHANGED_HOOK = null;
     private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
     private static final Map<String, List<RemovalRule>> DYNAMIC_RULES = new ConcurrentHashMap<>();
     public static boolean MOD_INIT_PHASE = true;
+    private static final String SYNCED_BLACKLIST_PATH = "../reliable_remover.json";
     private static volatile HolderLookup.Provider REGISTRIES = null;
 
     public static void registerDynamicRules(String sourceId, List<RemovalRule> rules) {
@@ -90,32 +98,46 @@ public class RuleManager {
         Set<String> newBanned = ConcurrentHashMap.newKeySet();
         for (Action action : Action.values()) newRules.put(action, new ArrayList<>());
 
-        Path configDir = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
-
-        if (!Files.exists(configDir)) {
-            try {
-                Files.createDirectories(configDir);
-            } catch (Exception ignored) {
+        List<ConfigSync.SyncedFile> remoteFiles = ConfigSync.getRemoteFiles(Constants.MOD_ID);
+        List<String> blacklist;
+        if (remoteFiles != null) {
+            blacklist = new ArrayList<>();
+            for (ConfigSync.SyncedFile file : remoteFiles) {
+                if (file.path().equals(SYNCED_BLACKLIST_PATH)) {
+                    blacklist.addAll(parseSyncedBlacklist(file.content()));
+                } else {
+                    RuleParser.parseString(file.path(), file.content(), newRules);
+                }
             }
-        }
+        } else {
+            Path configDir = getConfigDir();
 
-        boolean hasFiles = false;
-        try (Stream<Path> paths = Files.walk(configDir)) {
-            List<Path> files = paths.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".json")).toList();
-            if (!files.isEmpty()) {
-                hasFiles = true;
-                files.forEach(path -> RuleParser.parseFile(path, newRules));
+            if (!Files.exists(configDir)) {
+                try {
+                    Files.createDirectories(configDir);
+                } catch (Exception ignored) {
+                }
             }
-        } catch (Exception e) {
-            Constants.LOG.error("Failed to load removal rules", e);
-        }
 
-        if (!hasFiles) generateDefaultConfig(configDir);
+            boolean hasFiles = false;
+            try (Stream<Path> paths = Files.walk(configDir)) {
+                List<Path> files = paths.filter(Files::isRegularFile).filter(p -> p.toString().endsWith(".json")).toList();
+                if (!files.isEmpty()) {
+                    hasFiles = true;
+                    files.forEach(path -> RuleParser.parseFile(path, newRules));
+                }
+            } catch (Exception e) {
+                Constants.LOG.error("Failed to load removal rules", e);
+            }
+
+            if (!hasFiles) generateDefaultConfig(configDir);
+            blacklist = ModConfig.get().blacklistedItems;
+        }
 
         if (!MOD_INIT_PHASE) {
             validateRules(newRules);
-            if (ModConfig.get().blacklistedItems != null) {
-                List<String> validBlacklist = new ArrayList<>(ModConfig.get().blacklistedItems);
+            if (blacklist != null) {
+                List<String> validBlacklist = new ArrayList<>(blacklist);
                 validBlacklist.removeIf(itemId -> {
                     if (itemId.startsWith("#")) return false;
                     Identifier id = Identifier.tryParse(itemId);
@@ -132,7 +154,10 @@ public class RuleManager {
                     }
                     return false;
                 });
-                ModConfig.get().blacklistedItems = validBlacklist;
+                if (remoteFiles == null) {
+                    ModConfig.get().blacklistedItems = validBlacklist;
+                }
+                blacklist = validBlacklist;
             }
         }
 
@@ -153,7 +178,10 @@ public class RuleManager {
 
         RULES_BY_ACTION = newRules;
         GLOBALLY_BANNED_ITEMS = newBanned;
-        GLOBALLY_BANNED_ITEMS.addAll(ModConfig.get().blacklistedItems);
+        if (blacklist != null) {
+            GLOBALLY_BANNED_ITEMS.addAll(blacklist);
+        }
+        BLACKLISTED_ITEMS = blacklist != null ? List.copyOf(blacklist) : List.of();
         CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
@@ -175,6 +203,56 @@ public class RuleManager {
         if (Services.PLATFORM.isPhysicalClient()) {
             CREATIVE_TABS_DIRTY.set(true);
         }
+    }
+
+    private static Path getConfigDir() {
+        return Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
+    }
+
+    /**
+     * Reads the rule files and blacklist to send to clients. See {@link ConfigSync}.
+     */
+    public static List<ConfigSync.SyncedFile> createSyncSnapshot() {
+        List<ConfigSync.SyncedFile> files = new ArrayList<>(ConfigSync.readDirectory(getConfigDir()));
+
+        JsonArray items = new JsonArray();
+        List<String> blacklist = ModConfig.get().blacklistedItems;
+        if (blacklist != null) {
+            for (String item : List.copyOf(blacklist)) items.add(item);
+        }
+        JsonObject root = new JsonObject();
+        root.add("blacklistedItems", items);
+        files.add(new ConfigSync.SyncedFile(SYNCED_BLACKLIST_PATH, root.toString()));
+        return files;
+    }
+
+    public static void onSyncedRulesChanged() {
+        if (REGISTRIES != null) {
+            expandTagRules(REGISTRIES);
+        } else {
+            load();
+        }
+
+        if (SYNCED_RULES_CHANGED_HOOK != null) SYNCED_RULES_CHANGED_HOOK.run();
+    }
+
+    public static void registerSyncedRulesChanged(Runnable hook) {
+        SYNCED_RULES_CHANGED_HOOK = hook;
+    }
+
+    private static List<String> parseSyncedBlacklist(String content) {
+        List<String> items = new ArrayList<>();
+        try {
+            JsonObject root = JsonParser.parseString(content).getAsJsonObject();
+            if (root.has("blacklistedItems")) {
+                for (JsonElement item : root.getAsJsonArray("blacklistedItems")) {
+                    items.add(item.getAsString());
+                }
+            }
+        } catch (Exception e) {
+            Constants.LOG.error("Failed to read blacklist from server", e);
+        }
+        return items;
     }
 
     public static boolean consumeCreativeTabsDirty() {
@@ -295,6 +373,14 @@ public class RuleManager {
 
     public static Map<Action, List<RemovalRule>> getRulesByAction() {
         return RULES_BY_ACTION;
+    }
+
+    /**
+     * The blacklisted items in effect. Use this rather than the config's list, which is only the local one and is
+     * ignored while connected to a server.
+     */
+    public static List<String> getBlacklistedItems() {
+        return BLACKLISTED_ITEMS;
     }
 
     public static boolean isHidden(ItemStack stack) {
@@ -636,11 +722,11 @@ public class RuleManager {
         if (context == null) return null;
         //? if >=26.3 {
         /*return context.contextMap().get(LootContextParams.THIS_ENTITY);
-        *///?} else if >=26.1 {
+         *///?} else if >=26.1 {
         return context.contextMap().getOptional(LootContextParams.THIS_ENTITY);
         //?} else {
         /*return context.getParamOrNull(LootContextParams.THIS_ENTITY);
-        *///?}
+         *///?}
     }
 
     public static boolean isInventoryBlocked(ItemStack stack) {

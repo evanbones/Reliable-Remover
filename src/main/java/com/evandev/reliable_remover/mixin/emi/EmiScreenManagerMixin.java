@@ -3,9 +3,9 @@ package com.evandev.reliable_remover.mixin.emi;
 //? if <=1.21.1 {
 /*import com.evandev.reliable_recipes.client.SharedToastOverlay;
 import com.evandev.reliable_remover.client.Keybinds;
+import com.evandev.reliable_remover.client.ServerCommands;
 import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.ModConfig;
-import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.EmiApi;
@@ -42,12 +42,10 @@ public class EmiScreenManagerMixin {
                         if (mc.player != null) {
                             if (!mc.player.hasPermissions(2)) {
                                 PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.permission_denied"));
+                            } else if (!ServerCommands.canRemoveItems()) {
+                                PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.server_missing"));
                             } else {
                                 mc.player.connection.sendCommand("rremover remove " + id);
-
-                                if (!mc.hasSingleplayerServer()) {
-                                    RuleConfigIO.addRemovalRule(id.toString());
-                                }
 
                                 if (ModConfig.get().showEmiToast) {
                                     SharedToastOverlay.show(

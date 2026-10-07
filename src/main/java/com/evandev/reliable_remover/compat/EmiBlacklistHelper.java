@@ -1,8 +1,7 @@
 package com.evandev.reliable_remover.compat;
 
 //? if <=1.21.1 {
-/*import com.evandev.reliable_remover.config.ModConfig;
-import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiStack;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,12 +16,12 @@ public class EmiBlacklistHelper {
 
         Identifier id = stack.getId();
         if (id != null) {
-            if (ModConfig.get().blacklistedItems.contains(id.toString())) {
+            if (RuleManager.getBlacklistedItems().contains(id.toString())) {
                 return true;
             }
 
             if (id.getNamespace().equals("jeed")) {
-                for (String blacklisted : ModConfig.get().blacklistedItems) {
+                for (String blacklisted : RuleManager.getBlacklistedItems()) {
                     Identifier blId = Identifier.tryParse(blacklisted);
                     if (blId != null && id.getPath().contains(blId.getPath())) {
                         return true;

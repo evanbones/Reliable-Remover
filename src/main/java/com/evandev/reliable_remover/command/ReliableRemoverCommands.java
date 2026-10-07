@@ -1,9 +1,12 @@
 package com.evandev.reliable_remover.command;
 
+import com.evandev.reliable_recipes.config.ConfigSync;
 import com.evandev.reliable_remover.Constants;
+import com.evandev.reliable_remover.client.ClientUtil;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.evandev.reliable_remover.platform.Services;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.ChatFormatting;
@@ -16,19 +19,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 //? if >=26.1 {
 import net.minecraft.server.permissions.Permissions;
 //?}
-//? if >=26.1 {
-import net.minecraft.util.Util;
-//?} else {
-/*import net.minecraft.Util;
-*///?}
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,9 +61,9 @@ public class ReliableRemoverCommands {
                                 .executes(ReliableRemoverCommands::executeUndo)))
                 .then(Commands.literal("folder")
                         //? if >=26.1 {
-                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                        .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER) && isSingleplayerHost(s))
                         //?} else {
-                        /*.requires(s -> s.hasPermission(2))
+                        /*.requires(s -> s.hasPermission(2) && isSingleplayerHost(s))
                         *///?}
                         .executes(ReliableRemoverCommands::executeFolder))
         );
@@ -153,32 +153,9 @@ public class ReliableRemoverCommands {
 
     private static int executeFolder(CommandContext<CommandSourceStack> context) {
         try {
-            File folder = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover").toFile();
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
-
-            //? if <=26.2 {
-            Util.getPlatform().openUri(folder.toURI());
-            //?} else {
-            /*try {
-                if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
-                    java.awt.Desktop.getDesktop().open(folder);
-                } else {
-                    String os = System.getProperty("os.name").toLowerCase(java.util.Locale.ROOT);
-                    if (os.contains("win")) {
-                        new ProcessBuilder("explorer.exe", folder.getAbsolutePath()).start();
-                    } else if (os.contains("mac")) {
-                        new ProcessBuilder("open", folder.getAbsolutePath()).start();
-                    } else {
-                        new ProcessBuilder("xdg-open", folder.getAbsolutePath()).start();
-                    }
-                }
-            } catch (Exception e) {
-                Constants.LOG.error("Failed to open folder", e);
-            }
-            *///?}
+            Path folder = Services.PLATFORM.getConfigDirectory().resolve("reliable_remover");
+            Files.createDirectories(folder);
+            ClientUtil.openFolder(folder);
 
             context.getSource().sendSuccess(() ->
                     Component.literal("Opened Reliable Remover config folder.").withStyle(ChatFormatting.GREEN), false);
@@ -189,6 +166,21 @@ public class ReliableRemoverCommands {
                     Component.literal("Failed to open config folder. Check server logs."));
             return 0;
         }
+    }
+
+    private static boolean isSingleplayerHost(CommandSourceStack source) {
+        MinecraftServer server = source.getServer();
+        if (server.isDedicatedServer()) return false;
+
+        ServerPlayer player = source.getPlayer();
+        GameProfile host = server.getSingleplayerProfile();
+        if (player == null || host == null) return false;
+
+        //? if >=26.1 {
+        return player.getUUID().equals(host.id());
+        //?} else {
+        /*return player.getUUID().equals(host.getId());
+        *///?}
     }
 
     private static String getItemId(ItemStack stack) {
@@ -238,6 +230,8 @@ public class ReliableRemoverCommands {
             }
             *///?}
 
+            ConfigSync.sendToAll(context.getSource().getServer());
+
             if (ModConfig.get().reloadAfterRemoval) {
                 context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
             }
@@ -252,6 +246,7 @@ public class ReliableRemoverCommands {
 
         if (RuleConfigIO.removeRemovalRule(itemId)) {
             context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
+            ConfigSync.sendToAll(context.getSource().getServer());
 
             if (ModConfig.get().reloadAfterRemoval) {
                 context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");

@@ -8,6 +8,9 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.*;
@@ -23,24 +26,39 @@ public class RuleParser {
 
     public static void parseFile(Path path, Map<Action, List<RemovalRule>> rulesByAction) {
         try (FileReader fileReader = new FileReader(path.toFile())) {
-            JsonReader reader = new JsonReader(fileReader);
-            reader.setLenient(true);
-
-            while (reader.peek() != com.google.gson.stream.JsonToken.END_DOCUMENT) {
-                JsonElement json = JsonParser.parseReader(reader);
-
-                if (json.isJsonArray()) {
-                    for (JsonElement e : json.getAsJsonArray()) {
-                        if (e.isJsonObject()) normalizeRule(e.getAsJsonObject());
-                        addRule(GSON.fromJson(e, RemovalRule.class), rulesByAction);
-                    }
-                } else if (json.isJsonObject()) {
-                    normalizeRule(json.getAsJsonObject());
-                    addRule(GSON.fromJson(json, RemovalRule.class), rulesByAction);
-                }
-            }
+            parse(fileReader, rulesByAction);
         } catch (Exception e) {
             Constants.LOG.error("Error parsing file: {}", path, e);
+        }
+    }
+
+    /**
+     * Parses rules from a file's contents (for rules sent by the server).
+     */
+    public static void parseString(String name, String content, Map<Action, List<RemovalRule>> rulesByAction) {
+        try {
+            parse(new StringReader(content), rulesByAction);
+        } catch (Exception e) {
+            Constants.LOG.error("Error parsing file from server: {}", name, e);
+        }
+    }
+
+    private static void parse(Reader source, Map<Action, List<RemovalRule>> rulesByAction) throws IOException {
+        JsonReader reader = new JsonReader(source);
+        reader.setLenient(true);
+
+        while (reader.peek() != com.google.gson.stream.JsonToken.END_DOCUMENT) {
+            JsonElement json = JsonParser.parseReader(reader);
+
+            if (json.isJsonArray()) {
+                for (JsonElement e : json.getAsJsonArray()) {
+                    if (e.isJsonObject()) normalizeRule(e.getAsJsonObject());
+                    addRule(GSON.fromJson(e, RemovalRule.class), rulesByAction);
+                }
+            } else if (json.isJsonObject()) {
+                normalizeRule(json.getAsJsonObject());
+                addRule(GSON.fromJson(json, RemovalRule.class), rulesByAction);
+            }
         }
     }
 

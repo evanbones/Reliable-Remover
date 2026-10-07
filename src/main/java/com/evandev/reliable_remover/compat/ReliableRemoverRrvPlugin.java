@@ -11,9 +11,9 @@ import cc.cassian.rrv.common.recipe.ItemViewRecipes;
 import cc.cassian.rrv.common.recipe.inventory.SlotContent;
 import com.evandev.reliable_recipes.client.SharedToastOverlay;
 import com.evandev.reliable_remover.client.Keybinds;
+import com.evandev.reliable_remover.client.ServerCommands;
 import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.ModConfig;
-import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -24,22 +24,24 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.permissions.Permissions;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugin {
+    private static final Set<Item> EXCLUDED_ITEMS = new HashSet<>();
 
     public static void init() {
+        RuleManager.registerSyncedRulesChanged(ReliableRemoverRrvPlugin::updateExcludedItems);
+
         ItemView.addClientReloadCallback(() -> {
             ModConfig.get();
             RuleManager.load();
 
+            updateExcludedItems();
             if (!ModConfig.get().removeItemsFromRecipeViewers) return;
-
-            BuiltInRegistries.ITEM.forEach(item -> {
-                if (RuleManager.isCreativeBlocked(item.getDefaultInstance()) || RuleManager.isHidden(item.getDefaultInstance())) {
-                    ItemView.excludeItem(item);
-                }
-            });
 
             ItemViewRecipes.INFO_RECIPES.removeIf(recipe -> {
                 for (SlotContent ingredient : recipe.getIngredients()) {
@@ -58,11 +60,32 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
         });
     }
 
+    private static void updateExcludedItems() {
+        ItemView.getExcludedItems().removeAll(EXCLUDED_ITEMS);
+        EXCLUDED_ITEMS.clear();
+
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
+
+        BuiltInRegistries.ITEM.forEach(item -> {
+            ItemStack stack = item.getDefaultInstance();
+            if (RuleManager.isCreativeBlocked(stack) || RuleManager.isHidden(stack)) {
+                excludeItem(item);
+            }
+        });
+    }
+
+    // Leaves alone items another mod already excluded
+    private static void excludeItem(Item item) {
+        if (ItemView.isExcludedItem(item)) return;
+        ItemView.excludeItem(item);
+        EXCLUDED_ITEMS.add(item);
+    }
+
     public static boolean processDeleteKey(ItemStack stack, Identifier overlayId) {
         if (!ModConfig.get().enableRrvRemoval || stack.isEmpty()) return false;
 
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        if (ModConfig.get().blacklistedItems.contains(id)) return false;
+        if (RuleManager.getBlacklistedItems().contains(id)) return false;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return false;
@@ -72,11 +95,14 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
             return true;
         }
 
-        mc.player.connection.sendCommand("rremover remove " + id);
-        RuleConfigIO.addRemovalRule(id);
-        RuleManager.load();
+        if (!ServerCommands.canRemoveItems()) {
+            PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.server_missing"));
+            return true;
+        }
 
-        ItemView.excludeItem(stack.getItem());
+        mc.player.connection.sendCommand("rremover remove " + id);
+
+        excludeItem(stack.getItem());
 
         if (OverlayView.ITEM_VIEW.equals(overlayId)) {
             ItemViewOverlay.INSTANCE.availableItems().removeIf(s -> s.getItem() == stack.getItem());
