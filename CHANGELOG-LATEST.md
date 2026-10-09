@@ -1,7 +1,9 @@
+- Backported to 1.19.
+
 ### Changed
 
-- Removals are now all server authoritative.
+- Performance improvements with equipment removal.
 
 ### Fixed
 
-- Fixed various issues that could come up from server-client desyncs.
+- Item replacements now respect the config toggles (e.g. disabling mob equipment removal also stops equipment replacements).

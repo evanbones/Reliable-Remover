@@ -24,7 +24,7 @@ tasks.named<ProcessResources>("processResources") {
         this["license"] = prop("mod.license")
         this["fabric_loader_version"] = prop("deps.fabric_loader")
         this["java_version"] = prop("deps.java_version")
-        this["yacl_version"] = prop("deps.yacl").substringBefore('+')
+        this["yacl_version"] = (findProperty("deps.yacl") as String?)?.substringBefore('+') ?: "0"
     }
 
     filesMatching(listOf("fabric.mod.json", "META-INF/neoforge.mods.toml", "META-INF/mods.toml", "*.mixins.json")) {
@@ -45,7 +45,11 @@ jsonlang {
 }
 
 repositories {
-    mavenLocal()
+    mavenLocal {
+        content {
+            excludeGroupAndSubgroups("maven.modrinth")
+        }
+    }
     mavenCentral()
     maven {
         name = "Terraformers (Mod Menu, EMI)"
@@ -103,8 +107,10 @@ dependencies {
     modImplementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-fabric")
 
     // YACL
-    modCompileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    modLocalRuntime("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    findProperty("deps.yacl")?.let {
+        modCompileOnly("dev.isxander:yet-another-config-lib:$it")
+        modLocalRuntime("dev.isxander:yet-another-config-lib:$it")
+    }
 
     // Mod Menu
     modImplementation("com.terraformersmc:modmenu:${property("deps.modmenu")}")

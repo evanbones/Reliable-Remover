@@ -32,6 +32,17 @@ public abstract class LootTableMixin {
     @Shadow
     protected abstract ObjectArrayList<ItemStack> getRandomItems(LootContext context);
 
+    //? if <1.20 {
+    /*@Inject(method = "fill", at = @At("HEAD"))
+    private void reliable_remover$markChestFill(Container container, LootContext context, CallbackInfo ci) {
+        RuleManager.setInChestFill(true);
+    }
+
+    @Inject(method = "fill", at = @At("RETURN"))
+    private void reliable_remover$unmarkChestFill(Container container, LootContext context, CallbackInfo ci) {
+        RuleManager.setInChestFill(false);
+    }
+    *///?} else {
     @Inject(method = "fill", at = @At("HEAD"))
     private void reliable_remover$markChestFill(Container container, LootParams params, long optionalRandomSeed, CallbackInfo ci) {
         RuleManager.setInChestFill(true);
@@ -41,6 +52,7 @@ public abstract class LootTableMixin {
     private void reliable_remover$unmarkChestFill(Container container, LootParams params, long optionalRandomSeed, CallbackInfo ci) {
         RuleManager.setInChestFill(false);
     }
+    //?}
 
     @Inject(
             method = "getRandomItems(Lnet/minecraft/world/level/storage/loot/LootContext;)Lit/unimi/dsi/fastutil/objects/ObjectArrayList;",
@@ -59,7 +71,11 @@ public abstract class LootTableMixin {
 
         int targetCount = currentItems.size();
         ObjectArrayList<ItemStack> finalItems = new ObjectArrayList<>();
+        //? if <1.20 {
+        /*var params = new LootParams(context);
+        *///?} else {
         var params = ((LootContextAccessor) context).reliable_remover$getParams();
+        //?}
         int attempts = 0;
 
         while (attempts < 5) {

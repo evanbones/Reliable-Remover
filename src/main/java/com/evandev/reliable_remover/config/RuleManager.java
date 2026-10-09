@@ -60,6 +60,7 @@ public class RuleManager {
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile List<String> BLACKLISTED_ITEMS = List.of();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
+    private static volatile int RULES_GENERATION;
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     private static volatile Runnable SYNCED_RULES_CHANGED_HOOK = null;
     private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
@@ -199,6 +200,7 @@ public class RuleManager {
         }
 
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+        RULES_GENERATION++;
 
         if (Services.PLATFORM.isPhysicalClient()) {
             CREATIVE_TABS_DIRTY.set(true);
@@ -602,7 +604,11 @@ public class RuleManager {
 
     public static Holder<Enchantment> getRandomAllowedEnchantment(RegistryAccess registryAccess, RandomSource random, Predicate<Holder<Enchantment>> extraFilter) {
         if (registryAccess == null) return null;
+        //? if <1.19.3 {
+        /*var lookupOpt = HolderLookup.Provider.of(registryAccess).lookup(Registries.ENCHANTMENT);
+        *///?} else {
         var lookupOpt = registryAccess.lookup(Registries.ENCHANTMENT);
+        //?}
         if (lookupOpt.isEmpty()) return null;
         var lookup = lookupOpt.get();
         List<Holder<Enchantment>> candidates = lookup.listElements()
@@ -822,7 +828,7 @@ public class RuleManager {
     }
 
     public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {
-        if (stack == null || stack.isEmpty()) return null;
+        if (stack == null || stack.isEmpty() || !isRemovalEnabled(action)) return null;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         String dim = level != null ? level.dimension().identifier().toString() : null;
         RemovalRule rule = getMatchingRule(stack, id, action, dim, holder, null, context);
@@ -830,6 +836,20 @@ public class RuleManager {
             rule = getMatchingRule(stack, id, Action.REMOVE, dim, holder, null, context);
 
         return rule != null ? rule.createReplacement(stack) : null;
+    }
+
+    private static boolean isRemovalEnabled(Action action) {
+        ModConfig config = ModConfig.get();
+        return switch (action) {
+            case REMOVE_INVENTORY -> config.removeItemsFromInventories;
+            case REMOVE_DROPS -> config.removeDroppedItems;
+            case REMOVE_STORAGE -> config.removeItemsFromStorage;
+            case REMOVE_TRADE -> config.removeItemsFromTrades;
+            case REMOVE_CREATIVE -> config.removeItemsFromCreativeTabs;
+            case REMOVE_RECIPE -> config.removeRecipes;
+            case REMOVE_EQUIPMENT -> config.removeMobEquipment;
+            default -> true;
+        };
     }
 
     public static ItemStack getLootReplacement(ItemStack stack, LootParams context) {
@@ -865,6 +885,12 @@ public class RuleManager {
         return REGISTRIES;
     }
 
+    //? if <1.19.3 {
+    /*public static void expandTagRules(net.minecraft.core.RegistryAccess registryAccess) {
+        expandTagRules(HolderLookup.Provider.of(registryAccess));
+    }
+
+    *///?}
     public static void expandTagRules(HolderLookup.Provider registries) {
         REGISTRIES = registries;
         RuleManager.load();
@@ -880,6 +906,7 @@ public class RuleManager {
         Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
 
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+        RULES_GENERATION++;
     }
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
@@ -888,6 +915,11 @@ public class RuleManager {
 
     public static void setCnmCascadeRemoved(Set<String> items) {
         CNM_CASCADE_REMOVED = items;
+        RULES_GENERATION++;
+    }
+
+    public static int getRulesGeneration() {
+        return RULES_GENERATION;
     }
 
     public static boolean isFluidHidden(String fluidId) {

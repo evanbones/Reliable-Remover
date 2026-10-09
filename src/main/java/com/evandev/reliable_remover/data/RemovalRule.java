@@ -253,6 +253,17 @@ public class RemovalRule {
         return replacement;
     }
 
+    //? if <1.19.3 {
+    /*private static net.minecraft.core.HolderLookup<Item> itemLookup() {
+        return new net.minecraft.core.HolderLookup.RegistryLookup<>(BuiltInRegistries.ITEM);
+    }
+
+    *///?} else if <1.21 {
+    /*private static HolderLookup<Item> itemLookup() {
+        return BuiltInRegistries.ITEM.asLookup();
+    }
+
+    *///?}
     private ParsedReplacement getParsedReplacement() {
         if (!hasReplacement() || replacementInvalid) return null;
         ParsedReplacement cached = compiledReplacement;
@@ -302,7 +313,7 @@ public class RemovalRule {
             });
             ParsedReplacement parsed = new ParsedReplacement(item.get().value(), components.build());
             //?} else {
-            /*ItemParser.ItemResult result = ItemParser.parseForItem(BuiltInRegistries.ITEM.asLookup(), reader);
+            /*ItemParser.ItemResult result = ItemParser.parseForItem(itemLookup(), reader);
             ParsedReplacement parsed = new ParsedReplacement(result.item().value(), result.nbt());
             *///?}
             if (reader.canRead()) {
@@ -612,8 +623,10 @@ public class RemovalRule {
         return registry.get(id);
         //?} else if >=1.21 {
         /*return registry.getHolder(id);
-         *///?} else {
+         *///?} else if >=1.19.3 {
         /*return registry.getHolder(net.minecraft.resources.ResourceKey.create(registry.key(), id));
+         *///?} else {
+        /*return registry.getHolder(net.minecraft.resources.ResourceKey.create(registry.key(), id)).map(holder -> (Holder.Reference<T>) holder);
          *///?}
     }
 

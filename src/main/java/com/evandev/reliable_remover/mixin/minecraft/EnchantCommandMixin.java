@@ -34,7 +34,11 @@ public class EnchantCommandMixin {
     private static void reliable_remover$checkEnchantmentBlocked(
             CommandSourceStack source,
             Collection<? extends Entity> targets,
+            //? if <1.19.3 {
+            /*Enchantment enchantment,
+            *///?} else {
             Holder<Enchantment> enchantment,
+            //?}
             int level,
             CallbackInfoReturnable<Integer> cir
     ) throws CommandSyntaxException {

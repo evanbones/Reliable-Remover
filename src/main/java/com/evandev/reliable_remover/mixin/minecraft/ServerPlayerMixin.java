@@ -27,9 +27,13 @@ public abstract class ServerPlayerMixin extends Player {
     public ServerPlayerMixin(Level level, GameProfile gameProfile) {
         super(level, gameProfile);
     }
-    //?} else {
+    //?} else if >=1.19.3 {
     /*public ServerPlayerMixin(Level level, net.minecraft.core.BlockPos pos, float yRot, GameProfile gameProfile) {
         super(level, pos, yRot, gameProfile);
+    }
+    *///?} else {
+    /*public ServerPlayerMixin(Level level, net.minecraft.core.BlockPos pos, float yRot, GameProfile gameProfile, @org.jetbrains.annotations.Nullable net.minecraft.world.entity.player.ProfilePublicKey profilePublicKey) {
+        super(level, pos, yRot, gameProfile, profilePublicKey);
     }
     *///?}
 

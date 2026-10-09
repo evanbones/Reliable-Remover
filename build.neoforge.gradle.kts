@@ -40,7 +40,11 @@ jsonlang {
 }
 
 repositories {
-    mavenLocal()
+    mavenLocal {
+        content {
+            excludeGroupAndSubgroups("maven.modrinth")
+        }
+    }
     mavenCentral()
     maven {
         name = "Terraformers (Mod Menu, EMI)"

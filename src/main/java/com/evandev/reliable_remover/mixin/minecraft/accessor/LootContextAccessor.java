@@ -7,6 +7,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(LootContext.class)
 public interface LootContextAccessor {
+    //? if >=1.20 {
     @Accessor("params")
     LootParams reliable_remover$getParams();
+    //?}
 }

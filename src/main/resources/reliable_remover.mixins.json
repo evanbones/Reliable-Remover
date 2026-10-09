@@ -39,6 +39,7 @@
     "rrv.AbstractRrvItemListOverlayMixin"
   ],
   "client": [
+    "client.CreativeModeInventoryScreenMixin",
     "client.MultiPlayerGameModeMixin",
     "client.PotionTooltipMixin",
     "client.ScreenMixin",

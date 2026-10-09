@@ -17,7 +17,7 @@ public class ScreenMixin {
         SharedToastOverlay.extract(graphics);
     }
 }
-//?} else {
+//?} else if >=1.20 {
 /*import net.minecraft.client.gui.GuiGraphics;
 
 @Mixin(Screen.class)
@@ -25,6 +25,16 @@ public class ScreenMixin {
     @Inject(method = "render", at = @At("TAIL"))
     private void reliable_remover$renderToast(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
         SharedToastOverlay.extract(guiGraphics);
+    }
+}
+*///?} else {
+/*import com.mojang.blaze3d.vertex.PoseStack;
+
+@Mixin(Screen.class)
+public class ScreenMixin {
+    @Inject(method = "render", at = @At("TAIL"))
+    private void reliable_remover$renderToast(PoseStack poseStack, int mouseX, int mouseY, float partialTick, CallbackInfo ci) {
+        SharedToastOverlay.extract(poseStack);
     }
 }
 *///?}

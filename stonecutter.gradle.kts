@@ -21,6 +21,26 @@ stonecutter parameters {
             replace(".location()", ".identifier()")
             replace("instance.enchantment", "instance.enchantment()")
         }
+
+        val legacy = "com.evandev.reliable_remover.util.legacy"
+
+        regex(eval(node.metadata.version, "<1.20")) {
+            fun swap(from: String, to: String) = replace(Regex.escape(from), to, Regex.escape(to), from)
+            swap("import net.minecraft.world.level.storage.loot.LootParams;", "import $legacy.LootParams;")
+            for (receiver in listOf("entity", "player", "this", "trader")) {
+                swap("$receiver.level()", "$receiver.getLevel()")
+            }
+        }
+
+        regex(eval(node.metadata.version, "<1.19.3")) {
+            fun swap(from: String, to: String) = replace(Regex.escape(from), to, Regex.escape(to), from)
+            swap("import net.minecraft.core.registries.BuiltInRegistries;", "import $legacy.BuiltInRegistries;")
+            swap("import net.minecraft.core.registries.Registries;", "import $legacy.Registries;")
+            swap("import net.minecraft.core.HolderLookup;", "import $legacy.HolderLookup;")
+            for (registry in listOf("ITEM", "BLOCK", "FLUID", "POTION", "MOB_EFFECT", "ENCHANTMENT")) {
+                swap("BuiltInRegistries.$registry.wrapAsHolder(", "BuiltInRegistries.wrapAsHolder(BuiltInRegistries.$registry, ")
+            }
+        }
     }
 }
 

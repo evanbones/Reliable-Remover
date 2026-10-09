@@ -1,5 +1,29 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+//? if <1.19.3 {
+/*import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.platform.Services;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(value = CreativeModeTab.class, priority = 10000)
+public abstract class CreativeModeTabMixin {
+
+    @Inject(method = "fillItemList", at = @At("RETURN"))
+    private void reliable_remover$filterCreativeTab(NonNullList<ItemStack> items, CallbackInfo ci) {
+        if (!Services.PLATFORM.isPhysicalClient()) return;
+        if (!ModConfig.get().removeItemsFromCreativeTabs) return;
+
+        items.removeIf(RuleManager::isCreativeBlocked);
+    }
+}
+*///?} else {
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.platform.Services;
@@ -64,3 +88,4 @@ public abstract class CreativeModeTabMixin {
         }
     }
 }
+//?}

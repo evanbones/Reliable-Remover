@@ -45,7 +45,11 @@ public class EmiScreenManagerMixin {
                             } else if (!ServerCommands.canRemoveItems()) {
                                 PlayerMessages.actionBar(mc.player, Component.translatable("toast.reliable_remover.server_missing"));
                             } else {
+                                //? if <1.19.3 {
+                                /^mc.player.commandSigned("rremover remove " + id, null);
+                                ^///?} else {
                                 mc.player.connection.sendCommand("rremover remove " + id);
+                                //?}
 
                                 if (ModConfig.get().showEmiToast) {
                                     SharedToastOverlay.show(

@@ -6,6 +6,7 @@ import com.evandev.reliable_remover.client.ClientUtil;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
 import com.evandev.reliable_remover.platform.Services;
+import com.evandev.reliable_remover.util.PlayerMessages;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -157,7 +158,7 @@ public class ReliableRemoverCommands {
             Files.createDirectories(folder);
             ClientUtil.openFolder(folder);
 
-            context.getSource().sendSuccess(() ->
+            PlayerMessages.sendSuccess(context.getSource(), () ->
                     Component.literal("Opened Reliable Remover config folder.").withStyle(ChatFormatting.GREEN), false);
             return 1;
         } catch (Exception e) {
@@ -208,8 +209,8 @@ public class ReliableRemoverCommands {
                 );
         *///?}
 
-        source.sendSuccess(() -> Component.translatable(titleKey).withStyle(ChatFormatting.GOLD).append(":"), false);
-        source.sendSuccess(() -> message, false);
+        PlayerMessages.sendSuccess(source, () -> Component.translatable(titleKey).withStyle(ChatFormatting.GOLD).append(":"), false);
+        PlayerMessages.sendSuccess(source, () -> message, false);
     }
 
     private static int executeRemove(CommandContext<CommandSourceStack> context) {
@@ -225,7 +226,7 @@ public class ReliableRemoverCommands {
                                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/rremover undo " + itemId))
                                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to restore item"))));
 
-                context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.deleted", itemId)
+                PlayerMessages.sendSuccess(context.getSource(), () -> Component.translatable("toast.reliable_remover.deleted", itemId)
                         .append(" ").append(undoButton), true);
             }
             *///?}
@@ -245,7 +246,7 @@ public class ReliableRemoverCommands {
         String itemId = id.toString();
 
         if (RuleConfigIO.removeRemovalRule(itemId)) {
-            context.getSource().sendSuccess(() -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
+            PlayerMessages.sendSuccess(context.getSource(), () -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
             ConfigSync.sendToAll(context.getSource().getServer());
 
             if (ModConfig.get().reloadAfterRemoval) {

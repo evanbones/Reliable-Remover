@@ -29,7 +29,7 @@ tasks.named<ProcessResources>("processResources") {
         this["forge_loader_version_range"] = prop("deps.forge_loader_version_range")
         this["forge_version"] = prop("deps.forge")
         this["java_version"] = prop("deps.java_version")
-        this["yacl_version"] = prop("deps.yacl").substringBefore('+')
+        this["yacl_version"] = (findProperty("deps.yacl") as String?)?.substringBefore('+') ?: "0"
     }
     inputs.properties(props)
 
@@ -52,7 +52,11 @@ jsonlang {
 }
 
 repositories {
-    mavenLocal()
+    mavenLocal {
+        content {
+            excludeGroupAndSubgroups("maven.modrinth")
+        }
+    }
     mavenCentral()
     maven {
         name = "Terraformers (Mod Menu, EMI)"
@@ -169,8 +173,10 @@ dependencies {
     modImplementation("maven.modrinth:reliable-recipes:${property("deps.reliable_recipes")}-forge")
 
     // YACL
-    modCompileOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
-    modRuntimeOnly("dev.isxander:yet-another-config-lib:${property("deps.yacl")}")
+    findProperty("deps.yacl")?.let {
+        modCompileOnly("dev.isxander:yet-another-config-lib:$it")
+        modRuntimeOnly("dev.isxander:yet-another-config-lib:$it")
+    }
 
     // EMI
     modCompileOnly("dev.emi:emi-forge:${property("deps.emi")}")
