@@ -49,9 +49,9 @@ public class YaclConfigIntegration {
                 .name(Component.translatable("config.reliable_remover.category.blacklist"));
 
         //? if >=26.1 {
-        blacklistCategory.group(ListOption.<String>createBuilder(String.class)
+        blacklistCategory.group(ListOption.createBuilder(String.class)
         //?} else {
-        /*blacklistCategory.group(ListOption.<String>createBuilder()
+        /*blacklistCategory.group(ListOption.createBuilder()
         *///?}
                 .name(Component.translatable("config.reliable_remover.option.blacklisted_items"))
                 .description(OptionDescription.of(Component.translatable("config.reliable_remover.option.blacklisted_items.tooltip")))
