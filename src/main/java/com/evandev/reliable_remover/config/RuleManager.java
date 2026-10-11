@@ -885,6 +885,10 @@ public class RuleManager {
         return REGISTRIES;
     }
 
+    public static void releaseRegistries() {
+        REGISTRIES = null;
+    }
+
     //? if <1.19.3 {
     /*public static void expandTagRules(net.minecraft.core.RegistryAccess registryAccess) {
         expandTagRules(HolderLookup.Provider.of(registryAccess));
