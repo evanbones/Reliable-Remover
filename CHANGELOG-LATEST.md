@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed memory leak.
+- Updated Clutter No More integration for 3.0.0.

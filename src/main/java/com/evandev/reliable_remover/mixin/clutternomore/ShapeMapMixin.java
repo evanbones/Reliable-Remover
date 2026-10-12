@@ -1,11 +1,11 @@
 package com.evandev.reliable_remover.mixin.clutternomore;
 
-//? if (forge && >=1.20) || >=1.21 {
+//? if >=1.20 {
 import com.evandev.reliable_remover.api.ReliableRemoverAPI;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import dev.tazer.clutternomore.common.shape_map.ShapeMap;
+import dev.tazer.clutternomore.shape.ShapeMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -101,7 +101,7 @@ import org.spongepowered.asm.mixin.Pseudo;
 
 @IfModLoaded("clutternomore")
 @Pseudo
-@Mixin(targets = "dev.tazer.clutternomore.common.shape_map.ShapeMap", remap = false)
+@Mixin(targets = "dev.tazer.clutternomore.shape.ShapeMap", remap = false)
 public class ShapeMapMixin {
 }
 *///?}
