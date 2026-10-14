@@ -52,15 +52,17 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
+    private static volatile Map<Action, RuleIndex> RULE_INDEX = new EnumMap<>(Action.class);
     private static volatile Set<String> GLOBALLY_BANNED_ITEMS = ConcurrentHashMap.newKeySet();
     private static volatile List<String> BLACKLISTED_ITEMS = List.of();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
-    private static volatile int RULES_GENERATION;
+    private static final AtomicInteger RULES_GENERATION = new AtomicInteger();
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     private static volatile Runnable SYNCED_RULES_CHANGED_HOOK = null;
     private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
@@ -178,6 +180,7 @@ public class RuleManager {
         optimizeRules(newRules, newBanned);
 
         RULES_BY_ACTION = newRules;
+        rebuildIndex();
         GLOBALLY_BANNED_ITEMS = newBanned;
         if (blacklist != null) {
             GLOBALLY_BANNED_ITEMS.addAll(blacklist);
@@ -188,22 +191,49 @@ public class RuleManager {
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
 
+        registerRecipeReplacements();
+
+        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
+        RULES_GENERATION.incrementAndGet();
+
+        if (Services.PLATFORM.isPhysicalClient()) {
+            CREATIVE_TABS_DIRTY.set(true);
+        }
+    }
+
+    /**
+     * Hands {@code replace_with} rules to Reliable Recipes.
+     */
+    private static void registerRecipeReplacements() {
         ReliableRecipesAPI.clearItemReplacements();
+        List<RemovalRule> replacementRules = new ArrayList<>();
         for (List<RemovalRule> rules : RULES_BY_ACTION.values()) {
             for (RemovalRule rule : rules) {
-                if (rule.hasReplacement() && rule.items != null) {
-                    for (String item : rule.items) {
-                        ReliableRecipesAPI.registerItemReplacement(item, rule.getReplacementItemId());
+                if (!rule.hasReplacement()) continue;
+                replacementRules.add(rule);
+                String replacement = rule.getReplacementItemId();
+                if (rule.items != null) {
+                    for (String item : rule.items) ReliableRecipesAPI.registerItemReplacement(item, replacement);
+                }
+                if (rule.tags != null) {
+                    for (String tag : rule.tags) {
+                        ReliableRecipesAPI.registerItemReplacement(tag.startsWith("#") ? tag : "#" + tag, replacement);
                     }
                 }
             }
         }
 
-        if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
-        RULES_GENERATION++;
-
-        if (Services.PLATFORM.isPhysicalClient()) {
-            CREATIVE_TABS_DIRTY.set(true);
+        Map<String, String> registered = ReliableRecipesAPI.getReplacements();
+        for (RemovalRule rule : replacementRules) {
+            if (rule.not == null) continue;
+            List<String> excluded = new ArrayList<>();
+            if (rule.not.items != null) excluded.addAll(rule.not.items);
+            if (rule.not.tags != null) {
+                for (String tag : rule.not.tags) excluded.add(tag.startsWith("#") ? tag : "#" + tag);
+            }
+            for (String id : excluded) {
+                if (!registered.containsKey(id)) ReliableRecipesAPI.registerItemReplacement(id, id);
+            }
         }
     }
 
@@ -371,6 +401,12 @@ public class RuleManager {
                 (rule.fluids == null || rule.fluids.isEmpty()) &&
                 rule.items != null && !rule.items.isEmpty() &&
                 rule.items.stream().noneMatch(id -> id.startsWith("#"));
+    }
+
+    private static void rebuildIndex() {
+        Map<Action, RuleIndex> index = new EnumMap<>(Action.class);
+        RULES_BY_ACTION.forEach((action, rules) -> index.put(action, new RuleIndex(rules)));
+        RULE_INDEX = index;
     }
 
     public static Map<Action, List<RemovalRule>> getRulesByAction() {
@@ -871,9 +907,11 @@ public class RuleManager {
     }
 
     private static RemovalRule getMatchingRule(ItemStack stack, String itemId, Action action, String dimension, Entity target, Holder<?> registryHolder, String context) {
+        RuleIndex index = RULE_INDEX.get(action);
+        if (index == null) return null;
+        List<RemovalRule> rules = index.candidates(itemId);
+        if (rules.isEmpty()) return null;
         String entityId = target != null ? BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString() : null;
-        List<RemovalRule> rules = RULES_BY_ACTION.get(action);
-        if (rules == null || rules.isEmpty()) return null;
         for (RemovalRule rule : rules) {
             if (rule.action == action && rule.matches(stack, itemId, dimension, entityId, target, registryHolder, context))
                 return rule;
@@ -903,6 +941,7 @@ public class RuleManager {
                 rule.expandTags(registries);
             }
         }
+        rebuildIndex();
         int totalExpandedItems = RULES_BY_ACTION.values().stream()
                 .flatMap(List::stream)
                 .mapToInt(rule -> rule.items != null ? rule.items.size() : 0)
@@ -910,7 +949,7 @@ public class RuleManager {
         Constants.LOG.info("Total items removed: {}", totalExpandedItems + GLOBALLY_BANNED_ITEMS.size());
 
         if (CNM_CASCADE_RECOMPUTE_HOOK != null) CNM_CASCADE_RECOMPUTE_HOOK.run();
-        RULES_GENERATION++;
+        RULES_GENERATION.incrementAndGet();
     }
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
@@ -919,11 +958,11 @@ public class RuleManager {
 
     public static void setCnmCascadeRemoved(Set<String> items) {
         CNM_CASCADE_REMOVED = items;
-        RULES_GENERATION++;
+        RULES_GENERATION.incrementAndGet();
     }
 
     public static int getRulesGeneration() {
-        return RULES_GENERATION;
+        return RULES_GENERATION.get();
     }
 
     public static boolean isFluidHidden(String fluidId) {

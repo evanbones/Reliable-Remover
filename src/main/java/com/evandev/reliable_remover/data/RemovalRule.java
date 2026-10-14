@@ -602,6 +602,28 @@ public class RemovalRule {
         return false;
     }
 
+    /**
+     * The exact ids this rule can match, when it can only match through them; null when it can match other ids
+     * (tags, patterns, mods, enchantments, or no id filter at all).
+     */
+    public Set<String> exactIdKeys() {
+        if (action == Action.REMOVE_ENCHANTMENT) return null;
+        if (mod != null && !mod.isEmpty()) return null;
+        if (enchantments != null && !enchantments.isEmpty()) return null;
+        if (tags != null && !tags.isEmpty()) return null;
+        if (pattern != null && !pattern.isEmpty()) return null;
+        if (patterns != null && !patterns.isEmpty()) return null;
+        Set<String> keys = new HashSet<>();
+        for (Set<String> idFilters : Arrays.asList(items, blocks, fluids, effects)) {
+            if (idFilters == null) continue;
+            for (String filter : idFilters) {
+                if (filter.startsWith("#")) return null;
+                keys.add(filter);
+            }
+        }
+        return keys.isEmpty() ? null : keys;
+    }
+
     private List<Pattern> getCompiledPatterns(boolean hasPattern, boolean hasPatternList) {
         if (compiledPatterns == null) {
             synchronized (this) {

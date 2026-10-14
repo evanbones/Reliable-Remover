@@ -1,3 +1,4 @@
-### Changed
+### Fixed
 
-- Updated Clutter No More integration for 3.0.0.
+- Performance improvements.
+- `replace_with` on a tag now also replaces recipes that name the tagged items directly, and respects `not`.
