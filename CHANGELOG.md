@@ -5,19 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.1] - 2026-10-17
+
+### Fixed
+
+- Fixed log error with TMRV.
+
 ## [3.7.0] - 2026-10-17
 
 ### Added
 
 - Full JEI integration on every version and loader:
-  - Hides recipes with an input or output that only holds removed items or fluids.
-  - Dev mode: hover over an item in JEI's item list or bookmarks and press **Delete** to remove it (`enableJeiRemoval`, `showJeiToast`, `showJeiChatMessages`).
-  - Hidden items update when the server sends new rules, without needing a reload.
+    - Hides recipes with an input or output that only holds removed items or fluids.
+    - Dev mode: hover over an item in JEI's item list or bookmarks and press **Delete** to remove it (
+      `enableJeiRemoval`, `showJeiToast`, `showJeiChatMessages`).
+    - Hidden items update when the server sends new rules, without needing a reload.
 
 ### Changed
 
-- Removing or restoring an item (dev mode, `/rremover remove` or `/rremover undo`) now updates EMI, JEI and RRV right away, without a reload.
-  - In EMI, recipes for a restored item come back on the next reload.
+- Removing or restoring an item (dev mode, `/rremover remove` or `/rremover undo`) now updates EMI, JEI and RRV right
+  away, without a reload.
+    - In EMI, recipes for a restored item come back on the next reload.
 
 ### Fixed
 

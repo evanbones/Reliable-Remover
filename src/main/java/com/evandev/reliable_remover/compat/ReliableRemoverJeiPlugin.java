@@ -3,6 +3,7 @@ package com.evandev.reliable_remover.compat;
 import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.platform.Services;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -11,11 +12,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.IIngredientTypeWithSubtypes;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.api.recipe.IFocus;
-import mezz.jei.api.recipe.IFocusFactory;
-import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.IRecipeManager;
-import mezz.jei.api.recipe.RecipeIngredientRole;
+import mezz.jei.api.recipe.*;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.vanilla.IJeiAnvilRecipe;
 import mezz.jei.api.recipe.vanilla.IJeiIngredientInfoRecipe;
@@ -27,57 +24,22 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluid;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @JeiPlugin
 public class ReliableRemoverJeiPlugin implements IModPlugin {
     private static final List<Runnable> RESTORE_ACTIONS = new ArrayList<>();
+    private static final boolean TMRV_LOADED = Services.PLATFORM.isModLoaded("toomanyrecipeviewers"); // TMRV locks its JEI registries once plugins finish loading, and hiding is already handled by the EMI mixins
     private static IJeiRuntime runtime;
     private static IIngredientTypeWithSubtypes<Fluid, ?> fluidType;
     private static boolean syncHookRegistered;
-
-    @Override
-    public Identifier getPluginUid() {
-        //? if >=1.21 {
-        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "jei_plugin");
-        //?} else {
-        /*return new Identifier(Constants.MOD_ID, "jei_plugin");
-        *///?}
-    }
-
-    @Override
-    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
-        runtime = jeiRuntime;
-        fluidType = jeiRuntime.getJeiHelpers().getPlatformFluidHelper().getFluidIngredientType();
-        RESTORE_ACTIONS.clear();
-
-        if (!syncHookRegistered) {
-            syncHookRegistered = true;
-            RuleManager.registerSyncedRulesChanged(() -> Minecraft.getInstance().execute(ReliableRemoverJeiPlugin::refresh));
-        }
-
-        RuleManager.load();
-        runLater(() -> {
-            if (runtime == jeiRuntime) apply();
-        });
-    }
-
-    @Override
-    public void onRuntimeUnavailable() {
-        runtime = null;
-        RESTORE_ACTIONS.clear();
-    }
 
     static void runLater(Runnable task) {
         //? if >=26.1 {
         Minecraft.getInstance().schedule(task);
         //?} else {
         /*Minecraft.getInstance().tell(task);
-        *///?}
+         *///?}
     }
 
     public static IJeiRuntime getRuntime() {
@@ -99,7 +61,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
     }
 
     public static void hideItem(ItemStack stack) {
-        if (runtime == null || stack.isEmpty()) return;
+        if (runtime == null || TMRV_LOADED || stack.isEmpty()) return;
 
         IIngredientManager ingredientManager = runtime.getIngredientManager();
         List<ItemStack> matching = ingredientManager.getAllIngredients(VanillaTypes.ITEM_STACK).stream()
@@ -109,7 +71,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
     }
 
     private static void apply() {
-        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
+        if (TMRV_LOADED || !ModConfig.get().removeItemsFromRecipeViewers) return;
 
         try {
             IIngredientManager ingredientManager = runtime.getIngredientManager();
@@ -269,5 +231,37 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
 
     private static boolean allRemoved(List<ItemStack> stacks) {
         return stacks.stream().allMatch(stack -> stack.isEmpty() || RuleManager.isRecipeViewerBlocked(stack));
+    }
+
+    @Override
+    public Identifier getPluginUid() {
+        //? if >=1.21 {
+        return Identifier.fromNamespaceAndPath(Constants.MOD_ID, "jei_plugin");
+        //?} else {
+        /*return new Identifier(Constants.MOD_ID, "jei_plugin");
+         *///?}
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+        runtime = jeiRuntime;
+        fluidType = jeiRuntime.getJeiHelpers().getPlatformFluidHelper().getFluidIngredientType();
+        RESTORE_ACTIONS.clear();
+
+        if (!syncHookRegistered) {
+            syncHookRegistered = true;
+            RuleManager.registerSyncedRulesChanged(() -> Minecraft.getInstance().execute(ReliableRemoverJeiPlugin::refresh));
+        }
+
+        RuleManager.load();
+        runLater(() -> {
+            if (runtime == jeiRuntime) apply();
+        });
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        runtime = null;
+        RESTORE_ACTIONS.clear();
     }
 }
