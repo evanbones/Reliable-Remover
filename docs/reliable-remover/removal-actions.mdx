@@ -14,7 +14,7 @@ The `action` decides what happens to the items your rule matches.
 | [`remove_inventory`](#remove_inventory) | Deletes it from player inventories. |
 | [`remove_storage`](#remove_storage) | Deletes it from chests, barrels, etc. when opened. |
 | [`remove_drops`](#remove_drops) | Deletes it when it's dropped on the ground. |
-| [`remove_equipment`](#remove_equipment) | Takes it away from mobs. |
+| [`remove_equipment`](#remove_equipment) | Takes it away from mobs and item frames. |
 | [`remove_loot`](#remove_loot) | Stops it from coming from any loot table (chests, mobs, blocks, fishing). |
 | [`remove_chest_loot`](#remove_chest_loot) | Stops it from generating in loot chests only. |
 | [`remove_trade`](#remove_trade) | Removes villager trades that use it. |
@@ -126,7 +126,7 @@ Deletes the item the moment it lands on the ground. Good for cutting down item l
 
 ### `remove_equipment`
 
-Takes the item out of mobs' hands and armor slots, so they can't spawn with it or pick it up.
+Takes the item out of mobs' hands and armor slots, so they can't spawn with it or pick it up. It also clears the item from item frames, both when it's placed and when the frame loads (e.g. worldgen).
 
 ```json
 {

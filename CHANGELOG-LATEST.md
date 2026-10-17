@@ -1,3 +1,3 @@
-### Fixed
+### Changed
 
-- Fixed log error with TMRV.
+- Removal rules now apply to item frames.
