@@ -1,15 +1,59 @@
 package com.evandev.reliable_remover.compat;
 
 //? if <=1.21.1 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.RuleManager;
+import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.registry.EmiStackList;
+import dev.emi.emi.runtime.EmiReloadManager;
+import dev.emi.emi.search.EmiSearch;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class EmiBlacklistHelper {
+    private static final Map<EmiStack, Boolean> REMOVED = new ConcurrentHashMap<>();
+    private static boolean refreshHookRegistered;
+
+    public static boolean isRemoved(EmiIngredient ingredient) {
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return false;
+
+        List<EmiStack> stacks = ingredient.getEmiStacks();
+        if (stacks.isEmpty()) return false;
+        for (EmiStack stack : stacks) {
+            if (!REMOVED.computeIfAbsent(stack, EmiBlacklistHelper::computeRemoved)) return false;
+        }
+        return true;
+    }
+
+    private static boolean computeRemoved(EmiStack stack) {
+        if (isEmiStackBlacklisted(stack)) return true;
+        ItemStack itemStack = stack.getItemStack();
+        return itemStack != null && !itemStack.isEmpty() && RuleManager.isRecipeViewerBlocked(itemStack);
+    }
+
+    public static void onReload() {
+        REMOVED.clear();
+        if (!refreshHookRegistered) {
+            refreshHookRegistered = true;
+            RuleManager.registerSyncedRulesChanged(() -> Minecraft.getInstance().execute(EmiBlacklistHelper::refresh));
+        }
+    }
+
+    public static void refresh() {
+        REMOVED.clear();
+        if (!EmiReloadManager.isLoaded()) return;
+        EmiStackList.bakeFiltered();
+        EmiSearch.update();
+    }
 
     public static boolean isEmiStackBlacklisted(EmiStack stack) {
         if (stack == null || stack.isEmpty()) return false;

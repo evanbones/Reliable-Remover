@@ -85,10 +85,19 @@ public class YaclConfigIntegration {
         rrvCategory.option(createBoolOption("reload_emi", false, () -> config.reloadAfterRemoval, val -> config.reloadAfterRemoval = val));
         *///?}
 
+        ConfigCategory.Builder jeiCategory = ConfigCategory.createBuilder()
+                .name(Component.translatable("config.reliable_remover.category.jei"));
+
+        jeiCategory.option(createBoolOption("enable_jei_removal", false, () -> config.enableJeiRemoval, val -> config.enableJeiRemoval = val));
+        jeiCategory.option(createBoolOption("show_toast", true, () -> config.showJeiToast, val -> config.showJeiToast = val));
+        jeiCategory.option(createBoolOption("show_chat_messages", true, () -> config.showJeiChatMessages, val -> config.showJeiChatMessages = val));
+        jeiCategory.option(createBoolOption("reload_jei", false, () -> config.reloadAfterRemoval, val -> config.reloadAfterRemoval = val));
+
         return builder
                 .category(generalCategory.build())
                 .category(blacklistCategory.build())
                 .category(rrvCategory.build())
+                .category(jeiCategory.build())
                 .build()
                 .generateScreen(parent);
     }

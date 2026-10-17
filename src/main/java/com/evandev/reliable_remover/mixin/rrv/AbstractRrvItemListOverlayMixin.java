@@ -22,9 +22,7 @@ public class AbstractRrvItemListOverlayMixin {
 
         AbstractRrvItemListOverlay overlay = (AbstractRrvItemListOverlay) (Object) this;
         if (overlay.availableItems() != null) {
-            overlay.availableItems().removeIf(stack ->
-                    RuleManager.isHidden(stack) || RuleManager.isCreativeBlocked(stack)
-            );
+            overlay.availableItems().removeIf(RuleManager::isRecipeViewerBlocked);
         }
     }
 }

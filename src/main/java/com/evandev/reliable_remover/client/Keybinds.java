@@ -15,6 +15,12 @@ public class Keybinds {
             InputConstants.KEY_DELETE,
             RELIABLE_REMOVER_CATEGORY
     );
+
+    public static final KeyMapping JEI_DELETE_KEY = new KeyMapping(
+            "key.reliable_remover.jei_delete",
+            InputConstants.KEY_DELETE,
+            RELIABLE_REMOVER_CATEGORY
+    );
 }
 //?} else {
 /*import org.lwjgl.glfw.GLFW;
@@ -22,6 +28,13 @@ public class Keybinds {
 public class Keybinds {
     public static final KeyMapping EMI_DELETE_KEY = new KeyMapping(
             "key.reliable_remover.emi_delete",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_DELETE,
+            "category.reliable_remover"
+    );
+
+    public static final KeyMapping JEI_DELETE_KEY = new KeyMapping(
+            "key.reliable_remover.jei_delete",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_DELETE,
             "category.reliable_remover"

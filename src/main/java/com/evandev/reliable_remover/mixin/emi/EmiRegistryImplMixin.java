@@ -8,6 +8,7 @@ import com.evandev.reliable_remover.config.RuleManager;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.recipe.EmiRecipe;
+import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.registry.EmiRegistryImpl;
@@ -28,6 +29,10 @@ public class EmiRegistryImplMixin {
     private static boolean reliable_remover$shouldHideRecipe(EmiRecipe recipe) {
         Identifier categoryId = recipe.getCategory().getId();
         boolean isInfoTab = categoryId != null && categoryId.getNamespace().equals("emi") && categoryId.getPath().equals("info");
+
+        if (recipe.getCategory() == VanillaEmiRecipeCategories.ANVIL_REPAIRING && reliable_remover$anyInputRemoved(recipe)) {
+            return true;
+        }
 
         if (!recipe.supportsRecipeTree()) {
             return reliable_remover$allSubjectsRemoved(recipe, isInfoTab);
@@ -77,6 +82,22 @@ public class EmiRegistryImplMixin {
     }
 
     @Unique
+    private static boolean reliable_remover$anyInputRemoved(EmiRecipe recipe) {
+        for (EmiIngredient ingredient : recipe.getInputs()) {
+            if (ingredient == EmiStack.EMPTY || ingredient.isEmpty()) continue;
+            boolean allRemoved = true;
+            for (EmiStack emiStack : ingredient.getEmiStacks()) {
+                if (!reliable_remover$isOutputRemoved(emiStack, false)) {
+                    allRemoved = false;
+                    break;
+                }
+            }
+            if (allRemoved) return true;
+        }
+        return false;
+    }
+
+    @Unique
     private static boolean reliable_remover$isSubjectRemoved(EmiStack emiStack, boolean isInfoTab) {
         return isInfoTab
                 ? reliable_remover$isInfoSubjectRemoved(emiStack)
@@ -90,7 +111,7 @@ public class EmiRegistryImplMixin {
         ItemStack stack = emiStack.getItemStack();
         if (stack == null || stack.isEmpty()) return false;
 
-        return RuleManager.isCreativeBlocked(stack)
+        return RuleManager.isRecipeViewerBlocked(stack)
                 || (isInfoTab && RuleManager.isInfoBlocked(stack));
     }
 
@@ -101,23 +122,8 @@ public class EmiRegistryImplMixin {
         ItemStack stack = emiStack.getItemStack();
         if (stack == null || stack.isEmpty()) return false;
 
-        return (ModConfig.get().removeItemsFromInfoTabs && RuleManager.isCreativeBlocked(stack))
+        return (ModConfig.get().removeItemsFromInfoTabs && RuleManager.isRecipeViewerBlocked(stack))
                 || RuleManager.isInfoBlocked(stack);
-    }
-
-    @Inject(method = "addEmiStack", at = @At("HEAD"), cancellable = true)
-    private void reliable_remover$filterAddedEmiStacks(EmiStack stack, CallbackInfo ci) {
-        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
-
-        try {
-            if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) {
-                ci.cancel();
-            } else if (stack.getItemStack() != null && !stack.getItemStack().isEmpty() && RuleManager.isCreativeBlocked(stack.getItemStack())) {
-                ci.cancel();
-            }
-        } catch (Throwable t) {
-            Constants.LOG.warn("Failed to filter an EMI stack, leaving it visible.", t);
-        }
     }
 
     @Inject(method = "addRecipe", at = @At("HEAD"), cancellable = true)

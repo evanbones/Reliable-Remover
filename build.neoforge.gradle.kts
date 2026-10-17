@@ -240,6 +240,7 @@ publishMods {
         optional("yacl")
         optional("rrv")
         optional("emi")
+        optional("jei")
     }
 
     curseforge {
@@ -251,6 +252,7 @@ publishMods {
         optional("yacl")
         optional("rrv")
         optional("emi")
+        optional("jei")
         client = true
         server = true
     }

@@ -41,6 +41,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.${mod_id}]]
+modId = "jei"
+mandatory = false
+versionRange = "[11,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
 modId = "yet_another_config_lib_v3"
 mandatory = false
 versionRange = "[${yacl_version},)"

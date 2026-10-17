@@ -42,6 +42,9 @@ public class ModConfig {
     public boolean enableEmiRemoval = false;
     public boolean showEmiToast = true;
     public boolean showEmiChatMessages = true;
+    public boolean enableJeiRemoval = false;
+    public boolean showJeiToast = true;
+    public boolean showJeiChatMessages = true;
     public boolean reloadAfterRemoval = false;
     public List<String> blacklistedItems = new ArrayList<>();
 

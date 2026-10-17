@@ -34,7 +34,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
     private static final Set<Item> EXCLUDED_ITEMS = new HashSet<>();
 
     public static void init() {
-        RuleManager.registerSyncedRulesChanged(ReliableRemoverRrvPlugin::updateExcludedItems);
+        RuleManager.registerSyncedRulesChanged(() -> Minecraft.getInstance().execute(ReliableRemoverRrvPlugin::updateExcludedItems));
 
         ItemView.addClientReloadCallback(() -> {
             ModConfig.get();
@@ -46,7 +46,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
             ItemViewRecipes.INFO_RECIPES.removeIf(recipe -> {
                 for (SlotContent ingredient : recipe.getIngredients()) {
                     for (ItemStack stack : ingredient.getValidContents()) {
-                        if (RuleManager.isInfoBlocked(stack) || RuleManager.isCreativeBlocked(stack) || RuleManager.isHidden(stack)) {
+                        if (RuleManager.isInfoBlocked(stack) || RuleManager.isRecipeViewerBlocked(stack)) {
                             return true;
                         }
                     }
@@ -68,7 +68,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
 
         BuiltInRegistries.ITEM.forEach(item -> {
             ItemStack stack = item.getDefaultInstance();
-            if (RuleManager.isCreativeBlocked(stack) || RuleManager.isHidden(stack)) {
+            if (RuleManager.isRecipeViewerBlocked(stack)) {
                 excludeItem(item);
             }
         });
@@ -130,7 +130,7 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
         return true;
     }
 
-    // Intercept method to force a deletion if the text field attempts to steal the focus key.
+    // Intercept method to force a deletion if the text field attempts to steal the focus key
     public static boolean tryDeleteHoveredRrvItem() {
         if (!ModConfig.get().enableRrvRemoval) return false;
 

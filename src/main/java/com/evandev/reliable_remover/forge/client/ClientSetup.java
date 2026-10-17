@@ -23,6 +23,7 @@ public class ClientSetup {
 
     private static void registerKeyBindings(RegisterKeyMappingsEvent event) {
         event.register(Keybinds.EMI_DELETE_KEY);
+        event.register(Keybinds.JEI_DELETE_KEY);
     }
 }
 *///?}

@@ -38,6 +38,7 @@ Dev mode lets you delete items straight from your recipe viewer: hover over an i
 
 * On 1.20.1 and 1.21.1, this works in **EMI**. Turn on `enableEmiRemoval`.
 * On 26.x, this works in **RRV**. Turn on `enableRrvRemoval`.
+* On every version, this works in **JEI**. Turn on `enableJeiRemoval`.
 
 Deleted items go into the `blacklistedItems` list in `config/reliable_remover.json`:
 
@@ -53,5 +54,5 @@ To bring an item back, remove it from that list, or run `/rremover undo minecraf
 | Setting | What it does |
 | :--- | :--- |
 | `reloadAfterRemoval` | Runs `/reload` after each deletion, so the item disappears everywhere immediately. |
-| `showEmiToast` / `showRrvToast` | Shows a popup after deleting an item. |
-| `showEmiChatMessages` / `showRrvChatMessages` | Shows a chat message with an **Undo** button after deleting an item. |
+| `showEmiToast` / `showRrvToast` / `showJeiToast` | Shows a popup after deleting an item. |
+| `showEmiChatMessages` / `showRrvChatMessages` / `showJeiChatMessages` | Shows a chat message with an **Undo** button after deleting an item. |

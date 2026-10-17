@@ -71,7 +71,7 @@ public abstract class ServerPlayerMixin extends Player {
     }
     //?}
 
-    @Inject(method = "initMenu", at = @At("HEAD"))
+    @Inject(method = "initMenu", at = @At("TAIL"))
     private void reliable_remover$onInitMenu(AbstractContainerMenu container, CallbackInfo ci) {
         container.addSlotListener(new ContainerListener() {
             @Override

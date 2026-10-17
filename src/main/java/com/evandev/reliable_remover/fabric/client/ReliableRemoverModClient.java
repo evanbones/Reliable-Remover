@@ -12,6 +12,7 @@ public class ReliableRemoverModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyMappingHelper.registerKeyMapping(Keybinds.RRV_DELETE_KEY);
+        KeyMappingHelper.registerKeyMapping(Keybinds.JEI_DELETE_KEY);
     }
 }
 //?} else {
@@ -22,6 +23,7 @@ public class ReliableRemoverModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyBindingHelper.registerKeyBinding(Keybinds.EMI_DELETE_KEY);
+        KeyBindingHelper.registerKeyBinding(Keybinds.JEI_DELETE_KEY);
     }
 }
 *///?}

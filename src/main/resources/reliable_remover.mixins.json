@@ -6,6 +6,7 @@
   "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
     "clutternomore.ShapeMapMixin",
+    "emi.EmiHiddenMixin",
     "emi.EmiRegistryImplMixin",
     "emi.EmiStackListMixin",
     "emi.EmiTagsMixin",
@@ -46,6 +47,7 @@
     "client.ScreenMixin",
     "emi.EmiScreenManagerMixin",
     "jeed.JeedMixin",
+    "jei.KeyboardHandlerJeiMixin",
     "minecraft.ClientPacketListenerMixin",
     "minecraft.MinecraftMixin",
     "rrv.ScreenRrvMixin"

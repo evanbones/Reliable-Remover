@@ -60,8 +60,13 @@
   "config.reliable_remover.option.enable_emi_removal.tooltip": "Enable dev mode to delete items directly by hovering and pressing Delete in EMI.",
   "config.reliable_remover.option.reload_emi": "Reload After Removal",
   "config.reliable_remover.option.reload_emi.tooltip": "Runs /reload immediately after an item is removed.",
+  "config.reliable_remover.category.jei": "JEI Actions",
+  "config.reliable_remover.option.enable_jei_removal": "Enable Dev Mode",
+  "config.reliable_remover.option.enable_jei_removal.tooltip": "Enable dev mode to delete items directly by hovering and pressing Delete in JEI.",
+  "config.reliable_remover.option.reload_jei": "Reload After Removal",
+  "config.reliable_remover.option.reload_jei.tooltip": "Runs /reload immediately after an item is removed.",
   "config.reliable_remover.option.remove_info_tabs": "Remove from Info Tabs",
-  "config.reliable_remover.option.remove_info_tabs.tooltip": "Hides Information in JEI/RRV that feature restricted items.",
+  "config.reliable_remover.option.remove_info_tabs.tooltip": "Hides Information in EMI/JEI/RRV that feature restricted items.",
   "config.reliable_remover.option.remove_mob_equipment": "Remove from Mob Equipment",
   "config.reliable_remover.option.remove_mob_equipment.tooltip": "Automatically removes restricted items from the hands or armor slots of mobs.",
 
@@ -76,5 +81,6 @@
   "category.reliable_remover": "Reliable Remover",
   "key.category.reliable_remover.main": "Reliable Remover",
   "key.reliable_remover.rrv_delete": "RRV Delete",
-  "key.reliable_remover.emi_delete": "EMI Delete"
+  "key.reliable_remover.emi_delete": "EMI Delete",
+  "key.reliable_remover.jei_delete": "JEI Delete"
 }

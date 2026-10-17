@@ -256,6 +256,7 @@ publishMods {
         requires("reliable-recipes")
         optional("yacl")
         optional("emi")
+        optional("jei")
     }
 
     curseforge {
@@ -266,6 +267,7 @@ publishMods {
         requires("reliable-recipes")
         optional("yacl")
         optional("emi")
+        optional("jei")
         client = true
         server = true
     }

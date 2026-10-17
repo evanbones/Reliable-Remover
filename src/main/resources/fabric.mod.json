@@ -44,6 +44,8 @@
     },
     "suggests": {
         "rrv": "*",
+        "emi": "*",
+        "jei": "*",
         "yet_another_config_lib_v3": ">=${yacl_version}"
     }
 }

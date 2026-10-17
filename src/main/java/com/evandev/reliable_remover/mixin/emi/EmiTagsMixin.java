@@ -68,7 +68,7 @@ public class EmiTagsMixin {
         try {
             if (EmiBlacklistHelper.isEmiStackBlacklisted(stack)) return false;
             ItemStack itemStack = stack.getItemStack();
-            return itemStack == null || itemStack.isEmpty() || !RuleManager.isCreativeBlocked(itemStack);
+            return itemStack == null || itemStack.isEmpty() || !RuleManager.isRecipeViewerBlocked(itemStack);
         } catch (Throwable t) {
             return true;
         }

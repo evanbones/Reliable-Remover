@@ -5,6 +5,7 @@ import com.evandev.reliable_remover.Constants;
 import com.evandev.reliable_remover.client.ClientUtil;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleConfigIO;
+import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.platform.Services;
 import com.evandev.reliable_remover.util.PlayerMessages;
 import com.mojang.authlib.GameProfile;
@@ -232,6 +233,7 @@ public class ReliableRemoverCommands {
             *///?}
 
             ConfigSync.sendToAll(context.getSource().getServer());
+            RuleManager.notifyRulesChanged();
 
             if (ModConfig.get().reloadAfterRemoval) {
                 context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");
@@ -248,6 +250,7 @@ public class ReliableRemoverCommands {
         if (RuleConfigIO.removeRemovalRule(itemId)) {
             PlayerMessages.sendSuccess(context.getSource(), () -> Component.translatable("toast.reliable_remover.restored_item", itemId), true);
             ConfigSync.sendToAll(context.getSource().getServer());
+            RuleManager.notifyRulesChanged();
 
             if (ModConfig.get().reloadAfterRemoval) {
                 context.getSource().getServer().getCommands().performPrefixedCommand(context.getSource(), "reload");

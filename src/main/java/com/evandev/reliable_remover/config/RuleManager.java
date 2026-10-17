@@ -51,6 +51,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -64,7 +65,7 @@ public class RuleManager {
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static final AtomicInteger RULES_GENERATION = new AtomicInteger();
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
-    private static volatile Runnable SYNCED_RULES_CHANGED_HOOK = null;
+    private static final List<Runnable> SYNCED_RULES_CHANGED_HOOKS = new CopyOnWriteArrayList<>();
     private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
     public static final Map<String, Set<String>> EXPANDED_TAGS_CACHE = new ConcurrentHashMap<>();
     private static final ThreadLocal<Boolean> IN_CHEST_FILL = ThreadLocal.withInitial(() -> false);
@@ -265,11 +266,15 @@ public class RuleManager {
             load();
         }
 
-        if (SYNCED_RULES_CHANGED_HOOK != null) SYNCED_RULES_CHANGED_HOOK.run();
+        notifyRulesChanged();
+    }
+
+    public static void notifyRulesChanged() {
+        for (Runnable hook : SYNCED_RULES_CHANGED_HOOKS) hook.run();
     }
 
     public static void registerSyncedRulesChanged(Runnable hook) {
-        SYNCED_RULES_CHANGED_HOOK = hook;
+        SYNCED_RULES_CHANGED_HOOKS.add(hook);
     }
 
     private static List<String> parseSyncedBlacklist(String content) {
@@ -791,6 +796,14 @@ public class RuleManager {
         if (isHidden(stack, null, player)) return true;
         if (getReplacement(stack, Action.REMOVE_CREATIVE, null, player, "creative") != null) return false;
         return checkRules(stack, BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(), Action.REMOVE_CREATIVE, null, player, null, "creative");
+    }
+
+    public static boolean isRecipeViewerBlocked(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        if (isHidden(stack)) return true;
+        String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        RemovalRule rule = getMatchingRule(stack, id, Action.REMOVE_CREATIVE, null, null, null, "creative");
+        return rule != null && rule.createReplacement(stack) == null;
     }
 
     public static boolean isDropsBlocked(ItemStack stack, Level level, Entity entity) {

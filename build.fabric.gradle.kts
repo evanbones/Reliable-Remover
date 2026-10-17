@@ -210,6 +210,7 @@ publishMods {
         optional("modmenu")
         optional("rrv")
         optional("emi")
+        optional("jei")
     }
 
     curseforge {
@@ -223,6 +224,7 @@ publishMods {
         optional("modmenu")
         optional("rrv")
         optional("emi")
+        optional("jei")
         client = true
         server = true
     }

@@ -19,6 +19,7 @@ public class ClientSetup {
         //?} else {
         event.register(Keybinds.EMI_DELETE_KEY);
         //?}
+        event.register(Keybinds.JEI_DELETE_KEY);
     }
 }
 *///?}
