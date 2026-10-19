@@ -15,6 +15,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
+//? if >=26.1 {
+import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+//?} else {
+/*import net.minecraft.world.entity.decoration.PaintingVariant;
+*///?}
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -54,7 +59,7 @@ public class RemovalRule {
     @SerializedName(value = "actions", alternate = {"action_list"})
     public Set<Action> actions = new HashSet<>();
 
-    @SerializedName(value = "items", alternate = {"item", "potion", "potions", "mob", "mobs", "mob_equipment"})
+    @SerializedName(value = "items", alternate = {"item", "potion", "potions", "mob", "mobs", "mob_equipment", "painting", "paintings"})
     public volatile Set<String> items = new HashSet<>();
 
     @SerializedName(value = "enchantments", alternate = {"enchantment"})
@@ -692,6 +697,14 @@ public class RemovalRule {
                 }
                 return false;
 
+            } else if (currentAction == Action.REMOVE_PAINTING) {
+                if (registryHolder != null && registryHolder.value() instanceof PaintingVariant) {
+                    @SuppressWarnings("unchecked")
+                    Holder<PaintingVariant> paintingHolder = (Holder<PaintingVariant>) registryHolder;
+                    return paintingHolder.is(TagKey.create(Registries.PAINTING_VARIANT, tagLocation));
+                }
+                return false;
+
             } else {
                 Set<String> cachedResolved = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
                 if (cachedResolved != null && cachedResolved.contains(itemLocation.toString())) {
@@ -782,6 +795,7 @@ public class RemovalRule {
 
         this.compiledNbtMatchers = null;
 
+        if (this.action == Action.REMOVE_PAINTING) return;
         if (this.tags == null || this.tags.isEmpty()) return;
 
         boolean enchantmentRule = this.action == Action.REMOVE_ENCHANTMENT;

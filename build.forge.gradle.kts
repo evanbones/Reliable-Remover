@@ -204,6 +204,12 @@ dependencies {
         }
     }
     "jarJar"(mixinConstraints!!)
+
+    // MixinExtras
+    annotationProcessor("io.github.llamalad7:mixinextras-common:${property("deps.mixinextras")}")
+    compileOnly("io.github.llamalad7:mixinextras-common:${property("deps.mixinextras")}")
+    implementation("io.github.llamalad7:mixinextras-forge:${property("deps.mixinextras")}")
+    "jarJar"("io.github.llamalad7:mixinextras-forge:${property("deps.mixinextras")}")
 }
 
 val javaVer = (property("deps.java_version") as String).toInt()

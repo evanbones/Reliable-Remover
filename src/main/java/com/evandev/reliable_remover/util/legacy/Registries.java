@@ -5,6 +5,7 @@ package com.evandev.reliable_remover.util.legacy;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.PaintingVariant;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -19,8 +20,6 @@ public final class Registries {
     public static final ResourceKey<Registry<Potion>> POTION = Registry.POTION_REGISTRY;
     public static final ResourceKey<Registry<MobEffect>> MOB_EFFECT = Registry.MOB_EFFECT_REGISTRY;
     public static final ResourceKey<Registry<Enchantment>> ENCHANTMENT = Registry.ENCHANTMENT_REGISTRY;
-
-    private Registries() {
-    }
+    public static final ResourceKey<Registry<PaintingVariant>> PAINTING_VARIANT = Registry.PAINTING_VARIANT_REGISTRY;
 }
 *///?}

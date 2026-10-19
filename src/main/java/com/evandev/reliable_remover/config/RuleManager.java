@@ -25,7 +25,13 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+//? if >=26.1 {
+import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+//?} else {
+/*import net.minecraft.world.entity.decoration.PaintingVariant;
+*///?}
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 //? if >=1.21 {
 import net.minecraft.world.item.alchemy.PotionContents;
 //?} else {
@@ -57,6 +63,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+// TODO: this is such a god class lol
 public class RuleManager {
     private static volatile Map<Action, List<RemovalRule>> RULES_BY_ACTION = new EnumMap<>(Action.class);
     private static volatile Map<Action, RuleIndex> RULE_INDEX = new EnumMap<>(Action.class);
@@ -333,7 +340,7 @@ public class RuleManager {
                                 Constants.LOG.warn("Reliable Remover: Skipping invalid potion/effect ID '{}'.", itemId);
                                 return true;
                             }
-                        } else if (rule.action == Action.REMOVE_ENCHANTMENT) {
+                        } else if (rule.action == Action.REMOVE_ENCHANTMENT || rule.action == Action.REMOVE_PAINTING) {
                             return false;
                         } else {
                             if (!BuiltInRegistries.ITEM.containsKey(id)
@@ -418,10 +425,6 @@ public class RuleManager {
         return RULES_BY_ACTION;
     }
 
-    /**
-     * The blacklisted items in effect. Use this rather than the config's list, which is only the local one and is
-     * ignored while connected to a server.
-     */
     public static List<String> getBlacklistedItems() {
         return BLACKLISTED_ITEMS;
     }
@@ -455,6 +458,8 @@ public class RuleManager {
             String dim = level != null ? level.dimension().identifier().toString() : null;
             if (checkRules(stack, id, Action.REMOVE, dim, holder, null, context)) return true;
         }
+
+        if (stack.is(Items.PAINTING) && isPaintingBlocked(stack)) return true;
 
         //? if >=1.21 {
         if (id.equals("minecraft:enchanted_book")) {
@@ -874,6 +879,36 @@ public class RuleManager {
         if (enchantment == null) return false;
         String id = enchantment.unwrapKey().map(key -> key.identifier().toString()).orElse("");
         return checkRules(stack, id, Action.REMOVE_ENCHANTMENT, null, null, enchantment, "enchantment");
+    }
+
+    public static boolean isPaintingBlocked(Holder<PaintingVariant> variant) {
+        if (variant == null) return false;
+        return variant.unwrapKey().map(key -> isPaintingBlocked(key.identifier(), variant)).orElse(false);
+    }
+
+    private static boolean isPaintingBlocked(Identifier id, Holder<PaintingVariant> variant) {
+        return checkRules(null, id.toString(), Action.REMOVE_PAINTING, null, null, variant, "painting");
+    }
+
+    private static boolean isPaintingBlocked(ItemStack stack) {
+        //? if >=26.1 {
+        return isPaintingBlocked(stack.get(DataComponents.PAINTING_VARIANT));
+        //?} else if >=1.21 {
+        /*net.minecraft.world.item.component.CustomData entityData = stack.get(DataComponents.ENTITY_DATA);
+        if (entityData == null) return false;
+        net.minecraft.nbt.CompoundTag tag = entityData.copyTag();
+        Identifier id = tag.contains("variant") ? Identifier.tryParse(tag.getString("variant")) : null;
+        if (id == null) return false;
+        Holder<PaintingVariant> variant = REGISTRIES == null ? null : REGISTRIES.lookup(Registries.PAINTING_VARIANT)
+                .flatMap(lookup -> lookup.get(net.minecraft.resources.ResourceKey.create(Registries.PAINTING_VARIANT, id)))
+                .orElse(null);
+        return isPaintingBlocked(id, variant);
+        *///?} else {
+        /*CompoundTag tag = stack.getTagElement("EntityTag");
+        Identifier id = tag != null && tag.contains("variant") ? Identifier.tryParse(tag.getString("variant")) : null;
+        if (id == null) return false;
+        return isPaintingBlocked(id, RemovalRule.getRegistryHolder(BuiltInRegistries.PAINTING_VARIANT, id).orElse(null));
+        *///?}
     }
 
     public static ItemStack getReplacement(ItemStack stack, Action action, Level level, Entity holder, String context) {

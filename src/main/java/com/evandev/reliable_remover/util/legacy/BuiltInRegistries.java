@@ -6,6 +6,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.PaintingVariant;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -20,9 +21,7 @@ public final class BuiltInRegistries {
     public static final DefaultedRegistry<Potion> POTION = Registry.POTION;
     public static final Registry<MobEffect> MOB_EFFECT = Registry.MOB_EFFECT;
     public static final Registry<Enchantment> ENCHANTMENT = Registry.ENCHANTMENT;
-
-    private BuiltInRegistries() {
-    }
+    public static final DefaultedRegistry<PaintingVariant> PAINTING_VARIANT = Registry.PAINTING_VARIANT;
 
     public static <T> Holder<T> wrapAsHolder(Registry<T> registry, T value) {
         return registry.getResourceKey(value).flatMap(registry::getHolder).orElseGet(() -> Holder.direct(value));

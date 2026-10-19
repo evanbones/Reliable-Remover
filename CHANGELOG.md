@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0] - 2026-10-19
+
+### Added
+
+- Dedicated `remove_painting` action:
+    - Stops painting variants from being picked when a painting is placed, and hides painting variants from
+      creative tabs, recipe viewers, and inventories.
+
 ## [3.7.2] - 2026-10-17
 
 ### Changed

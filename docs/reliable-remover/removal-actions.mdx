@@ -25,6 +25,7 @@ The `action` decides what happens to the items your rule matches.
 | [`remove_enchantment`](#remove_enchantment) | Removes an enchantment from loot, tables, trades and books. |
 | [`remove_potion`](#remove_potion) | Hides potions and tipped arrows with an effect. |
 | [`remove_effect`](#remove_effect) | Stops a status effect from being applied, or swaps it. |
+| [`remove_painting`](#remove_painting) | Stops a painting from being placed. |
 
 ## Removing items
 
@@ -306,6 +307,35 @@ Add `replace_with` to swap it for a different effect instead. Here, anything tha
   "replace_with": "minecraft:slowness"
 }
 ```
+
+## Paintings
+
+### `remove_painting`
+
+Stops paintings from showing up when you place a painting, and hides the painting items set to them from creative tabs, recipe viewers, and inventories.
+
+```json
+{
+  "action": "remove_painting",
+  "paintings": ["minecraft:wasteland", "minecraft:donkey_kong"]
+}
+```
+
+`paintings` works the same as `items`, so painting tags (`#minecraft:placeable`), `mod`, `patterns` and `not` all work. This removes every painting from a mod except one:
+
+```json
+{
+  "action": "remove_painting",
+  "mod": ["somepaintingmod"],
+  "not": {
+    "paintings": ["somepaintingmod:sunflowers"]
+  }
+}
+```
+
+To find a painting's ID, look at it and run `/data get entity @e[type=minecraft:painting,limit=1,sort=nearest] variant`.
+
+Paintings already hanging in the world are left alone. If every painting that would fit a spot is removed, the painting can't be placed there.
 
 ## Alternate names
 

@@ -38,5 +38,7 @@ public enum Action {
     @SerializedName(value = "REMOVE_PLACEMENT", alternate = {"remove_placement", "remove_placements", "Remove_Placement"})
     REMOVE_PLACEMENT,
     @SerializedName(value = "REMOVE_EFFECT", alternate = {"remove_effect", "remove_effects", "remove_status_effect", "remove_status_effects", "remove_mob_effect", "remove_mob_effects", "Remove_Effect"})
-    REMOVE_EFFECT
+    REMOVE_EFFECT,
+    @SerializedName(value = "REMOVE_PAINTING", alternate = {"remove_painting", "remove_paintings", "remove_painting_variant", "remove_painting_variants", "Remove_Painting"})
+    REMOVE_PAINTING
 }
