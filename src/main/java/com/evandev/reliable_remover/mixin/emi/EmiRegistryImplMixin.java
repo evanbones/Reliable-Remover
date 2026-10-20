@@ -8,6 +8,7 @@ import com.evandev.reliable_remover.config.RuleManager;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.recipe.EmiRecipe;
+import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
@@ -124,6 +125,23 @@ public class EmiRegistryImplMixin {
 
         return (ModConfig.get().removeItemsFromInfoTabs && RuleManager.isRecipeViewerBlocked(stack))
                 || RuleManager.isInfoBlocked(stack);
+    }
+
+    @Inject(method = "addWorkstation", at = @At("HEAD"), cancellable = true)
+    private void reliable_remover$filterEmiWorkstations(EmiRecipeCategory category, EmiIngredient workstation, CallbackInfo ci) {
+        if (!ModConfig.get().removeItemsFromRecipeViewers) return;
+
+        try {
+            boolean sawStack = false;
+            for (EmiStack emiStack : workstation.getEmiStacks()) {
+                if (emiStack == EmiStack.EMPTY || emiStack.isEmpty()) continue;
+                sawStack = true;
+                if (!reliable_remover$isOutputRemoved(emiStack, false)) return;
+            }
+            if (sawStack) ci.cancel();
+        } catch (Throwable t) {
+            Constants.LOG.warn("Failed to filter EMI workstation for {}, leaving it visible.", category.getId(), t);
+        }
     }
 
     @Inject(method = "addRecipe", at = @At("HEAD"), cancellable = true)

@@ -48,6 +48,7 @@
     "client.PotionTooltipMixin",
     "client.ScreenMixin",
     "emi.EmiScreenManagerMixin",
+    "jeed.JeedEffectInfoMixin",
     "jeed.JeedMixin",
     "jei.KeyboardHandlerJeiMixin",
     "minecraft.ClientPacketListenerMixin",
