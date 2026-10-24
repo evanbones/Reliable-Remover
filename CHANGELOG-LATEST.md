@@ -1,4 +1,3 @@
 ### Fixed
 
-- Removed items no longer show up as EMI workstations.
-- Removed items no longer show up as effect sources on JEED pages.
+- Grindstone recipes for removed enchantments no longer show up in JEI.

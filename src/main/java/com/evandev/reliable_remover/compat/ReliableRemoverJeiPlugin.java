@@ -15,6 +15,11 @@ import mezz.jei.api.ingredients.ITypedIngredient;
 import mezz.jei.api.recipe.*;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.vanilla.IJeiAnvilRecipe;
+//? if >=1.21 {
+import mezz.jei.api.recipe.vanilla.IJeiGrindstoneRecipe;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+//?}
 import mezz.jei.api.recipe.vanilla.IJeiIngredientInfoRecipe;
 import mezz.jei.api.runtime.IIngredientManager;
 import mezz.jei.api.runtime.IJeiRuntime;
@@ -83,6 +88,9 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
             hideRecipesUsing(items, fluids);
             hideInfoRecipes();
             hideAnvilRecipes();
+            //? if >=1.21 {
+            hideGrindstoneRecipes();
+            //?}
 
             hideIngredients(ingredientManager, VanillaTypes.ITEM_STACK, items);
             hideFluids(ingredientManager, fluidType, fluids);
@@ -228,6 +236,34 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
             RESTORE_ACTIONS.add(() -> recipeManager.unhideRecipes(RecipeTypes.ANVIL, toHide));
         }
     }
+
+    //? if >=1.21 {
+    private static void hideGrindstoneRecipes() {
+        IRecipeManager recipeManager = runtime.getRecipeManager();
+        List<IJeiGrindstoneRecipe> toHide = recipeManager.createRecipeLookup(RecipeTypes.GRINDSTONE)
+                .get()
+                .filter(recipe -> allHaveBlockedEnchantment(recipe.getTopInputs())
+                        || allHaveBlockedEnchantment(recipe.getBottomInputs()))
+                .toList();
+
+        if (!toHide.isEmpty()) {
+            recipeManager.hideRecipes(RecipeTypes.GRINDSTONE, toHide);
+            RESTORE_ACTIONS.add(() -> recipeManager.unhideRecipes(RecipeTypes.GRINDSTONE, toHide));
+        }
+    }
+
+    private static boolean allHaveBlockedEnchantment(List<ItemStack> stacks) {
+        List<ItemStack> nonEmpty = stacks.stream().filter(stack -> !stack.isEmpty()).toList();
+        return !nonEmpty.isEmpty() && nonEmpty.stream().allMatch(ReliableRemoverJeiPlugin::hasBlockedEnchantment);
+    }
+
+    private static boolean hasBlockedEnchantment(ItemStack stack) {
+        ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        ItemEnchantments stored = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+        return enchantments.keySet().stream().anyMatch(enchantment -> RuleManager.isEnchantmentBlocked(stack, enchantment))
+                || stored.keySet().stream().anyMatch(enchantment -> RuleManager.isEnchantmentBlocked(stack, enchantment));
+    }
+    //?}
 
     private static boolean allRemoved(List<ItemStack> stacks) {
         return stacks.stream().allMatch(stack -> stack.isEmpty() || RuleManager.isRecipeViewerBlocked(stack));
