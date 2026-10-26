@@ -1,3 +1,3 @@
 ### Fixed
 
-- Grindstone recipes for removed enchantments no longer show up in JEI.
+- Block tags now match items that place a block with a different id.

@@ -20,6 +20,7 @@ import net.minecraft.world.entity.decoration.painting.PaintingVariant;
 //?} else {
 /*import net.minecraft.world.entity.decoration.PaintingVariant;
 *///?}
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
@@ -747,6 +748,11 @@ public class RemovalRule {
                 if (getRegistryHolder(BuiltInRegistries.BLOCK, itemLocation)
                         .map(holder -> holder.is(blockTagKey))
                         .orElse(false)) {
+                    return true;
+                }
+                Item item = stack != null && !stack.isEmpty() ? stack.getItem()
+                        : getRegistryHolder(BuiltInRegistries.ITEM, itemLocation).map(Holder::value).orElse(null);
+                if (item instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(blockTagKey)) {
                     return true;
                 }
                 TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
