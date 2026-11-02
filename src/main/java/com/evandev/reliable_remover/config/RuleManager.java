@@ -30,6 +30,7 @@ import net.minecraft.world.entity.decoration.painting.PaintingVariant;
 //?} else {
 /*import net.minecraft.world.entity.decoration.PaintingVariant;
 *///?}
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 //? if >=1.21 {
@@ -71,6 +72,8 @@ public class RuleManager {
     private static volatile List<String> BLACKLISTED_ITEMS = List.of();
     private static volatile Set<String> CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
     private static final AtomicInteger RULES_GENERATION = new AtomicInteger();
+    private static final Map<Item, Boolean> RECIPE_VIEWER_BLOCKED = new ConcurrentHashMap<>();
+    private static volatile int recipeViewerGeneration = -1;
     private static volatile Runnable CNM_CASCADE_RECOMPUTE_HOOK = null;
     private static final List<Runnable> SYNCED_RULES_CHANGED_HOOKS = new CopyOnWriteArrayList<>();
     private static final AtomicBoolean CREATIVE_TABS_DIRTY = new AtomicBoolean(false);
@@ -805,6 +808,28 @@ public class RuleManager {
 
     public static boolean isRecipeViewerBlocked(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
+        if (hasStackData(stack)) return computeRecipeViewerBlocked(stack);
+        int generation = RULES_GENERATION.get();
+        if (recipeViewerGeneration != generation) {
+            RECIPE_VIEWER_BLOCKED.clear();
+            recipeViewerGeneration = generation;
+        }
+        Boolean cached = RECIPE_VIEWER_BLOCKED.get(stack.getItem());
+        if (cached != null) return cached;
+        boolean blocked = computeRecipeViewerBlocked(stack);
+        if (RULES_GENERATION.get() == generation) RECIPE_VIEWER_BLOCKED.put(stack.getItem(), blocked);
+        return blocked;
+    }
+
+    private static boolean hasStackData(ItemStack stack) {
+        //? if >=1.21 {
+        return !stack.getComponentsPatch().isEmpty();
+        //?} else {
+        /*return stack.hasTag();
+        *///?}
+    }
+
+    private static boolean computeRecipeViewerBlocked(ItemStack stack) {
         if (isHidden(stack)) return true;
         String id = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         RemovalRule rule = getMatchingRule(stack, id, Action.REMOVE_CREATIVE, null, null, null, "creative");
