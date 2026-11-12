@@ -32,9 +32,6 @@ public class RuleParser {
         }
     }
 
-    /**
-     * Parses rules from a file's contents (for rules sent by the server).
-     */
     public static void parseString(String name, String content, Map<Action, List<RemovalRule>> rulesByAction) {
         try {
             parse(new StringReader(content), rulesByAction);

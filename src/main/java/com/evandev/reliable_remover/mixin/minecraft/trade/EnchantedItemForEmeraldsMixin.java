@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft.trade;
 
 //? if <=1.21.1 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -19,7 +19,7 @@ public class EnchantedItemForEmeraldsMixin {
     private void reliable_remover$stripTradeItemEnchantments(Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
         MerchantOffer offer = cir.getReturnValue();
         if (offer != null && !offer.getResult().isEmpty()) {
-            RuleManager.stripBlockedEnchantments(offer.getResult(), trader.level());
+            EnchantmentRules.stripBlockedEnchantments(offer.getResult(), trader.level());
         }
     }
 }

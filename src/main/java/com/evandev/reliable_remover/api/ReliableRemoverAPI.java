@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.api;
 
+import com.evandev.reliable_remover.config.EffectRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import com.evandev.reliable_remover.data.RemovalRule;
@@ -122,18 +123,18 @@ public class ReliableRemoverAPI {
      * Checks if a status effect / mob effect has been blocked.
      */
     public static boolean isEffectBlocked(Holder<MobEffect> effectHolder, Level level, Entity entity) {
-        return RuleManager.isEffectBlocked(effectHolder, level, entity);
+        return EffectRules.isEffectBlocked(effectHolder, level, entity);
     }
 
     /**
      * Checks if a status effect / mob effect has been blocked from creative/JEED/EMI views.
      */
     public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder, Entity entity) {
-        return RuleManager.isEffectCreativeBlocked(effectHolder, entity);
+        return EffectRules.isEffectCreativeBlocked(effectHolder, entity);
     }
 
     public static boolean isEffectCreativeBlocked(Holder<MobEffect> effectHolder) {
-        return RuleManager.isEffectCreativeBlocked(effectHolder);
+        return EffectRules.isEffectCreativeBlocked(effectHolder);
     }
 
     /**

@@ -34,7 +34,7 @@ import java.util.*;
 @JeiPlugin
 public class ReliableRemoverJeiPlugin implements IModPlugin {
     private static final List<Runnable> RESTORE_ACTIONS = new ArrayList<>();
-    private static final boolean TMRV_LOADED = Services.PLATFORM.isModLoaded("toomanyrecipeviewers"); // TMRV locks its JEI registries once plugins finish loading, and hiding is already handled by the EMI mixins
+    private static final boolean HIDING_HANDLED_BY_TMRV = Services.PLATFORM.isModLoaded("toomanyrecipeviewers");
     private static IJeiRuntime runtime;
     private static IIngredientTypeWithSubtypes<Fluid, ?> fluidType;
     private static boolean syncHookRegistered;
@@ -66,7 +66,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
     }
 
     public static void hideItem(ItemStack stack) {
-        if (runtime == null || TMRV_LOADED || stack.isEmpty()) return;
+        if (runtime == null || HIDING_HANDLED_BY_TMRV || stack.isEmpty()) return;
 
         IIngredientManager ingredientManager = runtime.getIngredientManager();
         List<ItemStack> matching = ingredientManager.getAllIngredients(VanillaTypes.ITEM_STACK).stream()
@@ -76,7 +76,7 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
     }
 
     private static void apply() {
-        if (TMRV_LOADED || !ModConfig.get().removeItemsFromRecipeViewers) return;
+        if (HIDING_HANDLED_BY_TMRV || !ModConfig.get().removeItemsFromRecipeViewers) return;
 
         try {
             IIngredientManager ingredientManager = runtime.getIngredientManager();
@@ -120,9 +120,6 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
         return RuleManager.isFluidHidden(BuiltInRegistries.FLUID.getKey(fluid).toString());
     }
 
-    /**
-     * Hides every recipe with an input or output slot that only holds removed ingredients
-     */
     private static void hideRecipesUsing(List<ItemStack> items, List<?> fluids) {
         if (items.isEmpty() && fluids.isEmpty()) return;
 
@@ -198,9 +195,6 @@ public class ReliableRemoverJeiPlugin implements IModPlugin {
         return ingredient.getIngredient(type).map(type::getBase);
     }
 
-    /**
-     * Hides information pages once every item they're about is removed or has its info blocked
-     */
     private static void hideInfoRecipes() {
         IRecipeManager recipeManager = runtime.getRecipeManager();
         boolean hideRemoved = ModConfig.get().removeItemsFromInfoTabs;

@@ -55,9 +55,6 @@ public class EmiRegistryImplMixin {
         return false;
     }
 
-    /^*
-     * True when every stack an informational recipe is about has been removed.
-     ^/
     @Unique
     private static boolean reliable_remover$allSubjectsRemoved(EmiRecipe recipe, boolean isInfoTab) {
         boolean sawSubject = false;

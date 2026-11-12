@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import net.minecraft.world.entity.Entity;
@@ -48,7 +49,7 @@ public abstract class ItemEntityMixin extends Entity {
         if (!this.level().isClientSide() && this.tickCount % 20 == 0) {
             ItemStack stack = this.getItem();
             if (!stack.isEmpty()) {
-                RuleManager.stripBlockedEnchantments(stack);
+                EnchantmentRules.stripBlockedEnchantments(stack);
 
                 ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_DROPS, this.level(), this, "drops");
                 if (replacement != null) {

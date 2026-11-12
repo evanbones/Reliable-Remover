@@ -1,6 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft.loot;
 
-import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.config.EnchantmentRules;
 //? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -24,7 +24,7 @@ public class EnchantRandomlyFunctionMixin {
         ItemStack stack = cir.getReturnValue();
         if (stack == null || stack.isEmpty()) return;
 
-        RuleManager.stripBlockedEnchantments(stack, context != null ? context.getLevel() : null);
+        EnchantmentRules.stripBlockedEnchantments(stack, context != null ? context.getLevel() : null);
 
         if (stack.is(Items.ENCHANTED_BOOK)) {
             //? if >=1.21 {

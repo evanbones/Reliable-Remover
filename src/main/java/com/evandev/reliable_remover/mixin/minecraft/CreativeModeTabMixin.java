@@ -58,7 +58,6 @@ public abstract class CreativeModeTabMixin {
 
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
-        // Rebuild safely instead of relying on modifying potentially unmodifiable collections
         if (this.displayItems != null) {
             //? if >=1.21 {
             Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndComponentsSet();

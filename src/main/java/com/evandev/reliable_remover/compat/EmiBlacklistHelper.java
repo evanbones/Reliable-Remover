@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.compat;
 
 //? if <=1.21.1 {
 /*import com.evandev.reliable_remover.config.ModConfig;
+import com.evandev.reliable_remover.config.EffectRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
@@ -75,7 +76,7 @@ public class EmiBlacklistHelper {
                     Identifier effectId = entry.getKey().identifier();
                     if (id.getPath().contains(effectId.getPath()) || id.toString().contains(effectId.getPath())) {
                         Holder<MobEffect> holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(entry.getValue());
-                        if (RuleManager.isEffectCreativeBlocked(holder)) {
+                        if (EffectRules.isEffectCreativeBlocked(holder)) {
                             return true;
                         }
                     }
@@ -86,10 +87,10 @@ public class EmiBlacklistHelper {
         Object key = stack.getKey();
         if (key instanceof Holder<?> holder && holder.value() instanceof MobEffect effect) {
             Holder<MobEffect> mobEffectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
-            return RuleManager.isEffectCreativeBlocked(mobEffectHolder);
+            return EffectRules.isEffectCreativeBlocked(mobEffectHolder);
         } else if (key instanceof MobEffect effect) {
             Holder<MobEffect> mobEffectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
-            return RuleManager.isEffectCreativeBlocked(mobEffectHolder);
+            return EffectRules.isEffectCreativeBlocked(mobEffectHolder);
         }
 
         ItemStack itemStack = stack.getItemStack();

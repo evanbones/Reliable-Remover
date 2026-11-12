@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft.trade;
 
 //? if >=26.1 {
-import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +33,7 @@ public class VillagerTradeMixin {
                 hadStoredEnchantments = stored != null && !stored.isEmpty();
             }
 
-            RuleManager.stripBlockedEnchantments(result, lootContext != null ? lootContext.getLevel() : null);
+            EnchantmentRules.stripBlockedEnchantments(result, lootContext != null ? lootContext.getLevel() : null);
 
             if (hadStoredEnchantments) {
                 ItemEnchantments enchantments = result.get(DataComponents.STORED_ENCHANTMENTS);

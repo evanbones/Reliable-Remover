@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(ItemFrame.class)
 public abstract class ItemFrameMixin {
 
-    // Covers both placing an item and loading a frame, since readAdditionalSaveData calls setItem
     @ModifyVariable(method = "setItem(Lnet/minecraft/world/item/ItemStack;Z)V", at = @At("HEAD"), argsOnly = true)
     private ItemStack reliable_remover$modifySetItem(ItemStack itemStack) {
         ItemFrame entity = (ItemFrame) (Object) this;

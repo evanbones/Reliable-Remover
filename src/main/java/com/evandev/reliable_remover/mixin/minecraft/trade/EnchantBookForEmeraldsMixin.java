@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.minecraft.trade;
 
 //? if >=1.21 && <=1.21.1 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
@@ -29,7 +29,7 @@ public class EnchantBookForEmeraldsMixin {
 
         ItemStack result = offer.getResult();
         if (result.is(Items.ENCHANTED_BOOK)) {
-            RuleManager.stripBlockedEnchantments(result, trader.level());
+            EnchantmentRules.stripBlockedEnchantments(result, trader.level());
 
             ItemEnchantments enchantments = result.get(DataComponents.STORED_ENCHANTMENTS);
             if (enchantments == null || enchantments.isEmpty()) {
@@ -48,7 +48,7 @@ public class EnchantBookForEmeraldsMixin {
     }
 }
 *///?} else if <1.21 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -72,7 +72,7 @@ public class EnchantBookForEmeraldsMixin {
 
         ItemStack result = offer.getResult();
         if (result.is(Items.ENCHANTED_BOOK)) {
-            RuleManager.stripBlockedEnchantments(result, trader.level());
+            EnchantmentRules.stripBlockedEnchantments(result, trader.level());
 
             if (EnchantedBookItem.getEnchantments(result).isEmpty()) {
                 MerchantOffer replacementOffer = new MerchantOffer(

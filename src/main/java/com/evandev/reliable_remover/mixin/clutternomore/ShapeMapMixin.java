@@ -30,10 +30,6 @@ public class ShapeMapMixin {
     @Unique
     private static boolean reliable_remover$reapplying = false;
 
-    /**
-     * Filter out any mappings where either the parent or the shape itself is hidden by Reliable Remover.
-     * When removeCnmChildren is enabled, also cascades removal to child shapes whose parent is removed.
-     */
     @Inject(method = "setMappings", at = @At("HEAD"))
     private static void reliable_remover$filterRemovedShapes(List<ShapeMap.Mapping> mappings, boolean detailedLogs, CallbackInfo ci) {
         if (reliable_remover$reapplying) return;

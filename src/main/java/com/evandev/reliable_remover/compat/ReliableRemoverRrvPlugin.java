@@ -74,7 +74,6 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
         });
     }
 
-    // Leaves alone items another mod already excluded
     private static void excludeItem(Item item) {
         if (ItemView.isExcludedItem(item)) return;
         ItemView.excludeItem(item);
@@ -130,7 +129,6 @@ public class ReliableRemoverRrvPlugin implements ReliableRecipeViewerClientPlugi
         return true;
     }
 
-    // Intercept method to force a deletion if the text field attempts to steal the focus key
     public static boolean tryDeleteHoveredRrvItem() {
         if (!ModConfig.get().enableRrvRemoval) return false;
 

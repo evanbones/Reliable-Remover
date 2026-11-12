@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.jeed;
 
 //? if >=1.21 && <26.2 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EffectRules;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import net.mehvahdjukaar.jeed.Jeed;
 import net.minecraft.client.Minecraft;
@@ -25,7 +25,7 @@ public class JeedMixin {
         if (originalList != null && !originalList.isEmpty()) {
             List<Holder.Reference<MobEffect>> filteredList = new ArrayList<>(originalList);
             var player = Minecraft.getInstance().player;
-            filteredList.removeIf(holder -> RuleManager.isEffectCreativeBlocked(holder, player));
+            filteredList.removeIf(holder -> EffectRules.isEffectCreativeBlocked(holder, player));
 
             if (filteredList.size() != originalList.size()) {
                 cir.setReturnValue(filteredList);
@@ -34,7 +34,7 @@ public class JeedMixin {
     }
 }
 *///?} else if <1.21 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EffectRules;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import net.mehvahdjukaar.jeed.Jeed;
 import net.minecraft.client.Minecraft;
@@ -57,7 +57,7 @@ public class JeedMixin {
         if (originalList != null && !originalList.isEmpty()) {
             List<MobEffect> filteredList = new ArrayList<>(originalList);
             var player = Minecraft.getInstance().player;
-            filteredList.removeIf(effect -> RuleManager.isEffectCreativeBlocked(effect, player));
+            filteredList.removeIf(effect -> EffectRules.isEffectCreativeBlocked(effect, player));
 
             if (filteredList.size() != originalList.size()) {
                 cir.setReturnValue(filteredList);

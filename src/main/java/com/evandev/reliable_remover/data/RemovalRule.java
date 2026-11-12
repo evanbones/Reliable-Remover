@@ -12,6 +12,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
@@ -107,9 +108,7 @@ public class RemovalRule {
 
     private transient volatile List<Pattern> compiledPatterns;
     private transient volatile List<Predicate<ItemStack>> compiledNbtMatchers;
-    private transient volatile Map<String, TagKey<Item>> compiledItemTags;
-    private transient volatile Map<String, TagKey<Potion>> compiledPotionTags;
-    private transient volatile Map<String, TagKey<Enchantment>> compiledEnchTags;
+    private transient volatile Map<String, TagKey<?>> compiledTags;
     private transient volatile ParsedReplacement compiledReplacement;
     private transient volatile boolean replacementInvalid;
 
@@ -227,9 +226,6 @@ public class RemovalRule {
         return replaceWith != null && !replaceWith.isBlank();
     }
 
-    /**
-     * The item ID portion of {@code replace_with}, without any inline components/NBT.
-     */
     public String getReplacementItemId() {
         if (!hasReplacement()) return null;
         String value = replaceWith.trim();
@@ -241,10 +237,6 @@ public class RemovalRule {
         return value.substring(0, end).trim();
     }
 
-    /**
-     * Builds the replacement for {@code original}: the {@code replace_with} item carrying over the original's
-     * data, with the rule's components ({@code replace_with} suffix and/or {@code replace_components}) applied on top.
-     */
     public ItemStack createReplacement(ItemStack original) {
         ParsedReplacement parsed = getParsedReplacement();
         if (parsed == null) return null;
@@ -353,13 +345,7 @@ public class RemovalRule {
             String cleanTagId = filter.substring(1);
             Identifier tagLocation = Identifier.tryParse(cleanTagId);
             if (tagLocation == null) return false;
-            if (compiledItemTags == null) {
-                synchronized (this) {
-                    if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
-                }
-            }
-            TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
-            return stack != null && !stack.isEmpty() && stack.is(tagKey);
+            return stack != null && !stack.isEmpty() && stack.is(cachedTag(Registries.ITEM, cleanTagId, tagLocation));
         } else {
             return filter.equals(stackItemId);
         }
@@ -416,15 +402,7 @@ public class RemovalRule {
             if (filter.startsWith("#")) {
                 String cleanTagId = filter.substring(1);
                 Identifier tagLocation = Identifier.tryParse(cleanTagId);
-                if (tagLocation != null) {
-                    if (compiledEnchTags == null) {
-                        synchronized (this) {
-                            if (compiledEnchTags == null) compiledEnchTags = new ConcurrentHashMap<>();
-                        }
-                    }
-                    TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
-                    if (holder.is(tagKey)) return true;
-                }
+                if (tagLocation != null && holder.is(cachedTag(Registries.ENCHANTMENT, cleanTagId, tagLocation))) return true;
             } else if (id != null) {
                 if (filter.equals(id)) return true;
                 Identifier filterLoc = Identifier.tryParse(filter);
@@ -474,18 +452,17 @@ public class RemovalRule {
             }
         }
 
-        boolean hasPattern = pattern != null && !pattern.isEmpty();
-        boolean hasPatternList = patterns != null && !patterns.isEmpty();
-        boolean hasTagFilter = tags != null && !tags.isEmpty();
-        boolean hasNbtFilter = nbt != null && !nbt.isEmpty();
-        boolean hasEnchFilter = enchantments != null && !enchantments.isEmpty();
-        boolean hasItemFilter = (items != null && !items.isEmpty()) || (blocks != null && !blocks.isEmpty()) || (fluids != null && !fluids.isEmpty()) || (effects != null && !effects.isEmpty()) || hasEnchFilter || hasPattern || hasPatternList || hasTagFilter;
-        boolean hasModFilter = (mod != null && !mod.isEmpty());
+        boolean hasPattern = notEmpty(pattern);
+        boolean hasPatternList = notEmpty(patterns);
+        boolean hasTagFilter = notEmpty(tags);
+        boolean hasNbtFilter = notEmpty(nbt);
+        boolean hasEnchFilter = notEmpty(enchantments);
+        boolean hasIdFilter = notEmpty(items) || notEmpty(blocks) || notEmpty(fluids) || notEmpty(effects);
+        boolean hasItemFilter = hasIdFilter || hasEnchFilter || hasPattern || hasPatternList || hasTagFilter;
+        boolean hasModFilter = notEmpty(mod);
 
         if (!hasItemFilter && !hasModFilter) {
-            return (dimensions != null && !dimensions.isEmpty()) ||
-                    (entities != null && !entities.isEmpty()) ||
-                    hasNbtFilter;
+            return notEmpty(dimensions) || notEmpty(entities) || hasNbtFilter;
         }
 
         if (hasModFilter) {
@@ -497,121 +474,81 @@ public class RemovalRule {
         Identifier itemLocation = Identifier.tryParse(itemId);
 
         if (currentAction == Action.REMOVE_ENCHANTMENT) {
-            boolean hasEnchExplicit = this.enchantments != null && !this.enchantments.isEmpty();
-            boolean hasItemExplicit = this.items != null && !this.items.isEmpty();
-
-            if (hasEnchExplicit) {
-                boolean enchMatches = false;
-                for (String filter : this.enchantments) {
-                    if (filter.startsWith("#")) {
-                        if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) {
-                            enchMatches = true;
-                            break;
-                        }
-                    } else if (filter.equals(itemId)) {
-                        enchMatches = true;
-                        break;
-                    }
-                }
-                if (!enchMatches) return false;
-
-                if (hasItemExplicit) {
-                    if (stack == null || stack.isEmpty()) return false;
-                    return matchesAnyItem(this.items, stack);
-                }
-                return true;
-            }
-
-            if (hasTagFilter) {
-                boolean tagMatches = false;
-                for (String tagId : tags) {
-                    if (checkTag(tagId, itemLocation, stack, currentAction, registryHolder)) {
-                        tagMatches = true;
-                        break;
-                    }
-                }
-                if (tagMatches) {
-                    if (hasItemExplicit) {
-                        if (stack == null || stack.isEmpty()) return false;
-                        return matchesAnyItem(this.items, stack);
-                    }
-                    return true;
-                }
-            }
-
-            if (hasPattern || hasPatternList) {
-                boolean patternMatches = false;
-                for (Pattern p : getCompiledPatterns(hasPattern, hasPatternList)) {
-                    if (p != null && p.matcher(itemId).matches()) {
-                        patternMatches = true;
-                        break;
-                    }
-                }
-                if (patternMatches) {
-                    if (hasItemExplicit) {
-                        if (stack == null || stack.isEmpty()) return false;
-                        return matchesAnyItem(this.items, stack);
-                    }
-                    return true;
-                }
-            }
-
-            if (hasItemExplicit) {
-                if (matchesAnyItem(this.items, stack)) return true;
-
-                if (this.items.contains(itemId)) return true;
-                for (String filter : this.items) {
-                    if (filter.startsWith("#") && checkTag(filter, itemLocation, stack, currentAction, registryHolder)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return matchesEnchantmentRule(stack, itemId, itemLocation, registryHolder, hasTagFilter, hasPattern, hasPatternList);
         }
 
         if (hasEnchFilter) {
             if (!matchesAnyEnchantment(stack)) return false;
-            boolean hasOtherItemFilter = (items != null && !items.isEmpty()) ||
-                    (blocks != null && !blocks.isEmpty()) ||
-                    (fluids != null && !fluids.isEmpty()) ||
-                    (effects != null && !effects.isEmpty()) ||
-                    hasTagFilter ||
-                    hasPattern ||
-                    hasPatternList;
-            if (!hasOtherItemFilter) return true;
+            if (!hasIdFilter && !hasTagFilter && !hasPattern && !hasPatternList) return true;
         }
 
         for (Set<String> idFilters : Arrays.asList(items, blocks, fluids, effects)) {
-            if (idFilters == null || idFilters.isEmpty()) continue;
-            for (String filter : idFilters) {
-                if (filter.startsWith("#")) {
-                    if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
-                } else if (filter.equals(itemId)) {
-                    return true;
-                }
+            if (idFilters != null && anyIdOrTagMatches(idFilters, itemId, itemLocation, stack, currentAction, registryHolder)) return true;
+        }
+        if (hasTagFilter && anyTagMatches(tags, itemLocation, stack, currentAction, registryHolder)) return true;
+        return (hasPattern || hasPatternList) && anyPatternMatches(itemId, hasPattern, hasPatternList);
+    }
+
+    private boolean matchesEnchantmentRule(ItemStack stack, String itemId, Identifier itemLocation, Holder<?> registryHolder, boolean hasTagFilter, boolean hasPattern, boolean hasPatternList) {
+        boolean hasItemFilter = notEmpty(items);
+
+        if (notEmpty(enchantments)) {
+            if (!anyIdOrTagMatches(enchantments, itemId, itemLocation, stack, Action.REMOVE_ENCHANTMENT, registryHolder)) return false;
+            return !hasItemFilter || stackMatchesAnyItem(stack);
+        }
+        if (hasTagFilter && anyTagMatches(tags, itemLocation, stack, Action.REMOVE_ENCHANTMENT, registryHolder)) {
+            return !hasItemFilter || stackMatchesAnyItem(stack);
+        }
+        if ((hasPattern || hasPatternList) && anyPatternMatches(itemId, hasPattern, hasPatternList)) {
+            return !hasItemFilter || stackMatchesAnyItem(stack);
+        }
+        if (hasItemFilter) {
+            if (matchesAnyItem(items, stack)) return true;
+            if (items.contains(itemId)) return true;
+            for (String filter : items) {
+                if (filter.startsWith("#") && checkTag(filter, itemLocation, stack, Action.REMOVE_ENCHANTMENT, registryHolder)) return true;
             }
         }
-
-        if (hasTagFilter) {
-            for (String tagId : tags) {
-                if (checkTag(tagId, itemLocation, stack, currentAction, registryHolder)) return true;
-            }
-        }
-
-        if (hasPattern || hasPatternList) {
-            for (Pattern p : getCompiledPatterns(hasPattern, hasPatternList)) {
-                if (p != null && p.matcher(itemId).matches()) return true;
-            }
-        }
-
         return false;
     }
 
-    /**
-     * The exact ids this rule can match, when it can only match through them; null when it can match other ids
-     * (tags, patterns, mods, enchantments, or no id filter at all).
-     */
+    private boolean stackMatchesAnyItem(ItemStack stack) {
+        return stack != null && !stack.isEmpty() && matchesAnyItem(items, stack);
+    }
+
+    private boolean anyIdOrTagMatches(Collection<String> filters, String itemId, Identifier itemLocation, ItemStack stack, Action currentAction, Holder<?> registryHolder) {
+        for (String filter : filters) {
+            if (filter.startsWith("#")) {
+                if (checkTag(filter, itemLocation, stack, currentAction, registryHolder)) return true;
+            } else if (filter.equals(itemId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean anyTagMatches(Collection<String> tagIds, Identifier itemLocation, ItemStack stack, Action currentAction, Holder<?> registryHolder) {
+        for (String tagId : tagIds) {
+            if (checkTag(tagId, itemLocation, stack, currentAction, registryHolder)) return true;
+        }
+        return false;
+    }
+
+    private boolean anyPatternMatches(String itemId, boolean hasPattern, boolean hasPatternList) {
+        for (Pattern p : getCompiledPatterns(hasPattern, hasPatternList)) {
+            if (p != null && p.matcher(itemId).matches()) return true;
+        }
+        return false;
+    }
+
+    private static boolean notEmpty(Collection<?> values) {
+        return values != null && !values.isEmpty();
+    }
+
+    private static boolean notEmpty(String value) {
+        return value != null && !value.isEmpty();
+    }
+
     public Set<String> exactIdKeys() {
         if (action == Action.REMOVE_ENCHANTMENT) return null;
         if (mod != null && !mod.isEmpty()) return null;
@@ -661,125 +598,86 @@ public class RemovalRule {
     private boolean checkTag(String tagId, Identifier itemLocation, ItemStack stack, Action currentAction, Holder<?> registryHolder) {
         String cleanTagId = tagId.startsWith("#") ? tagId.substring(1) : tagId;
         Identifier tagLocation = Identifier.tryParse(cleanTagId);
+        if (tagLocation == null || itemLocation == null) return false;
 
-        if (tagLocation != null && itemLocation != null) {
-            if (currentAction == Action.REMOVE_POTION) {
-                if (compiledPotionTags == null) {
-                    synchronized (this) {
-                        if (compiledPotionTags == null) compiledPotionTags = new ConcurrentHashMap<>();
-                    }
-                }
-                TagKey<Potion> tagKey = compiledPotionTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.POTION, tagLocation));
-                if (getRegistryHolder(BuiltInRegistries.POTION, itemLocation)
-                        .map(holder -> holder.is(tagKey))
-                        .orElse(false)) {
-                    return true;
-                }
-                return matchesEffectTag(tagLocation, itemLocation, registryHolder);
-
-            } else if (currentAction == Action.REMOVE_EFFECT) {
-                return matchesEffectTag(tagLocation, itemLocation, registryHolder);
-
-            } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
-                if (registryHolder != null) {
-                    if (compiledEnchTags == null) {
-                        synchronized (this) {
-                            if (compiledEnchTags == null) compiledEnchTags = new ConcurrentHashMap<>();
-                        }
-                    }
-                    TagKey<Enchantment> tagKey = compiledEnchTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ENCHANTMENT, tagLocation));
-                    try {
-                        @SuppressWarnings("unchecked")
-                        Holder<Enchantment> enchHolder = (Holder<Enchantment>) registryHolder;
-                        return enchHolder.is(tagKey);
-                    } catch (ClassCastException e) {
-                        return false;
-                    }
-                }
-                return false;
-
-            } else if (currentAction == Action.REMOVE_PAINTING) {
-                if (registryHolder != null && registryHolder.value() instanceof PaintingVariant) {
-                    @SuppressWarnings("unchecked")
-                    Holder<PaintingVariant> paintingHolder = (Holder<PaintingVariant>) registryHolder;
-                    return paintingHolder.is(TagKey.create(Registries.PAINTING_VARIANT, tagLocation));
-                }
-                return false;
-
-            } else {
-                Set<String> cachedResolved = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
-                if (cachedResolved != null && cachedResolved.contains(itemLocation.toString())) {
-                    return true;
-                }
-
-                if (registryHolder != null) {
-                    if (registryHolder.value() instanceof Block) {
-                        TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
-                        @SuppressWarnings("unchecked")
-                        Holder<Block> blockHolder = (Holder<Block>) registryHolder;
-                        if (blockHolder.is(blockTagKey)) return true;
-                    } else if (registryHolder.value() instanceof MobEffect) {
-                        TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                        @SuppressWarnings("unchecked")
-                        Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
-                        if (effectHolder.is(effectTagKey)) return true;
-                    } else if (registryHolder.value() instanceof Fluid) {
-                        TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
-                        @SuppressWarnings("unchecked")
-                        Holder<Fluid> fluidHolder = (Holder<Fluid>) registryHolder;
-                        if (fluidHolder.is(fluidTagKey)) return true;
-                    }
-                }
-                if (compiledItemTags == null) {
-                    synchronized (this) {
-                        if (compiledItemTags == null) compiledItemTags = new ConcurrentHashMap<>();
-                    }
-                }
-                TagKey<Item> tagKey = compiledItemTags.computeIfAbsent(cleanTagId, k -> TagKey.create(Registries.ITEM, tagLocation));
-                if (stack != null && !stack.isEmpty()) {
-                    if (stack.is(tagKey)) return true;
-                }
-                if (getRegistryHolder(BuiltInRegistries.ITEM, itemLocation)
-                        .map(holder -> holder.is(tagKey))
-                        .orElse(false)) {
-                    return true;
-                }
-                TagKey<Block> blockTagKey = TagKey.create(Registries.BLOCK, tagLocation);
-                if (getRegistryHolder(BuiltInRegistries.BLOCK, itemLocation)
-                        .map(holder -> holder.is(blockTagKey))
-                        .orElse(false)) {
-                    return true;
-                }
-                Item item = stack != null && !stack.isEmpty() ? stack.getItem()
-                        : getRegistryHolder(BuiltInRegistries.ITEM, itemLocation).map(Holder::value).orElse(null);
-                if (item instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(blockTagKey)) {
-                    return true;
-                }
-                TagKey<Fluid> fluidTagKey = TagKey.create(Registries.FLUID, tagLocation);
-                if (getRegistryHolder(BuiltInRegistries.FLUID, itemLocation)
-                        .map(holder -> holder.is(fluidTagKey))
-                        .orElse(false)) {
-                    return true;
-                }
-                TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-                return getRegistryHolder(BuiltInRegistries.MOB_EFFECT, itemLocation)
-                        .map(holder -> holder.is(effectTagKey))
-                        .orElse(false);
-            }
+        if (currentAction == Action.REMOVE_POTION) {
+            return registryEntryIsInTag(BuiltInRegistries.POTION, itemLocation, cachedTag(Registries.POTION, cleanTagId, tagLocation))
+                    || matchesEffectTag(tagLocation, itemLocation, registryHolder);
+        } else if (currentAction == Action.REMOVE_EFFECT) {
+            return matchesEffectTag(tagLocation, itemLocation, registryHolder);
+        } else if (currentAction == Action.REMOVE_ENCHANTMENT) {
+            return matchesEnchantmentTag(cleanTagId, tagLocation, registryHolder);
+        } else if (currentAction == Action.REMOVE_PAINTING) {
+            return registryHolder != null && registryHolder.value() instanceof PaintingVariant
+                    && holderIsInTag(registryHolder, Registries.PAINTING_VARIANT, tagLocation);
         }
-        return false;
+        return matchesItemLikeTag(cleanTagId, tagLocation, itemLocation, stack, registryHolder);
+    }
+
+    private boolean matchesEnchantmentTag(String cleanTagId, Identifier tagLocation, Holder<?> registryHolder) {
+        if (registryHolder == null) return false;
+        TagKey<Enchantment> tagKey = cachedTag(Registries.ENCHANTMENT, cleanTagId, tagLocation);
+        try {
+            @SuppressWarnings("unchecked")
+            Holder<Enchantment> enchHolder = (Holder<Enchantment>) registryHolder;
+            return enchHolder.is(tagKey);
+        } catch (ClassCastException e) {
+            return false;
+        }
+    }
+
+    private boolean matchesItemLikeTag(String cleanTagId, Identifier tagLocation, Identifier itemLocation, ItemStack stack, Holder<?> registryHolder) {
+        Set<String> cachedResolved = RuleManager.EXPANDED_TAGS_CACHE.get(cleanTagId);
+        if (cachedResolved != null && cachedResolved.contains(itemLocation.toString())) return true;
+
+        if (registryHolder != null) {
+            Object value = registryHolder.value();
+            if (value instanceof Block && holderIsInTag(registryHolder, Registries.BLOCK, tagLocation)) return true;
+            if (value instanceof MobEffect && holderIsInTag(registryHolder, Registries.MOB_EFFECT, tagLocation)) return true;
+            if (value instanceof Fluid && holderIsInTag(registryHolder, Registries.FLUID, tagLocation)) return true;
+        }
+
+        TagKey<Item> itemTag = cachedTag(Registries.ITEM, cleanTagId, tagLocation);
+        if (stack != null && !stack.isEmpty() && stack.is(itemTag)) return true;
+        if (registryEntryIsInTag(BuiltInRegistries.ITEM, itemLocation, itemTag)) return true;
+
+        TagKey<Block> blockTag = TagKey.create(Registries.BLOCK, tagLocation);
+        if (registryEntryIsInTag(BuiltInRegistries.BLOCK, itemLocation, blockTag)) return true;
+        Item item = stack != null && !stack.isEmpty() ? stack.getItem()
+                : getRegistryHolder(BuiltInRegistries.ITEM, itemLocation).map(Holder::value).orElse(null);
+        if (item instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(blockTag)) return true;
+
+        return registryEntryIsInTag(BuiltInRegistries.FLUID, itemLocation, TagKey.create(Registries.FLUID, tagLocation))
+                || registryEntryIsInTag(BuiltInRegistries.MOB_EFFECT, itemLocation, TagKey.create(Registries.MOB_EFFECT, tagLocation));
     }
 
     private static boolean matchesEffectTag(Identifier tagLocation, Identifier itemLocation, Holder<?> registryHolder) {
-        TagKey<MobEffect> effectTagKey = TagKey.create(Registries.MOB_EFFECT, tagLocation);
-        if (registryHolder != null && registryHolder.value() instanceof MobEffect) {
-            @SuppressWarnings("unchecked")
-            Holder<MobEffect> effectHolder = (Holder<MobEffect>) registryHolder;
-            if (effectHolder.is(effectTagKey)) return true;
+        if (registryHolder != null && registryHolder.value() instanceof MobEffect
+                && holderIsInTag(registryHolder, Registries.MOB_EFFECT, tagLocation)) {
+            return true;
         }
-        return getRegistryHolder(BuiltInRegistries.MOB_EFFECT, itemLocation)
-                .map(holder -> holder.is(effectTagKey))
-                .orElse(false);
+        return registryEntryIsInTag(BuiltInRegistries.MOB_EFFECT, itemLocation, TagKey.create(Registries.MOB_EFFECT, tagLocation));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> boolean holderIsInTag(Holder<?> holder, ResourceKey<? extends Registry<T>> registry, Identifier tagLocation) {
+        return ((Holder<T>) holder).is(TagKey.create(registry, tagLocation));
+    }
+
+    private static <T> boolean registryEntryIsInTag(Registry<T> registry, Identifier id, TagKey<T> tag) {
+        return getRegistryHolder(registry, id).map(holder -> holder.is(tag)).orElse(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> TagKey<T> cachedTag(ResourceKey<? extends Registry<T>> registry, String cleanTagId, Identifier tagLocation) {
+        Map<String, TagKey<?>> cache = compiledTags;
+        if (cache == null) {
+            synchronized (this) {
+                if (compiledTags == null) compiledTags = new ConcurrentHashMap<>();
+                cache = compiledTags;
+            }
+        }
+        return (TagKey<T>) cache.computeIfAbsent(registry + "|" + cleanTagId, k -> TagKey.create(registry, tagLocation));
     }
 
     private Pattern compile(String regex) {

@@ -29,7 +29,7 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "reliable_recipes"
 mandatory = true
-versionRange = "[3.3.0,)"
+versionRange = "[3.9.0,)"
 ordering = "NONE"
 side = "BOTH"
 

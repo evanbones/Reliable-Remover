@@ -1,5 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
+import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -19,7 +20,7 @@ public class AnvilMenuMixin {
         ItemStack resultStack = menu.getSlot(2).getItem();
 
         if (!resultStack.isEmpty()) {
-            RuleManager.stripBlockedEnchantments(resultStack);
+            EnchantmentRules.stripBlockedEnchantments(resultStack);
             ItemStack replacement = RuleManager.getReplacement(resultStack, Action.REMOVE, null, null, "item");
             if (replacement != null) {
                 menu.getSlot(2).set(replacement);

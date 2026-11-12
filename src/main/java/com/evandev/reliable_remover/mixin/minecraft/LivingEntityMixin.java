@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.util.PlayerMessages;
+import com.evandev.reliable_remover.config.EffectRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import net.minecraft.network.chat.Component;
@@ -62,7 +63,7 @@ public abstract class LivingEntityMixin {
         LivingEntity entity = (LivingEntity) (Object) this;
         if (newEffect == null) return;
 
-        var replacement = RuleManager.getEffectReplacement(newEffect.getEffect(), entity.level(), entity);
+        var replacement = EffectRules.getEffectReplacement(newEffect.getEffect(), entity.level(), entity);
         if (replacement != null) {
             //? if >=1.21 {
             MobEffectInstance replaced = new MobEffectInstance(replacement, newEffect.getDuration(), newEffect.getAmplifier(), newEffect.isAmbient(), newEffect.isVisible(), newEffect.showIcon());
@@ -70,7 +71,7 @@ public abstract class LivingEntityMixin {
             /*MobEffectInstance replaced = new MobEffectInstance(replacement.value(), newEffect.getDuration(), newEffect.getAmplifier(), newEffect.isAmbient(), newEffect.isVisible(), newEffect.showIcon());
             *///?}
             cir.setReturnValue(entity.addEffect(replaced, source));
-        } else if (RuleManager.isEffectBlocked(newEffect.getEffect(), entity.level(), entity)) {
+        } else if (EffectRules.isEffectBlocked(newEffect.getEffect(), entity.level(), entity)) {
             cir.setReturnValue(false);
         }
     }

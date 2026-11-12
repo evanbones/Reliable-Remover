@@ -9,7 +9,7 @@ public class RuleConfigIO {
         if (!blacklist.contains(itemId)) {
             blacklist.add(itemId);
             ModConfig.save();
-            RuleManager.load();
+            RuleManager.reload();
             return true;
         }
         return false;
@@ -20,7 +20,7 @@ public class RuleConfigIO {
         if (blacklist.contains(itemId)) {
             blacklist.remove(itemId);
             ModConfig.save();
-            RuleManager.load();
+            RuleManager.reload();
             return true;
         }
         return false;

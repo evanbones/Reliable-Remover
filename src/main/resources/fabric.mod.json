@@ -40,7 +40,7 @@
         "fabric-api": "*",
         "minecraft": "${minecraft}",
         "java": ">=${java_version}",
-        "reliable_recipes": ">=3.3.0"
+        "reliable_recipes": ">=3.9.0"
     },
     "suggests": {
         "rrv": "*",

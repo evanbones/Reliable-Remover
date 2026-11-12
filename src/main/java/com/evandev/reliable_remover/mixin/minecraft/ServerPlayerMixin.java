@@ -2,6 +2,7 @@ package com.evandev.reliable_remover.mixin.minecraft;
 
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.util.PlayerMessages;
+import com.evandev.reliable_remover.config.EnchantmentRules;
 import com.evandev.reliable_remover.config.RuleManager;
 import com.evandev.reliable_remover.data.Action;
 import com.mojang.authlib.GameProfile;
@@ -43,7 +44,7 @@ public abstract class ServerPlayerMixin extends Player {
             for (int i = 0; i < this.getInventory().getContainerSize(); i++) {
                 ItemStack stack = this.getInventory().getItem(i);
                 if (!stack.isEmpty()) {
-                    RuleManager.stripBlockedEnchantments(stack);
+                    EnchantmentRules.stripBlockedEnchantments(stack);
 
                     ItemStack replacement = RuleManager.getReplacement(stack, Action.REMOVE_INVENTORY, this.level(), this, "inventory");
                     if (replacement != null) {

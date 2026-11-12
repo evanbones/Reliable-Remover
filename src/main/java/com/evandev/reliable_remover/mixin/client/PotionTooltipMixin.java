@@ -1,7 +1,7 @@
 package com.evandev.reliable_remover.mixin.client;
 
 //? if >=1.21 {
-import com.evandev.reliable_remover.config.RuleManager;
+import com.evandev.reliable_remover.config.EffectRules;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,9 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Strips blocked effects from effect tooltips and swaps replaced ones for their replacement
- */
 @Mixin(PotionContents.class)
 public class PotionTooltipMixin {
 
@@ -28,11 +25,11 @@ public class PotionTooltipMixin {
         List<MobEffectInstance> filtered = new ArrayList<>();
         boolean changed = false;
         for (MobEffectInstance effect : effects) {
-            var replacement = RuleManager.getEffectReplacement(effect.getEffect(), level, player);
+            var replacement = EffectRules.getEffectReplacement(effect.getEffect(), level, player);
             if (replacement != null) {
                 changed = true;
                 filtered.add(new MobEffectInstance(replacement, effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.isVisible(), effect.showIcon()));
-            } else if (RuleManager.isEffectBlocked(effect.getEffect(), level, player)) {
+            } else if (EffectRules.isEffectBlocked(effect.getEffect(), level, player)) {
                 changed = true;
             } else {
                 filtered.add(effect);
@@ -47,7 +44,7 @@ public class PotionTooltipMixin {
     }
 }
 //?} else if >=1.20 {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EffectRules;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -70,11 +67,11 @@ public class PotionTooltipMixin {
         List<MobEffectInstance> filtered = new ArrayList<>();
         boolean changed = false;
         for (MobEffectInstance effect : effects) {
-            var replacement = RuleManager.getEffectReplacement(effect.getEffect(), level, player);
+            var replacement = EffectRules.getEffectReplacement(effect.getEffect(), level, player);
             if (replacement != null) {
                 changed = true;
                 filtered.add(new MobEffectInstance(replacement.value(), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.isVisible(), effect.showIcon()));
-            } else if (RuleManager.isEffectBlocked(effect.getEffect(), level, player)) {
+            } else if (EffectRules.isEffectBlocked(effect.getEffect(), level, player)) {
                 changed = true;
             } else {
                 filtered.add(effect);
@@ -89,7 +86,7 @@ public class PotionTooltipMixin {
     }
 }
 *///?} else {
-/*import com.evandev.reliable_remover.config.RuleManager;
+/*import com.evandev.reliable_remover.config.EffectRules;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -121,11 +118,11 @@ public class PotionTooltipMixin {
         List<MobEffectInstance> filtered = new ArrayList<>();
         boolean changed = false;
         for (MobEffectInstance effect : PotionUtils.getMobEffects(stack)) {
-            var replacement = RuleManager.getEffectReplacement(effect.getEffect(), level, player);
+            var replacement = EffectRules.getEffectReplacement(effect.getEffect(), level, player);
             if (replacement != null) {
                 changed = true;
                 filtered.add(new MobEffectInstance(replacement.value(), effect.getDuration(), effect.getAmplifier(), effect.isAmbient(), effect.isVisible(), effect.showIcon()));
-            } else if (RuleManager.isEffectBlocked(effect.getEffect(), level, player)) {
+            } else if (EffectRules.isEffectBlocked(effect.getEffect(), level, player)) {
                 changed = true;
             } else {
                 filtered.add(effect);

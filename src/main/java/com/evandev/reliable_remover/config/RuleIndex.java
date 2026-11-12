@@ -5,9 +5,6 @@ import com.evandev.reliable_remover.data.RemovalRule;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Rules for one action, indexed by the ids they name
- */
 final class RuleIndex {
     private final int[] general;
     private final Map<String, int[]> keyed;
