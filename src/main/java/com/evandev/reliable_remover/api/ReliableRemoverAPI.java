@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
@@ -26,6 +27,16 @@ public class ReliableRemoverAPI {
      */
     public static boolean isItemHidden(ItemStack stack) {
         return RuleManager.isHidden(stack);
+    }
+
+    /**
+     * Checks if the given item has been globally hidden/removed, judged by its id and tags alone.
+     *
+     * @param item The item to check.
+     * @return True if the item is configured to be removed, false otherwise.
+     */
+    public static boolean isItemHidden(Item item) {
+        return RuleManager.isHidden(item);
     }
 
     /**
@@ -73,6 +84,16 @@ public class ReliableRemoverAPI {
 
     public static boolean isLootBlocked(ItemStack stack) {
         return RuleManager.isLootBlocked(stack);
+    }
+
+    /**
+     * Checks if the given item has been removed from loot, judged by its id and tags alone.
+     *
+     * @param item The item to check.
+     * @return True if the item is configured to be removed from loot, false otherwise.
+     */
+    public static boolean isLootBlocked(Item item) {
+        return RuleManager.isLootBlocked(item);
     }
 
     public static boolean isLootBlocked(ItemStack stack, LootParams params) {

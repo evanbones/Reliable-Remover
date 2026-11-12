@@ -161,6 +161,14 @@ public class RuleManager {
         return isHidden(stack, null, null, "item");
     }
 
+    public static boolean isHidden(Item item) {
+        return isItemRemoved(itemId(item), "item");
+    }
+
+    private static boolean isItemRemoved(String id, String context) {
+        return isGloballyRemoved(id) || checkRules(null, id, Action.REMOVE, null, null, null, context);
+    }
+
     public static boolean isHidden(ItemStack stack, String context) {
         return isHidden(stack, null, null, context);
     }
@@ -314,6 +322,19 @@ public class RuleManager {
             if (checkRules(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot")) return true;
         }
         return checkRules(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
+    }
+
+    public static boolean isLootBlocked(Item item) {
+        if (item == Items.AIR || !ModConfig.get().removeItemsFromLootChests) return false;
+        String id = itemId(item);
+        if (isItemRemoved(id, "loot")) return true;
+        RemovalRule replacing = getLootRule(null, id, null, null);
+        if (replacing != null && replacing.hasReplacement()) return false;
+
+        if (isInChestFill()) {
+            if (checkRules(null, id, Action.REMOVE_CHEST_LOOT, null, null, null, "chest_loot")) return true;
+        }
+        return checkRules(null, id, Action.REMOVE_LOOT, null, null, null, "loot");
     }
 
     private static Entity getLootEntity(LootParams context) {
@@ -493,14 +514,17 @@ public class RuleManager {
         if (stack == null || stack.isEmpty() || !ModConfig.get().removeItemsFromLootChests) return null;
         String id = itemId(stack);
         String dim = dimensionId(context != null ? context.getLevel() : null);
-        Entity entity = getLootEntity(context);
+        RemovalRule rule = getLootRule(stack, id, dim, getLootEntity(context));
+        return rule != null ? rule.createReplacement(stack) : null;
+    }
+
+    private static RemovalRule getLootRule(ItemStack stack, String id, String dim, Entity entity) {
         RemovalRule rule = null;
         if (isInChestFill())
             rule = getMatchingRule(stack, id, Action.REMOVE_CHEST_LOOT, dim, entity, null, "chest_loot");
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE_LOOT, dim, entity, null, "loot");
         if (rule == null) rule = getMatchingRule(stack, id, Action.REMOVE, dim, entity, null, "item");
-
-        return rule != null ? rule.createReplacement(stack) : null;
+        return rule;
     }
 
     private static boolean isBlockedUnlessReplaced(ItemStack stack, Action action, Level level, Entity holder, String context) {
@@ -535,7 +559,11 @@ public class RuleManager {
     }
 
     private static String itemId(ItemStack stack) {
-        return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+        return itemId(stack.getItem());
+    }
+
+    private static String itemId(Item item) {
+        return BuiltInRegistries.ITEM.getKey(item).toString();
     }
 
     public static HolderLookup.Provider getRegistries() {
