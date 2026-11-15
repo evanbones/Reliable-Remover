@@ -36,7 +36,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Mixin(value = CreativeModeTab.class, priority = 10000)
@@ -58,12 +60,8 @@ public abstract class CreativeModeTabMixin {
 
         if (!ModConfig.get().removeItemsFromCreativeTabs) return;
 
-        if (this.displayItems != null) {
-            //? if >=1.21 {
-            Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndComponentsSet();
-            //?} else {
-            /*Collection<ItemStack> filtered = ItemStackLinkedSet.createTypeAndTagSet();
-            *///?}
+        if (this.displayItems != null && this.displayItems.stream().anyMatch(RuleManager::isCreativeBlocked)) {
+            List<ItemStack> filtered = new ArrayList<>(this.displayItems.size());
             for (ItemStack stack : this.displayItems) {
                 if (!RuleManager.isCreativeBlocked(stack)) {
                     filtered.add(stack);
