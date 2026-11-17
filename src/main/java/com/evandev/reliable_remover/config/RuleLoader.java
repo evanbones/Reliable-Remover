@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 public class RuleLoader {
     private static final String SYNCED_BLACKLIST_PATH = "../reliable_remover.json";
 
-    record LoadedRules(Map<Action, List<RemovalRule>> rulesByAction, Set<String> globallyBanned, List<String> blacklist) {
+    record LoadedRules(Map<Action, List<RemovalRule>> rulesByAction, Set<String> globallyBanned, List<String> blacklist, Set<String> remoteCnmCascade) {
     }
 
     static LoadedRules load(Collection<List<RemovalRule>> dynamicRules, boolean validate) {
@@ -32,6 +32,7 @@ public class RuleLoader {
         List<ConfigSync.SyncedFile> remoteFiles = ConfigSync.getRemoteFiles(Constants.MOD_ID);
         boolean usingRemoteFiles = remoteFiles != null;
         List<String> blacklist = usingRemoteFiles ? parseRemoteFiles(remoteFiles, rulesByAction) : parseLocalFiles(rulesByAction);
+        Set<String> remoteCnmCascade = usingRemoteFiles ? parseRemoteCnmCascade(remoteFiles) : null;
 
         if (validate) {
             validateRules(rulesByAction);
@@ -47,7 +48,7 @@ public class RuleLoader {
 
         Set<String> globallyBanned = ConcurrentHashMap.newKeySet();
         moveUnconditionalRemovalsToBanList(rulesByAction, globallyBanned);
-        return new LoadedRules(rulesByAction, globallyBanned, blacklist);
+        return new LoadedRules(rulesByAction, globallyBanned, blacklist, remoteCnmCascade);
     }
 
     private static List<String> parseRemoteFiles(List<ConfigSync.SyncedFile> remoteFiles, Map<Action, List<RemovalRule>> rulesByAction) {
@@ -151,8 +152,27 @@ public class RuleLoader {
         }
         JsonObject root = new JsonObject();
         root.add("blacklistedItems", items);
+        JsonArray cascade = new JsonArray();
+        for (String item : RuleManager.getCnmCascadeRemoved()) cascade.add(item);
+        root.add("cnmCascade", cascade);
         files.add(new ConfigSync.SyncedFile(SYNCED_BLACKLIST_PATH, root.toString()));
         return files;
+    }
+
+    private static Set<String> parseRemoteCnmCascade(List<ConfigSync.SyncedFile> remoteFiles) {
+        Set<String> cascade = ConcurrentHashMap.newKeySet();
+        for (ConfigSync.SyncedFile file : remoteFiles) {
+            if (!file.path().equals(SYNCED_BLACKLIST_PATH)) continue;
+            try {
+                JsonObject root = JsonParser.parseString(file.content()).getAsJsonObject();
+                if (root.has("cnmCascade")) {
+                    for (JsonElement item : root.getAsJsonArray("cnmCascade")) cascade.add(item.getAsString());
+                }
+            } catch (Exception e) {
+                Constants.LOG.error("Failed to read Clutter No More removals from server", e);
+            }
+        }
+        return cascade;
     }
 
     private static List<String> parseSyncedBlacklist(String content) {

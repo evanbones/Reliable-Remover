@@ -103,7 +103,7 @@ public class RuleManager {
             GLOBALLY_BANNED_ITEMS.addAll(blacklist);
         }
         BLACKLISTED_ITEMS = blacklist != null ? List.copyOf(blacklist) : List.of();
-        CNM_CASCADE_REMOVED = ConcurrentHashMap.newKeySet();
+        CNM_CASCADE_REMOVED = loaded.remoteCnmCascade() != null ? loaded.remoteCnmCascade() : ConcurrentHashMap.newKeySet();
 
         int ruleCount = RULES_BY_ACTION.values().stream().mapToInt(List::size).sum() + GLOBALLY_BANNED_ITEMS.size();
         Constants.LOG.info("Loaded {} reliable remover rules.", ruleCount);
@@ -601,6 +601,10 @@ public class RuleManager {
 
     public static void registerCnmCascadeRecompute(Runnable hook) {
         CNM_CASCADE_RECOMPUTE_HOOK = hook;
+    }
+
+    public static Set<String> getCnmCascadeRemoved() {
+        return CNM_CASCADE_REMOVED;
     }
 
     public static void setCnmCascadeRemoved(Set<String> items) {

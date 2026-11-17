@@ -1,3 +1,4 @@
 ### Fixed
 
-- Fixed creative tabs that pad rows with empty slots (e.g. Create: Loconautics, Create: Warnautics CE) having their layout scrambled when items were removed from creative tabs.
+- Fixed Clutter No More shapes of removed blocks staying visible in recipe viewers and creative tabs for players on a
+  dedicated server.
