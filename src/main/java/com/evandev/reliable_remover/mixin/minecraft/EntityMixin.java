@@ -4,7 +4,6 @@ package com.evandev.reliable_remover.mixin.minecraft;
 /*import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.RuleManager;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@IfMinecraftVersion(maxVersion = "1.21.1", maxInclusive = true)
 @Mixin(Entity.class)
 public abstract class EntityMixin {
 
@@ -33,13 +31,4 @@ public abstract class EntityMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import net.minecraft.world.entity.Entity;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@Mixin(Entity.class)
-public abstract class EntityMixin {
-}
-//?}
+*///?}

@@ -4,14 +4,12 @@ package com.evandev.reliable_remover.mixin.rrv;
 import cc.cassian.rrv.common.overlay.itemlist.AbstractRrvItemListOverlay;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@IfMinecraftVersion(minVersion = "26.1")
 @IfModLoaded("rrv")
 @Mixin(value = AbstractRrvItemListOverlay.class, remap = false)
 public class AbstractRrvItemListOverlayMixin {
@@ -26,16 +24,4 @@ public class AbstractRrvItemListOverlayMixin {
         }
     }
 }
-//?} else {
-/*import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
-
-@IfMinecraftVersion(minVersion = "26.1")
-@IfModLoaded("rrv")
-@Pseudo
-@Mixin(targets = "cc.cassian.rrv.common.overlay.itemlist.AbstractRrvItemListOverlay", remap = false)
-public class AbstractRrvItemListOverlayMixin {
-}
-*///?}
+//?}

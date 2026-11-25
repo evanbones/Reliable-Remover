@@ -37,8 +37,14 @@ public class EmiBlacklistHelper {
 
     private static boolean computeRemoved(EmiStack stack) {
         if (isEmiStackBlacklisted(stack)) return true;
+        if (isEffectStack(stack)) return false;
         ItemStack itemStack = stack.getItemStack();
         return itemStack != null && !itemStack.isEmpty() && RuleManager.isRecipeViewerBlocked(itemStack);
+    }
+
+    private static boolean isEffectStack(EmiStack stack) {
+        Object key = stack.getKey();
+        return key instanceof MobEffect || (key instanceof Holder<?> holder && holder.value() instanceof MobEffect);
     }
 
     public static void onReload() {

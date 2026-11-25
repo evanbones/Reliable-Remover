@@ -65,12 +65,4 @@ public class JeedMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfModLoaded("jeed")
-@Mixin(targets = "net.mehvahdjukaar.jeed.Jeed", remap = false)
-public class JeedMixin {
-}
-//?}
+*///?}

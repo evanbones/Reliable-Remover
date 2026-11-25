@@ -2,7 +2,6 @@ package com.evandev.reliable_remover.mixin.emi;
 
 //? if >=1.21 && <26.1 {
 /*import com.evandev.reliable_remover.config.RuleManager;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import fzzyhmstrs.emi_loot.parser.LootTableParser;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.List;
 
-@IfMinecraftVersion(maxVersion = "1.21.1", maxInclusive = true)
 @IfModLoaded("emi_loot")
 @Mixin(LootTableParser.class)
 public class LootTableParserMixin {
@@ -130,14 +128,4 @@ public class LootTableParserMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@IfModLoaded("emi_loot")
-@Mixin(targets = "fzzyhmstrs.emi_loot.parser.LootTableParser", remap = false)
-public class LootTableParserMixin {
-}
-//?}
+*///?}

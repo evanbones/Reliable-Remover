@@ -4,7 +4,6 @@ package com.evandev.reliable_remover.mixin.emi;
 /*import com.evandev.reliable_remover.compat.EmiBlacklistHelper;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
@@ -21,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@IfMinecraftVersion(maxVersion = "1.21.1", maxInclusive = true)
 @IfModLoaded("emi")
 @Mixin(value = EmiTags.class, remap = false)
 public class EmiTagsMixin {
@@ -74,14 +72,4 @@ public class EmiTagsMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@IfModLoaded("emi")
-@Mixin(targets = "dev.emi.emi.registry.EmiTags", remap = false)
-public class EmiTagsMixin {
-}
-//?}
+*///?}

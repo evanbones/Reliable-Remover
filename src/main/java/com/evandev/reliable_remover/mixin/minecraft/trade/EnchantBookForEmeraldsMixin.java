@@ -2,7 +2,6 @@ package com.evandev.reliable_remover.mixin.minecraft.trade;
 
 //? if >=1.21 && <=1.21.1 {
 /*import com.evandev.reliable_remover.config.EnchantmentRules;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -18,7 +17,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
-@IfMinecraftVersion(maxVersion = "1.21.1")
 @Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$EnchantBookForEmeralds")
 public class EnchantBookForEmeraldsMixin {
 
@@ -49,7 +47,6 @@ public class EnchantBookForEmeraldsMixin {
 }
 *///?} else if <1.21 {
 /*import com.evandev.reliable_remover.config.EnchantmentRules;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.EnchantedBookItem;
@@ -61,7 +58,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@IfMinecraftVersion(maxVersion = "1.21.1")
 @Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$EnchantBookForEmeralds")
 public class EnchantBookForEmeraldsMixin {
 
@@ -88,12 +84,4 @@ public class EnchantBookForEmeraldsMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$EnchantBookForEmeralds")
-public class EnchantBookForEmeraldsMixin {
-}
-//?}
+*///?}

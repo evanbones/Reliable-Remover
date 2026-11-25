@@ -1,14 +1,6 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
-//? if <1.19.3 {
-/*import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Pseudo;
-
-@Pseudo
-@Mixin(targets = "net.minecraft.world.item.CreativeModeTabs")
-public abstract class CreativeModeTabsMixin {
-}
-*///?} else {
+//? if >=1.19.3 {
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.flag.FeatureFlagSet;

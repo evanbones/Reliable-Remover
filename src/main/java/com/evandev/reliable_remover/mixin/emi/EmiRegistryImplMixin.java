@@ -5,7 +5,6 @@ package com.evandev.reliable_remover.mixin.emi;
 import com.evandev.reliable_remover.compat.EmiBlacklistHelper;
 import com.evandev.reliable_remover.config.ModConfig;
 import com.evandev.reliable_remover.config.RuleManager;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
@@ -21,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@IfMinecraftVersion(maxVersion = "1.21.1", maxInclusive = true)
 @IfModLoaded("emi")
 @Mixin(value = EmiRegistryImpl.class, remap = false)
 public class EmiRegistryImplMixin {
@@ -152,14 +150,4 @@ public class EmiRegistryImplMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@IfModLoaded("emi")
-@Mixin(targets = "dev.emi.emi.registry.EmiRegistryImpl", remap = false)
-public class EmiRegistryImplMixin {
-}
-//?}
+*///?}

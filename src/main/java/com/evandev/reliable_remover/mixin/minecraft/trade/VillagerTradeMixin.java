@@ -2,7 +2,6 @@ package com.evandev.reliable_remover.mixin.minecraft.trade;
 
 //? if >=26.1 {
 import com.evandev.reliable_remover.config.EnchantmentRules;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -16,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@IfMinecraftVersion(minVersion = "26.1")
 @Mixin(VillagerTrade.class)
 public class VillagerTradeMixin {
 
@@ -53,12 +51,4 @@ public class VillagerTradeMixin {
         }
     }
 }
-//?} else {
-/*import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(minVersion = "26.1")
-@Mixin(targets = "net.minecraft.world.item.trading.VillagerTrade")
-public class VillagerTradeMixin {
-}
-*///?}
+//?}

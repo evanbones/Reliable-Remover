@@ -6,7 +6,6 @@ import com.evandev.reliable_remover.client.Keybinds;
 import com.evandev.reliable_remover.client.ServerCommands;
 import com.evandev.reliable_remover.util.PlayerMessages;
 import com.evandev.reliable_remover.config.ModConfig;
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
 import com.moulberry.mixinconstraints.annotations.IfModLoaded;
 import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.stack.EmiIngredient;
@@ -21,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@IfMinecraftVersion(maxVersion = "1.21.1", maxInclusive = true)
 @IfModLoaded("emi")
 @Mixin(value = EmiScreenManager.class, remap = false)
 public class EmiScreenManagerMixin {
@@ -67,14 +65,4 @@ public class EmiScreenManagerMixin {
         }
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import com.moulberry.mixinconstraints.annotations.IfModLoaded;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.21.1")
-@IfModLoaded("emi")
-@Mixin(targets = "dev.emi.emi.screen.EmiScreenManager", remap = false)
-public class EmiScreenManagerMixin {
-}
-//?}
+*///?}

@@ -1,20 +1,16 @@
 package com.evandev.reliable_remover.mixin.minecraft;
 
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import org.spongepowered.asm.mixin.Mixin;
-
 //? if <=26.2 {
 import com.evandev.reliable_remover.config.RuleManager;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionBrewing;
+import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-//?}
 
-@IfMinecraftVersion(maxVersion = "26.2", maxInclusive = true)
-@Mixin(targets = "net.minecraft.world.item.alchemy.PotionBrewing")
+@Mixin(PotionBrewing.class)
 public abstract class PotionBrewingMixin {
 
     //? if <1.21 {
@@ -37,7 +33,7 @@ public abstract class PotionBrewingMixin {
             cir.setReturnValue(source);
         }
     }
-    *///?} else if <=26.2 {
+    *///?} else {
     @Shadow
     public abstract ItemStack mix(ItemStack ingredient, ItemStack source);
 
@@ -62,3 +58,4 @@ public abstract class PotionBrewingMixin {
     }
     //?}
 }
+//?}

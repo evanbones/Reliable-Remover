@@ -33,13 +33,4 @@ public abstract class CreativeModeInventoryScreenMixin {
         ((CreativeModeInventoryScreen) (Object) this).getMenu().items.removeIf(RuleManager::isCreativeBlocked);
     }
 }
-*///?} else {
-import com.moulberry.mixinconstraints.annotations.IfMinecraftVersion;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import org.spongepowered.asm.mixin.Mixin;
-
-@IfMinecraftVersion(maxVersion = "1.19.2")
-@Mixin(CreativeModeInventoryScreen.class)
-public abstract class CreativeModeInventoryScreenMixin {
-}
-//?}
+*///?}
